@@ -1,0 +1,478 @@
+DATA PRIVACY AND PROTECTION POLICY
+
+Document Information
+Title: Data Privacy and Protection Policy
+Version: 2.1
+Effective Date: January 1, 2026
+Last Review: December 15, 2025
+Next Review: December 2026
+Owner: Chief Information Security Officer
+Classification: Company Confidential
+
+TABLE OF CONTENTS
+1. Purpose and Scope
+2. Definitions
+3. Data Protection Principles
+4. Roles and Responsibilities
+5. Lawful Basis for Processing
+6. Data Subject Rights
+7. Data Collection and Use
+8. Data Storage and Retention
+9. Data Security
+10. Data Sharing and Transfers
+11. Breach Management
+12. Training and Awareness
+13. Monitoring and Compliance
+14. Policy Review and Updates
+
+1. PURPOSE AND SCOPE
+
+1.1 Purpose
+This policy establishes the framework for protecting personal data collected, processed, stored, and transmitted by the organization in compliance with applicable data protection laws including GDPR, CCPA, and other relevant regulations.
+
+1.2 Scope
+This policy applies to:
+- All employees, contractors, consultants, and temporary staff
+- All personal data processed by or on behalf of the organization
+- All systems, applications, and processes that handle personal data
+- All geographical locations where the organization operates
+
+1.3 Legal Framework
+This policy ensures compliance with:
+- General Data Protection Regulation (GDPR) - EU Regulation 2016/679
+- California Consumer Privacy Act (CCPA) and CPRA
+- Health Insurance Portability and Accountability Act (HIPAA) - where applicable
+- Other applicable national and international data protection laws
+
+2. DEFINITIONS
+
+2.1 Personal Data
+Any information relating to an identified or identifiable natural person including:
+- Direct identifiers: name, ID numbers, email address, phone number
+- Online identifiers: IP addresses, cookies, device IDs
+- Location data: GPS coordinates, postal addresses
+- Biometric data: fingerprints, facial recognition data
+- Financial information: bank account details, credit card numbers
+- Health information: medical records, insurance information
+- Employment data: salary, performance reviews, disciplinary records
+
+2.2 Special Categories of Personal Data (Sensitive Data)
+Data requiring enhanced protection including:
+- Racial or ethnic origin
+- Political opinions
+- Religious or philosophical beliefs
+- Trade union membership
+- Genetic data
+- Biometric data for identification purposes
+- Health data
+- Sex life or sexual orientation data
+
+2.3 Data Processing
+Any operation performed on personal data including collection, recording, organization, structuring, storage, adaptation, retrieval, consultation, use, disclosure, transmission, restriction, erasure, or destruction.
+
+2.4 Data Controller
+The entity that determines the purposes and means of processing personal data. In most cases, this organization acts as the Data Controller.
+
+2.5 Data Processor
+Any entity that processes personal data on behalf of the Data Controller, such as cloud service providers, payroll processors, or marketing agencies.
+
+2.6 Data Subject
+The individual to whom personal data relates.
+
+3. DATA PROTECTION PRINCIPLES
+
+The organization adheres to the following principles when processing personal data:
+
+3.1 Lawfulness, Fairness, and Transparency
+- Process data lawfully, fairly, and in a transparent manner
+- Provide clear information about data processing activities
+- Be open and honest about data use
+
+3.2 Purpose Limitation
+- Collect data for specified, explicit, and legitimate purposes
+- Do not process data for purposes incompatible with original collection purpose
+- Document the purpose for each data processing activity
+
+3.3 Data Minimization
+- Collect only data that is adequate, relevant, and necessary
+- Avoid collecting excessive or unnecessary information
+- Regularly review data collection practices
+
+3.4 Accuracy
+- Keep personal data accurate and up to date
+- Take reasonable steps to correct or delete inaccurate data
+- Implement processes for data subjects to update their information
+
+3.5 Storage Limitation
+- Retain personal data only as long as necessary for the stated purpose
+- Implement data retention schedules
+- Securely delete or anonymize data when no longer needed
+
+3.6 Integrity and Confidentiality (Security)
+- Implement appropriate technical and organizational measures
+- Protect against unauthorized access, loss, or damage
+- Ensure ongoing confidentiality, integrity, and availability
+
+3.7 Accountability
+- Demonstrate compliance with data protection principles
+- Maintain documentation of processing activities
+- Implement appropriate policies and procedures
+
+4. ROLES AND RESPONSIBILITIES
+
+4.1 Data Protection Officer (DPO)
+Responsibilities:
+- Monitor compliance with data protection laws and this policy
+- Provide advice on data protection impact assessments
+- Act as contact point for data subjects and supervisory authorities
+- Report directly to senior management
+Contact: dpo@company.com
+
+4.2 Senior Management
+- Ensure adequate resources for data protection compliance
+- Approve data protection policies and procedures
+- Oversee data protection program effectiveness
+- Foster a culture of data protection
+
+4.3 Department Heads
+- Ensure compliance within their departments
+- Identify and report data protection risks
+- Implement privacy by design in new projects
+- Ensure staff receive appropriate training
+
+4.4 IT Department
+- Implement technical security measures
+- Manage access controls and authentication
+- Monitor systems for security incidents
+- Ensure secure data backup and recovery
+
+4.5 All Employees
+- Comply with this policy and related procedures
+- Protect personal data in their care
+- Report suspected breaches immediately
+- Complete mandatory data protection training
+
+5. LAWFUL BASIS FOR PROCESSING
+
+Personal data must be processed based on at least one of the following lawful bases:
+
+5.1 Consent
+- Freely given, specific, informed, and unambiguous indication of agreement
+- Must be as easy to withdraw as to give
+- Documented and verifiable
+- Not used for employment-related processing due to power imbalance
+
+5.2 Contract
+- Processing is necessary for contract performance or to take steps before entering a contract
+- Common for customer and supplier relationships
+
+5.3 Legal Obligation
+- Processing is necessary to comply with legal requirements
+- Examples: tax obligations, employment law, health and safety
+
+5.4 Vital Interests
+- Processing is necessary to protect someone's life
+- Rarely applicable outside healthcare settings
+
+5.5 Public Task
+- Processing is necessary for performing a task in the public interest or official authority
+- Typically applies to public sector organizations
+
+5.6 Legitimate Interests
+- Processing is necessary for legitimate interests pursued by the organization or third party
+- Must balance against data subject's rights and interests
+- Requires documented Legitimate Interests Assessment (LIA)
+
+6. DATA SUBJECT RIGHTS
+
+The organization respects and facilitates the following rights:
+
+6.1 Right to Be Informed
+- Provide privacy notices at point of data collection
+- Explain processing purposes, legal basis, retention periods, and rights
+- Make information easily accessible
+
+6.2 Right of Access
+- Provide copies of personal data upon request
+- Respond within 30 days (may extend by 60 days if complex)
+- First copy is free; reasonable fees for additional copies
+
+6.3 Right to Rectification
+- Correct inaccurate personal data within 30 days
+- Complete incomplete data where relevant
+
+6.4 Right to Erasure ("Right to be Forgotten")
+- Delete personal data when:
+  * No longer necessary for original purpose
+  * Consent is withdrawn and no other legal basis exists
+  * Processing is unlawful
+  * Legal obligation requires deletion
+- Exceptions apply (e.g., legal claims, public interest)
+
+6.5 Right to Restrict Processing
+- Suspend processing in certain circumstances:
+  * Accuracy is contested
+  * Processing is unlawful but deletion is not desired
+  * Data is no longer needed but required for legal claims
+  * Legitimate interests assessment is pending
+
+6.6 Right to Data Portability
+- Provide data in structured, commonly used, machine-readable format
+- Transmit directly to another controller where technically feasible
+- Applies to data processed based on consent or contract
+
+6.7 Right to Object
+- Object to processing based on legitimate interests or public task
+- Object to direct marketing at any time
+- Must stop processing unless compelling legitimate grounds exist
+
+6.8 Rights Related to Automated Decision Making
+- Not be subject to decisions based solely on automated processing that produces legal or similarly significant effects
+- Request human intervention in automated decisions
+- Explain automated decision-making logic
+
+6.9 Rights Request Process
+- Submit requests via email: privacy@company.com or online portal
+- Verify identity before responding to requests
+- Respond within statutory timeframes
+- Document all requests and responses
+
+7. DATA COLLECTION AND USE
+
+7.1 Privacy by Design
+- Consider data protection from the outset of new projects
+- Implement technical and organizational measures
+- Minimize data collection by default
+- Conduct Data Protection Impact Assessments (DPIAs) for high-risk processing
+
+7.2 Privacy Notices
+Provide clear information including:
+- Identity of the Data Controller
+- Purpose of processing
+- Legal basis for processing
+- Categories of personal data collected
+- Recipients or categories of recipients
+- International transfers (if applicable)
+- Retention periods
+- Data subject rights
+- Right to lodge a complaint with supervisory authority
+
+7.3 Consent Management
+When relying on consent:
+- Use clear, plain language
+- Separate consent from other terms and conditions
+- Use opt-in mechanisms (pre-ticked boxes are prohibited)
+- Keep records of consent (who, when, what was told, how consent was given)
+- Make withdrawal as easy as giving consent
+
+7.4 Children's Data
+- Enhanced protection for children under 16 (or lower age per local law)
+- Obtain parental consent for online services
+- Use age-appropriate language in privacy notices
+- Minimize data collection from children
+
+8. DATA STORAGE AND RETENTION
+
+8.1 Data Retention Schedule
+Personal data is retained as follows:
+
+Employee Records:
+- Active employment: Duration of employment + 7 years
+- Recruitment records (unsuccessful): 6 months
+- Payroll records: 7 years after end of financial year
+- Performance records: 5 years after employment end
+
+Customer Records:
+- Active customers: Duration of relationship + 7 years
+- Inactive customers: 3 years after last interaction
+- Marketing data: Until consent withdrawn or 5 years of inactivity
+
+Financial Records:
+- Transaction records: 7 years
+- Tax records: 7 years after tax year end
+- Audit records: 7 years
+
+8.2 Secure Deletion
+- Use secure deletion methods (e.g., DoD 5220.22-M standard)
+- Destroy physical media containing sensitive data
+- Obtain certificates of destruction from third-party providers
+- Document destruction activities
+
+8.3 Data Storage Locations
+- Primary data storage: [Specify locations/cloud providers]
+- Backup locations: [Specify backup sites]
+- Encryption required for data at rest and in transit
+- Access restricted based on need-to-know principle
+
+9. DATA SECURITY
+
+9.1 Access Controls
+- Implement role-based access control (RBAC)
+- Use strong authentication (multi-factor where possible)
+- Review access rights quarterly
+- Revoke access immediately upon termination
+
+9.2 Encryption
+- Encrypt personal data in transit (minimum TLS 1.2)
+- Encrypt personal data at rest (AES-256 or equivalent)
+- Encrypt mobile devices and removable media
+- Manage encryption keys securely
+
+9.3 Network Security
+- Use firewalls and intrusion detection systems
+- Segment networks to isolate sensitive data
+- Regular security patching and updates
+- Monitor for suspicious activity
+
+9.4 Physical Security
+- Restrict physical access to data centers and file storage
+- Use visitor logs and escort procedures
+- Implement clean desk policy
+- Secure disposal of paper records (shredding)
+
+9.5 Data Backup
+- Regular automated backups
+- Store backups securely with encryption
+- Test restoration procedures regularly
+- Maintain backup logs
+
+10. DATA SHARING AND TRANSFERS
+
+10.1 Third-Party Processors
+- Conduct due diligence before engagement
+- Require contractual data processing agreements
+- Specify processing instructions
+- Audit processor compliance regularly
+- Maintain register of processors
+
+10.2 International Data Transfers
+When transferring personal data outside the EU/EEA:
+- Ensure adequate level of protection
+- Use appropriate safeguards:
+  * Standard Contractual Clauses (SCCs)
+  * Binding Corporate Rules (BCRs)
+  * Adequacy decisions
+- Conduct Transfer Impact Assessments
+- Document transfer mechanisms
+
+10.3 Data Sharing Log
+Maintain records of data sharing including:
+- Recipients
+- Categories of data shared
+- Purpose of sharing
+- Legal basis
+- Date and duration
+
+11. BREACH MANAGEMENT
+
+11.1 Breach Definition
+A personal data breach is a security incident leading to accidental or unlawful destruction, loss, alteration, unauthorized disclosure, or access to personal data.
+
+11.2 Breach Response Procedure
+Upon discovering a breach:
+1. Contain: Take immediate action to contain the breach
+2. Assess: Evaluate the severity and potential impact
+3. Notify: Report to DPO within 2 hours
+4. Document: Record details in breach register
+5. Investigate: Determine root cause
+6. Remediate: Implement corrective measures
+7. Review: Conduct lessons learned session
+
+11.3 Notification Requirements
+Notify supervisory authority within 72 hours if breach is likely to result in risk to individuals' rights and freedoms.
+
+Notify affected data subjects without undue delay if breach is likely to result in high risk.
+
+11.4 Breach Documentation
+Document all breaches including:
+- Facts of the breach
+- Effects and consequences
+- Remedial action taken
+- Whether notification was required
+
+12. TRAINING AND AWARENESS
+
+12.1 Mandatory Training
+- All employees: Annual data protection training
+- New hires: Training within first month
+- High-risk roles: Specialized training
+- Refresher training when policy changes significantly
+
+12.2 Training Topics
+- Data protection principles
+- Individual rights
+- Security best practices
+- Breach reporting
+- Role-specific responsibilities
+
+12.3 Awareness Programs
+- Regular privacy tips and reminders
+- Privacy awareness campaigns
+- Incident simulations and tabletop exercises
+- Privacy champions program
+
+13. MONITORING AND COMPLIANCE
+
+13.1 Audits and Assessments
+- Annual privacy program audit
+- Periodic DPIA reviews
+- Third-party processor audits
+- Penetration testing
+- Vulnerability assessments
+
+13.2 Key Performance Indicators
+- Number of data subject requests
+- Request response times
+- Training completion rates
+- Number of data breaches
+- Audit findings and remediation status
+
+13.3 Documentation
+Maintain records of:
+- Processing activities (Article 30 records)
+- DPIAs
+- Consent records
+- Data sharing agreements
+- Breach incidents
+- Training records
+- Audit reports
+
+14. POLICY REVIEW AND UPDATES
+
+This policy is reviewed annually or when:
+- Significant changes to processing activities occur
+- New laws or regulations are enacted
+- Material data breach occurs
+- Significant technological changes happen
+- Organizational restructuring occurs
+
+CONTACT INFORMATION
+
+Data Protection Officer
+Email: dpo@company.com
+Phone: +1-555-0100
+
+Privacy Team
+Email: privacy@company.com
+
+To Exercise Your Rights:
+Submit requests via privacy portal: https://privacy.company.com
+Or email: privacy.requests@company.com
+
+Supervisory Authority
+[Name of relevant data protection authority]
+Website: [Authority website]
+
+APPROVAL AND VERSION CONTROL
+
+Approved by: Chief Information Security Officer
+Date: December 15, 2025
+Version: 2.1
+Document ID: SEC-POL-003-2026
+Next Review Date: December 2026
+
+Change History:
+- v2.1 (Jan 2026): Updated for CPRA compliance
+- v2.0 (Jan 2024): Major revision for GDPR
+- v1.5 (Jan 2022): Added breach procedures
+- v1.0 (Jan 2020): Initial version

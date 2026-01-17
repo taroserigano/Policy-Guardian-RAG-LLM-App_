@@ -1,0 +1,14 @@
+# Additional dependencies for Phase 2 - Production Features
+# Install with: pip install -r requirements-phase2.txt
+
+# Vector Database (Local - ChromaDB) - Use 0.5.x for prebuilt wheels
+chromadb>=0.5.20
+
+# Sentence Transformers for embeddings
+sentence-transformers>=2.3.1
+
+# Database (SQLite bundled with Python, SQLAlchemy already in requirements.txt)
+aiosqlite>=0.19.0
+
+# Text Processing
+tiktoken>=0.5.2

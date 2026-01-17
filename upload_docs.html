@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Upload Sample Documents</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 50px auto;
+        padding: 20px;
+        background: #f5f5f5;
+      }
+      .container {
+        background: white;
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      h1 {
+        color: #333;
+        margin-bottom: 20px;
+      }
+      button {
+        background: #4caf50;
+        color: white;
+        padding: 12px 24px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+        margin-right: 10px;
+      }
+      button:hover {
+        background: #45a049;
+      }
+      button:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+      }
+      .log {
+        margin-top: 20px;
+        padding: 15px;
+        background: #f9f9f9;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        max-height: 400px;
+        overflow-y: auto;
+        font-family: monospace;
+        font-size: 14px;
+      }
+      .success {
+        color: #4caf50;
+      }
+      .error {
+        color: #f44336;
+      }
+      .info {
+        color: #2196f3;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>📄 Upload Sample Policy Documents</h1>
+      <p>
+        Click the button below to upload pre-generated policy and contract
+        documents to the system.
+      </p>
+
+      <button id="uploadBtn" onclick="uploadDocuments()">
+        Upload All Documents
+      </button>
+      <button onclick="clearLog()">Clear Log</button>
+
+      <div id="log" class="log"></div>
+    </div>
+
+    <script>
+      const API_BASE = "http://localhost:8001";
+      const logElement = document.getElementById("log");
+      const uploadBtn = document.getElementById("uploadBtn");
+
+      function log(message, type = "info") {
+        const timestamp = new Date().toLocaleTimeString();
+        const line = document.createElement("div");
+        line.className = type;
+        line.textContent = `[${timestamp}] ${message}`;
+        logElement.appendChild(line);
+        logElement.scrollTop = logElement.scrollHeight;
+      }
+
+      function clearLog() {
+        logElement.innerHTML = "";
+      }
+
+      const sampleDocuments = [
+        {
+          name: "employee_leave_policy.txt",
+          content: `EMPLOYEE LEAVE POLICY
+Effective Date: January 1, 2026
+
+1. ANNUAL LEAVE
+All full-time employees are entitled to 20 days of paid annual leave per calendar year.
+Leave accrues at 1.67 days per month and must be approved at least 2 weeks in advance.
+Up to 5 days of unused leave may be carried over to the next year.
+
+2. SICK LEAVE
+Employees receive 10 days of paid sick leave annually.
+Medical certificates required for absences exceeding 3 consecutive days.
+Must notify supervisor on first day of illness.
+
+3. PARENTAL LEAVE
+Maternity Leave: 16 weeks (8 weeks paid at 100%)
+Paternity Leave: 2 weeks paid
+Requires 8 weeks notice before intended start date.
+
+4. COMPASSIONATE LEAVE
+Immediate family: 5 days paid
+Extended family: 2 days paid
+Additional unpaid leave may be granted.
+
+5. STUDY LEAVE
+Eligible after 2 years of service
+Up to 5 days paid leave for work-related courses
+Company may reimburse 75% of course fees upon completion.
+
+For questions: hr@company.com | Extension 5500`,
+        },
+        {
+          name: "remote_work_policy.txt",
+          content: `REMOTE WORK POLICY
+Version 2.0 - Effective January 1, 2026
+
+ELIGIBILITY
+- 6 months of service required
+- Consistent performance record
+- Appropriate home workspace with reliable internet
+
+WORK ARRANGEMENTS
+- Hybrid: Up to 2 days remote per week
+- Full Remote: 3+ days requires department head approval
+- Must be available during core hours (9 AM - 4 PM)
+
+EQUIPMENT PROVIDED
+- Laptop computer
+- Monitor (for full remote workers)
+- Keyboard, mouse, headset
+- $500 home office stipend for full remote
+- $75 monthly internet stipend for full remote
+
+SECURITY REQUIREMENTS
+- Use VPN for all work activities
+- Lock computer when stepping away
+- No public Wi-Fi for work
+- Encrypt sensitive data
+- Comply with security policies
+
+COMMUNICATION
+- Daily check-ins required
+- Video camera on for team meetings
+- Response within 2 hours during business hours
+- Use Teams, Slack, SharePoint
+
+PERFORMANCE
+- Same standards as in-office employees
+- Quarterly reviews first year
+- May require in-office attendance for meetings/events
+
+Contact: remotecontact@company.com`,
+        },
+        {
+          name: "data_privacy_policy.txt",
+          content: `DATA PRIVACY AND PROTECTION POLICY
+Version 2.1 - Effective January 1, 2026
+
+PURPOSE
+Framework for protecting personal data in compliance with GDPR, CCPA, and other regulations.
+
+DATA PROTECTION PRINCIPLES
+1. Lawfulness, Fairness, Transparency
+2. Purpose Limitation
+3. Data Minimization
+4. Accuracy
+5. Storage Limitation
+6. Integrity and Confidentiality
+7. Accountability
+
+DATA SUBJECT RIGHTS
+- Right to be informed
+- Right of access (respond within 30 days)
+- Right to rectification
+- Right to erasure ("right to be forgotten")
+- Right to restrict processing
+- Right to data portability
+- Right to object
+- Rights related to automated decision making
+
+RETENTION PERIODS
+Employee Records: Employment + 7 years
+Customer Records: Relationship + 7 years  
+Financial Records: 7 years
+Marketing Data: Until consent withdrawn or 5 years inactivity
+
+SECURITY MEASURES
+- Role-based access control (RBAC)
+- Multi-factor authentication
+- Encryption (TLS 1.2+, AES-256)
+- Regular security audits
+- Incident response procedures
+
+BREACH NOTIFICATION
+- Notify DPO within 2 hours of discovery
+- Notify supervisory authority within 72 hours
+- Notify affected individuals if high risk
+
+INTERNATIONAL TRANSFERS
+- Use Standard Contractual Clauses (SCCs)
+- Conduct Transfer Impact Assessments
+- Ensure adequate protection
+
+Contact: dpo@company.com | privacy@company.com
+Document ID: SEC-POL-003-2026`,
+        },
+        {
+          name: "non_disclosure_agreement.txt",
+          content: `NON-DISCLOSURE AGREEMENT (NDA)
+
+This Agreement protects confidential and proprietary information.
+
+CONFIDENTIAL INFORMATION INCLUDES:
+- Technical Information: designs, specifications, software code, algorithms
+- Business Information: plans, strategies, financial data, customer lists
+- Proprietary Information: trade secrets, patents, trademarks
+- Personal Information: employee records, compensation data
+
+OBLIGATIONS
+- Hold information in strict confidence
+- Use reasonable care to protect (same as own confidential info)
+- No disclosure to third parties without written consent
+- Limit access to those with legitimate need to know
+- No reverse engineering of prototypes or software
+
+USE RESTRICTIONS
+- Use solely for stated purpose
+- No other use without prior written consent
+- Immediately notify of any unauthorized use or disclosure
+
+RETURN OF MATERIALS
+Upon request or termination:
+- Return all documents and materials
+- Delete all electronic copies
+- Provide written certification within 10 business days
+
+TERM
+- Agreement continues for 3 years
+- Confidentiality obligations survive 5 years from disclosure
+- Trade secrets remain confidential indefinitely
+
+REMEDIES
+- Breach may cause irreparable harm
+- Entitled to equitable relief including injunction
+- Indemnification for losses from breach
+
+GENERAL
+- Governed by applicable state/country law
+- May not be assigned without consent
+- Entire agreement supersedes prior understandings
+- Amendments must be in writing
+
+NO SOLICITATION
+During term and 12 months after, receiving party shall not solicit employees 
+who had access to confidential information.
+
+Document ID: LEGAL-NDA-STANDARD-2026`,
+        },
+      ];
+
+      async function uploadDocuments() {
+        uploadBtn.disabled = true;
+        log("Starting upload of sample documents...", "info");
+        log("", "info");
+
+        let successCount = 0;
+        let failCount = 0;
+
+        for (const doc of sampleDocuments) {
+          try {
+            log(`Uploading: ${doc.name}...`, "info");
+
+            // Create a blob and form data
+            const blob = new Blob([doc.content], { type: "text/plain" });
+            const formData = new FormData();
+            formData.append("file", blob, doc.name);
+
+            // Upload to API
+            const response = await fetch(`${API_BASE}/api/documents/upload`, {
+              method: "POST",
+              body: formData,
+            });
+
+            if (response.ok) {
+              const result = await response.json();
+              log(
+                `✅ Success: ${doc.name} (ID: ${result.id?.substring(
+                  0,
+                  8
+                )}...)`,
+                "success"
+              );
+              successCount++;
+            } else {
+              const error = await response.text();
+              log(
+                `❌ Failed: ${doc.name} - Status ${response.status}`,
+                "error"
+              );
+              failCount++;
+            }
+          } catch (error) {
+            log(`❌ Error uploading ${doc.name}: ${error.message}`, "error");
+            failCount++;
+          }
+
+          // Small delay between uploads
+          await new Promise((resolve) => setTimeout(resolve, 300));
+        }
+
+        log("", "info");
+        log(
+          `Upload complete! Success: ${successCount}, Failed: ${failCount}`,
+          failCount === 0 ? "success" : "error"
+        );
+
+        if (successCount > 0) {
+          log("", "info");
+          log("✅ Documents are now available in the application!", "success");
+          log("💬 Try asking questions like:", "info");
+          log("   • What is the annual leave entitlement?", "info");
+          log("   • How many days can I work remotely?", "info");
+          log("   • What are the data retention requirements?", "info");
+          log("   • Explain NDA confidentiality obligations", "info");
+        }
+
+        uploadBtn.disabled = false;
+      }
+
+      // Auto-check backend on load
+      window.addEventListener("load", async () => {
+        try {
+          const response = await fetch(`${API_BASE}/health`);
+          if (response.ok) {
+            log("✅ Backend API is running", "success");
+            log("Ready to upload documents!", "info");
+          } else {
+            log("⚠️  Backend API returned error", "error");
+          }
+        } catch (error) {
+          log("❌ Cannot connect to backend at " + API_BASE, "error");
+          log("Please make sure the backend server is running", "error");
+          uploadBtn.disabled = true;
+        }
+      });
+    </script>
+  </body>
+</html>

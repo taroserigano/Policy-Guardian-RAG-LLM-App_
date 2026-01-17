@@ -1,0 +1,227 @@
+REMOTE WORK POLICY
+Version 2.0
+Effective Date: January 1, 2026
+
+PURPOSE
+This policy establishes guidelines for remote work arrangements to support employee flexibility while maintaining operational effectiveness and team collaboration.
+
+SCOPE
+This policy applies to all employees who have been approved for remote work arrangements, whether permanent, hybrid, or temporary.
+
+1. ELIGIBILITY
+
+1.1 General Requirements
+Employees must have:
+- Completed at least 6 months of service
+- Demonstrated consistent performance meeting or exceeding expectations
+- A role suitable for remote work that does not require regular in-person presence
+- Appropriate home workspace with reliable internet connectivity
+
+1.2 Manager Approval
+All remote work arrangements require written approval from the employee's direct manager and HR.
+
+1.3 Probationary Period
+Employees on probationary status are generally not eligible for remote work arrangements unless specifically approved.
+
+2. REMOTE WORK ARRANGEMENTS
+
+2.1 Hybrid Schedule
+Employees may work remotely up to 2 days per week. Remote days must be consistent week-to-week and scheduled in advance through the workforce management system.
+
+2.2 Full Remote
+Full remote work (3+ days per week) requires additional approval from department head and is evaluated based on:
+- Business needs and team requirements
+- Role responsibilities and client interaction needs
+- Performance history
+- Team collaboration requirements
+
+2.3 Temporary Remote Work
+Short-term remote work may be approved for special circumstances (e.g., home repairs, temporary relocation, health reasons) for up to 4 weeks.
+
+3. WORK SCHEDULE AND AVAILABILITY
+
+3.1 Core Hours
+Remote workers must be available during core business hours (9:00 AM - 4:00 PM local time) unless alternative arrangements are approved.
+
+3.2 Response Time
+Employees must respond to emails, calls, and messages within the same timeframes expected of in-office workers (typically within 2 hours during business hours).
+
+3.3 Calendar Updates
+Remote workers must maintain accurate calendars indicating their availability, including breaks and lunch periods.
+
+3.4 Meeting Attendance
+Participation in scheduled meetings is mandatory. Camera should be enabled for team meetings unless technical issues prevent this.
+
+4. WORKSPACE REQUIREMENTS
+
+4.1 Dedicated Workspace
+Employees must have a dedicated, quiet workspace free from distractions and suitable for confidential work and video calls.
+
+4.2 Internet Connectivity
+Minimum requirements:
+- Download speed: 25 Mbps
+- Upload speed: 10 Mbps
+- Stable connection with backup option (mobile hotspot)
+
+4.3 Ergonomics
+Employees are responsible for setting up an ergonomic workspace. The company provides a one-time $500 home office stipend for approved full remote workers.
+
+5. EQUIPMENT AND TECHNOLOGY
+
+5.1 Company-Provided Equipment
+The company provides:
+- Laptop computer
+- Monitor (for full remote workers)
+- Keyboard and mouse
+- Headset
+- VPN access credentials
+
+5.2 Software and Tools
+Required software and collaboration tools will be provided and maintained by IT. Employees must not install unauthorized software on company devices.
+
+5.3 Technical Support
+IT support is available during business hours. Response times for remote workers match in-office support (2-4 hours for non-critical issues).
+
+5.4 Equipment Return
+All company equipment must be returned within 5 business days of employment termination or if the remote work arrangement ends.
+
+6. SECURITY AND CONFIDENTIALITY
+
+6.1 Data Protection
+Employees must:
+- Use VPN for all work-related activities
+- Lock computers when stepping away
+- Ensure confidential materials are not visible to others
+- Use secure file sharing methods only
+- Never use public Wi-Fi for work purposes
+
+6.2 Document Security
+Physical documents containing confidential information must be stored securely and shredded when no longer needed.
+
+6.3 Privacy
+Ensure that work conversations and video calls cannot be overheard by household members or others.
+
+6.4 Compliance
+Remote workers must comply with all company policies including the Information Security Policy, Acceptable Use Policy, and Code of Conduct.
+
+7. COMMUNICATION AND COLLABORATION
+
+7.1 Daily Check-ins
+Teams should establish daily check-in protocols (e.g., morning stand-ups, end-of-day updates).
+
+7.2 Collaboration Tools
+Primary tools:
+- Video conferencing: Microsoft Teams
+- Instant messaging: Slack
+- Project management: As designated by team
+- Document sharing: SharePoint/OneDrive
+
+7.3 Over-communication
+Remote workers should err on the side of over-communicating status updates, progress, and potential blockers.
+
+7.4 In-Person Requirements
+Remote workers may be required to attend in-office for:
+- Team meetings and planning sessions (with 1 week notice)
+- Training and development programs
+- Company events (with 2 weeks notice)
+- Client meetings when necessary
+
+8. PERFORMANCE AND ACCOUNTABILITY
+
+8.1 Performance Standards
+Remote workers are held to the same performance standards as in-office employees. Performance is measured by results, not hours logged.
+
+8.2 Regular Reviews
+Remote work arrangements will be reviewed quarterly for the first year, then annually. Continuation is based on:
+- Meeting performance expectations
+- Maintaining productivity levels
+- Effective communication and collaboration
+- Compliance with this policy
+
+8.3 Productivity Monitoring
+The company may use productivity tracking tools to ensure work is being performed. Employees will be notified of any monitoring tools in use.
+
+9. TIME TRACKING AND EXPENSES
+
+9.1 Time Recording
+All hours worked must be accurately recorded in the time tracking system. Overtime requires pre-approval.
+
+9.2 Business Expenses
+Approved business expenses incurred while working remotely are reimbursable per the company's expense policy.
+
+9.3 Utilities and Internet
+The company does not reimburse personal utility bills or home internet costs for hybrid workers. Full remote workers receive a monthly stipend of $75 for internet.
+
+10. HEALTH AND SAFETY
+
+10.1 Workplace Safety
+Employees are responsible for maintaining a safe home workspace and must report any work-related injuries immediately.
+
+10.2 Workers' Compensation
+Remote workers are covered by workers' compensation insurance during working hours in their designated workspace.
+
+10.3 Ergonomic Assessments
+Virtual ergonomic assessments are available upon request through HR.
+
+11. WORK-LIFE BALANCE
+
+11.1 Right to Disconnect
+Employees are not expected to respond to work communications outside of their scheduled work hours unless in a designated on-call role.
+
+11.2 Breaks
+Remote workers should take regular breaks similar to in-office schedules, including lunch breaks.
+
+11.3 Boundary Setting
+Employees are encouraged to maintain clear boundaries between work and personal life.
+
+12. TERMINATION OF REMOTE WORK
+
+12.1 Company Discretion
+The company reserves the right to modify or terminate remote work arrangements at any time with 30 days notice, based on business needs.
+
+12.2 Performance Issues
+Remote work privileges may be revoked immediately if:
+- Performance falls below expectations
+- Policy violations occur
+- Security breaches happen
+- Communication standards are not met
+
+12.3 Voluntary Return
+Employees may request to return to in-office work at any time with 2 weeks notice.
+
+13. INTERNATIONAL REMOTE WORK
+
+13.1 Restrictions
+Remote work from international locations requires special approval and is subject to:
+- Tax implications
+- Legal and compliance requirements
+- Time zone considerations
+- Equipment and support limitations
+
+13.2 Approval Process
+International remote work requests must be submitted at least 3 months in advance to HR and Legal for evaluation.
+
+14. POLICY COMPLIANCE AND VIOLATIONS
+
+Violations of this policy may result in:
+- Written warning
+- Suspension of remote work privileges
+- Performance improvement plan
+- Termination of employment (for serious violations)
+
+15. POLICY UPDATES
+
+This policy is subject to change based on business needs, legal requirements, and best practices. Employees will be notified of material changes with at least 30 days notice.
+
+QUESTIONS AND SUPPORT
+For questions about this policy, contact:
+- HR Department: remotecontact@company.com
+- IT Support: itsupport@company.com
+- Facilities: facilities@company.com
+
+ACKNOWLEDGMENT
+All employees working remotely must sign an acknowledgment that they have read, understood, and agree to comply with this Remote Work Policy.
+
+Policy Owner: Chief People Officer
+Document ID: HR-POL-002-2026
+Classification: Company Confidential

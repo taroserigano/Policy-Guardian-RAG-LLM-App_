@@ -1,0 +1,208 @@
+NON-DISCLOSURE AGREEMENT (NDA)
+
+This Non-Disclosure Agreement ("Agreement") is entered into as of _____________ ("Effective Date")
+
+BETWEEN:
+
+[Company Name]
+Address: _______________________________
+("Disclosing Party")
+
+AND:
+
+[Recipient Name]
+Address: _______________________________
+("Receiving Party")
+
+RECITALS
+
+WHEREAS, the Disclosing Party possesses certain confidential and proprietary information related to its business operations, technology, products, services, and strategies;
+
+WHEREAS, the Receiving Party desires to receive such Confidential Information for the purpose of [Purpose: evaluating a potential business relationship/employment/consulting engagement];
+
+WHEREAS, the parties wish to protect the confidentiality of such information;
+
+NOW, THEREFORE, in consideration of the mutual covenants and agreements contained herein, the parties agree as follows:
+
+1. DEFINITION OF CONFIDENTIAL INFORMATION
+
+1.1 "Confidential Information" means any and all information, whether written, oral, electronic, visual, or in any other form, disclosed by the Disclosing Party to the Receiving Party, including but not limited to:
+
+(a) Technical Information: designs, specifications, software code, algorithms, formulas, processes, inventions, research and development data, engineering data, and technical know-how;
+
+(b) Business Information: business plans, strategies, financial information, pricing, customer lists, supplier information, marketing plans, sales data, and forecasts;
+
+(c) Proprietary Information: trade secrets, patents, copyrights, trademarks, and other intellectual property;
+
+(d) Personal Information: employee records, compensation data, and personally identifiable information;
+
+(e) Any other information designated as "Confidential," "Proprietary," or with similar marking.
+
+1.2 Confidential Information does not include information that:
+
+(a) Is or becomes publicly available through no breach of this Agreement by the Receiving Party;
+
+(b) Was rightfully in the Receiving Party's possession prior to disclosure by the Disclosing Party;
+
+(c) Is rightfully received by the Receiving Party from a third party without breach of any confidentiality obligation;
+
+(d) Is independently developed by the Receiving Party without use of or reference to the Confidential Information;
+
+(e) Is required to be disclosed by law, regulation, or court order (provided that the Receiving Party gives prompt notice to allow the Disclosing Party to seek protective measures).
+
+2. OBLIGATIONS OF RECEIVING PARTY
+
+2.1 Confidentiality
+The Receiving Party agrees to:
+
+(a) Hold all Confidential Information in strict confidence;
+
+(b) Use the same degree of care to protect Confidential Information as it uses for its own confidential information, but in no event less than reasonable care;
+
+(c) Not disclose Confidential Information to any third party without prior written consent of the Disclosing Party;
+
+(d) Limit access to Confidential Information to employees, contractors, or advisors who have a legitimate need to know and who are bound by confidentiality obligations at least as restrictive as this Agreement.
+
+2.2 Use Restrictions
+The Receiving Party shall use Confidential Information solely for the Purpose stated above and shall not use it for any other purpose without prior written consent.
+
+2.3 No Reverse Engineering
+The Receiving Party shall not reverse engineer, disassemble, or decompile any prototypes, software, samples, or other tangible objects containing or embodying Confidential Information.
+
+2.4 Notice of Breach
+The Receiving Party shall immediately notify the Disclosing Party of any unauthorized use or disclosure of Confidential Information and shall cooperate in remedying such breach.
+
+3. OWNERSHIP AND RETURN OF MATERIALS
+
+3.1 Ownership
+All Confidential Information remains the sole property of the Disclosing Party. No license or rights are granted to the Receiving Party except as expressly set forth herein.
+
+3.2 Return or Destruction
+Upon written request by the Disclosing Party, or upon termination of discussions between the parties, the Receiving Party shall:
+
+(a) Promptly return all documents, materials, and other tangible items containing Confidential Information;
+
+(b) Delete or destroy all electronic copies of Confidential Information;
+
+(c) Provide written certification of compliance with the above within 10 business days.
+
+3.3 Exceptions
+The Receiving Party may retain one copy of Confidential Information in its legal files solely for the purpose of determining its obligations under this Agreement, provided such copy remains subject to this Agreement's confidentiality obligations.
+
+4. NO GUARANTEE OF ACCURACY
+
+The Disclosing Party makes no representation or warranty regarding the accuracy or completeness of Confidential Information. The Receiving Party assumes all risk related to its use of such information.
+
+5. NO OBLIGATION TO DISCLOSE
+
+Nothing in this Agreement obligates the Disclosing Party to disclose any particular Confidential Information or to continue discussions or enter into any other agreement.
+
+6. NO LICENSE GRANTED
+
+This Agreement does not grant the Receiving Party any license, interest, or rights in any patents, copyrights, trade secrets, or other intellectual property, except the limited right to review Confidential Information for the Purpose stated herein.
+
+7. TERM AND TERMINATION
+
+7.1 Term
+This Agreement shall commence on the Effective Date and continue for a period of three (3) years, unless terminated earlier by either party upon thirty (30) days written notice.
+
+7.2 Survival
+The obligations regarding Confidential Information shall survive termination of this Agreement for a period of five (5) years from the date of disclosure, except for trade secrets which shall remain confidential indefinitely or until they cease to qualify as trade secrets.
+
+8. REMEDIES
+
+8.1 Irreparable Harm
+The parties acknowledge that breach of this Agreement may cause irreparable harm for which monetary damages would be an inadequate remedy.
+
+8.2 Equitable Relief
+The Disclosing Party shall be entitled to seek equitable relief, including injunction and specific performance, in addition to all other remedies available at law or in equity.
+
+8.3 Indemnification
+The Receiving Party agrees to indemnify and hold harmless the Disclosing Party from any losses, damages, costs, or expenses (including reasonable attorneys' fees) arising from any breach of this Agreement.
+
+9. GENERAL PROVISIONS
+
+9.1 Governing Law
+This Agreement shall be governed by and construed in accordance with the laws of [State/Country], without regard to its conflict of law provisions.
+
+9.2 Jurisdiction
+The parties consent to the exclusive jurisdiction of the courts located in [County/City, State] for any disputes arising under this Agreement.
+
+9.3 Entire Agreement
+This Agreement constitutes the entire agreement between the parties regarding the subject matter herein and supersedes all prior agreements, understandings, and communications.
+
+9.4 Amendments
+This Agreement may only be amended or modified by a written document signed by authorized representatives of both parties.
+
+9.5 Waiver
+No waiver of any provision of this Agreement shall be deemed or shall constitute a waiver of any other provision, nor shall any waiver constitute a continuing waiver.
+
+9.6 Severability
+If any provision of this Agreement is held to be invalid or unenforceable, the remaining provisions shall continue in full force and effect.
+
+9.7 Assignment
+Neither party may assign this Agreement without the prior written consent of the other party, except that either party may assign this Agreement to a successor in connection with a merger, acquisition, or sale of substantially all assets.
+
+9.8 Counterparts
+This Agreement may be executed in counterparts, each of which shall be deemed an original and all of which together shall constitute one instrument.
+
+9.9 Notices
+All notices under this Agreement shall be in writing and delivered by:
+(a) Personal delivery
+(b) Certified or registered mail, return receipt requested
+(c) Recognized overnight courier service
+(d) Email with confirmation of receipt
+
+Notices to Disclosing Party:
+Address: _______________________________
+Email: _________________________________
+Attention: _____________________________
+
+Notices to Receiving Party:
+Address: _______________________________
+Email: _________________________________
+Attention: _____________________________
+
+9.10 Independent Contractors
+The parties are independent contractors. This Agreement does not create any partnership, joint venture, employment, or agency relationship.
+
+10. EXPORT CONTROL
+
+The Receiving Party acknowledges that Confidential Information may be subject to export control laws and regulations. The Receiving Party agrees to comply with all applicable export laws and shall not export or re-export Confidential Information without required government authorizations.
+
+11. NO SOLICITATION
+
+During the term of this Agreement and for a period of twelve (12) months thereafter, the Receiving Party shall not directly or indirectly solicit for employment any employee of the Disclosing Party who had access to Confidential Information.
+
+IN WITNESS WHEREOF, the parties have executed this Agreement as of the Effective Date.
+
+DISCLOSING PARTY:
+
+By: _________________________________
+Name: _______________________________
+Title: ______________________________
+Date: _______________________________
+
+
+RECEIVING PARTY:
+
+By: _________________________________
+Name: _______________________________
+Title: ______________________________
+Date: _______________________________
+
+
+SCHEDULE A - PURPOSE
+
+The Confidential Information will be used for the following specific purpose(s):
+
+[Describe the specific purpose(s) for which Confidential Information will be disclosed, such as:
+- Evaluation of potential business partnership
+- Assessment of technology licensing opportunity
+- Consideration of investment opportunity
+- Review of employment opportunity
+- Vendor/supplier evaluation]
+
+Document ID: LEGAL-NDA-STANDARD-2026
+Version: 3.1
+Classification: Legal Document - Confidential
