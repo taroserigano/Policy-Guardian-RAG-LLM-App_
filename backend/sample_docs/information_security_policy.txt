@@ -1,0 +1,206 @@
+INFORMATION SECURITY POLICY
+Effective Date: January 1, 2026
+Version: 2.0
+Classification: Internal Use Only
+
+1. PURPOSE AND SCOPE
+
+This Information Security Policy establishes the framework for protecting company information assets, systems, and data from unauthorized access, disclosure, modification, or destruction. This policy applies to all employees, contractors, vendors, and third parties who access company systems or data.
+
+2. INFORMATION CLASSIFICATION
+
+2.1 Classification Levels
+
+All company information must be classified into one of the following categories:
+
+- PUBLIC: Information that can be freely shared with the public without risk.
+- INTERNAL: Information for internal use only; not intended for external distribution.
+- CONFIDENTIAL: Sensitive business information requiring protection.
+- RESTRICTED: Highly sensitive information with strict access controls.
+
+2.2 Handling Requirements
+
+PUBLIC data: No special handling required.
+INTERNAL data: Store on company systems; do not share externally without approval.
+CONFIDENTIAL data: Encrypt in transit and at rest; access logged and monitored.
+RESTRICTED data: Multi-factor authentication required; access on need-to-know basis only.
+
+3. ACCESS CONTROL
+
+3.1 Authentication Requirements
+
+- All users must authenticate using unique credentials.
+- Passwords must be at least 12 characters with complexity requirements.
+- Multi-factor authentication (MFA) is required for all remote access.
+- Passwords must be changed every 90 days.
+- Account lockout after 5 failed login attempts.
+
+3.2 Authorization Principles
+
+- Principle of least privilege: Users receive minimum access necessary.
+- Role-based access control (RBAC) for all systems.
+- Access reviews conducted quarterly.
+- Immediate revocation upon employment termination.
+
+3.3 Privileged Access
+
+- Administrative accounts require additional approval.
+- Privileged access sessions must be logged and monitored.
+- Shared admin accounts are prohibited.
+- Just-in-time access for elevated privileges when possible.
+
+4. NETWORK SECURITY
+
+4.1 Network Segmentation
+
+- Production, development, and corporate networks must be segregated.
+- Guest networks isolated from internal resources.
+- Critical systems placed in secure network zones.
+
+4.2 Firewall and Perimeter Security
+
+- All internet traffic must pass through approved firewalls.
+- Default deny policy for inbound connections.
+- Regular firewall rule reviews (minimum quarterly).
+- Intrusion detection/prevention systems (IDS/IPS) deployed.
+
+4.3 Remote Access
+
+- VPN required for all remote connections to internal resources.
+- Split tunneling prohibited on corporate devices.
+- Remote access logs retained for 12 months minimum.
+
+5. DATA PROTECTION
+
+5.1 Encryption Standards
+
+- Data at rest: AES-256 encryption for sensitive data.
+- Data in transit: TLS 1.2 or higher required.
+- Encryption keys managed through approved key management system.
+- Key rotation annually or upon suspected compromise.
+
+5.2 Data Loss Prevention (DLP)
+
+- DLP controls implemented for email and web traffic.
+- USB and removable media restricted on corporate devices.
+- Cloud storage limited to approved services only.
+- Data exfiltration monitoring and alerting enabled.
+
+5.3 Backup and Recovery
+
+- Critical data backed up daily.
+- Backups stored in geographically separate location.
+- Backup encryption required.
+- Recovery testing performed quarterly.
+
+6. ENDPOINT SECURITY
+
+6.1 Device Requirements
+
+- Antivirus/antimalware software required on all endpoints.
+- Automatic updates enabled for operating systems and applications.
+- Host-based firewall enabled.
+- Full disk encryption required for laptops and mobile devices.
+
+6.2 Mobile Device Management
+
+- Company-owned devices managed through MDM solution.
+- BYOD devices must enroll in MDM to access company resources.
+- Remote wipe capability required for all devices with company data.
+- Screen lock required with maximum 5-minute timeout.
+
+7. INCIDENT RESPONSE
+
+7.1 Incident Classification
+
+- P1 (Critical): Active breach, data exfiltration, ransomware.
+- P2 (High): Suspected breach, malware detection, system compromise.
+- P3 (Medium): Policy violations, unsuccessful attacks, suspicious activity.
+- P4 (Low): Minor policy deviations, informational events.
+
+7.2 Response Procedures
+
+- All security incidents must be reported within 1 hour of discovery.
+- P1 incidents require immediate escalation to CISO and executive team.
+- Incident response team activated for P1 and P2 incidents.
+- Post-incident review required within 5 business days.
+
+7.3 Reporting Contacts
+
+- Security Operations Center: security@company.com
+- Emergency Hotline: 1-800-SEC-HELP (available 24/7)
+- CISO Direct Line: For P1 incidents only
+
+8. SECURITY AWARENESS
+
+8.1 Training Requirements
+
+- Annual security awareness training mandatory for all employees.
+- Role-specific training for IT and security personnel.
+- Phishing simulation exercises conducted quarterly.
+- New hire security orientation within first week.
+
+8.2 Acceptable Use
+
+- Company systems for business purposes only.
+- Personal use limited and must not interfere with work.
+- Prohibited activities include: illegal downloads, cryptocurrency mining, unauthorized software installation.
+- Social media usage must comply with company social media policy.
+
+9. THIRD-PARTY SECURITY
+
+9.1 Vendor Assessment
+
+- Security assessment required for all vendors handling company data.
+- Annual reassessment for critical vendors.
+- Contractual security requirements including data protection addendum.
+- Right to audit clause required in vendor contracts.
+
+9.2 Cloud Services
+
+- Cloud services must be approved by IT Security.
+- Data residency requirements must be met.
+- SOC 2 Type II or equivalent certification required.
+- Regular access reviews for cloud service accounts.
+
+10. COMPLIANCE AND AUDIT
+
+10.1 Regulatory Compliance
+
+This policy supports compliance with:
+- SOC 2 Type II
+- ISO 27001
+- GDPR (where applicable)
+- CCPA (where applicable)
+- Industry-specific regulations (HIPAA, PCI-DSS as applicable)
+
+10.2 Internal Audits
+
+- Annual internal security audit.
+- Penetration testing conducted annually by third party.
+- Vulnerability assessments performed quarterly.
+- Audit findings tracked to remediation.
+
+11. POLICY VIOLATIONS
+
+Violations of this policy may result in:
+- Verbal or written warning
+- Mandatory additional training
+- Temporary or permanent access revocation
+- Disciplinary action up to and including termination
+- Legal action for intentional or malicious violations
+
+12. POLICY REVIEW
+
+This policy is reviewed annually and updated as needed to address:
+- Changes in technology landscape
+- New threats and vulnerabilities
+- Regulatory changes
+- Lessons learned from incidents
+
+For questions about this policy, contact: infosec@company.com
+
+---
+Document Owner: Chief Information Security Officer
+Last Review: January 1, 2026
+Next Review: January 1, 2027

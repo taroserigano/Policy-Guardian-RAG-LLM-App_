@@ -2,22 +2,24 @@
  * Model picker component for selecting LLM provider.
  */
 import { useState } from "react";
-import { Cpu, Cloud } from "lucide-react";
+import { Cpu, Cloud, Zap } from "lucide-react";
 
 const PROVIDERS = [
   {
     id: "ollama",
-    name: "Ollama (Local)",
+    name: "Ollama",
     icon: Cpu,
-    description: "Local LLM via Ollama",
+    description: "Local LLM",
     color: "blue",
+    gradient: "from-blue-500 to-cyan-500",
   },
   {
     id: "openai",
     name: "OpenAI",
-    icon: Cloud,
+    icon: Zap,
     description: "GPT models",
     color: "green",
+    gradient: "from-emerald-500 to-teal-500",
   },
   {
     id: "anthropic",
@@ -25,6 +27,7 @@ const PROVIDERS = [
     icon: Cloud,
     description: "Claude models",
     color: "purple",
+    gradient: "from-purple-500 to-pink-500",
   },
 ];
 
@@ -54,25 +57,11 @@ export default function ModelPicker({
     }
   };
 
-  const getColorClasses = (color, isSelected) => {
-    const colors = {
-      blue: isSelected
-        ? "border-blue-500 bg-blue-50 text-blue-700"
-        : "border-gray-300 hover:border-blue-300",
-      green: isSelected
-        ? "border-green-500 bg-green-50 text-green-700"
-        : "border-gray-300 hover:border-green-300",
-      purple: isSelected
-        ? "border-purple-500 bg-purple-50 text-purple-700"
-        : "border-gray-300 hover:border-purple-300",
-    };
-    return colors[color];
-  };
-
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="flex items-center text-sm font-medium text-zinc-300 mb-3">
+          <Zap className="h-4 w-4 mr-2 text-amber-400" />
           Select LLM Provider
         </label>
 
@@ -85,31 +74,53 @@ export default function ModelPicker({
               <button
                 key={provider.id}
                 onClick={() => onProviderChange(provider.id)}
-                className={`flex items-start p-4 border-2 rounded-lg transition-all ${getColorClasses(
-                  provider.color,
-                  isSelected,
-                )}`}
+                className={`relative flex items-center p-3.5 rounded-xl border transition-all duration-200 group overflow-hidden ${
+                  isSelected
+                    ? `border-transparent bg-gradient-to-br ${provider.gradient}`
+                    : "border-zinc-700/50 bg-zinc-800/50 hover:border-zinc-600 hover:bg-zinc-800"
+                }`}
               >
-                <Icon className="h-5 w-5 mr-3 mt-0.5 flex-shrink-0" />
-                <div className="text-left">
-                  <div className="font-medium">{provider.name}</div>
-                  <div className="text-xs mt-1 opacity-75">
+                <div
+                  className={`relative z-10 p-2 rounded-lg mr-3 ${
+                    isSelected
+                      ? "bg-white/20"
+                      : "bg-zinc-700/50 group-hover:bg-zinc-700"
+                  } transition-colors`}
+                >
+                  <Icon
+                    className={`h-4 w-4 ${isSelected ? "text-white" : "text-zinc-400 group-hover:text-zinc-200"}`}
+                  />
+                </div>
+                <div className="relative z-10 text-left">
+                  <div
+                    className={`text-sm font-semibold ${isSelected ? "text-white" : "text-zinc-300 group-hover:text-white"}`}
+                  >
+                    {provider.name}
+                  </div>
+                  <div
+                    className={`text-xs ${isSelected ? "text-white/70" : "text-zinc-500"}`}
+                  >
                     {provider.description}
                   </div>
                 </div>
+
+                {/* Selection indicator */}
+                {isSelected && (
+                  <div className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-white" />
+                )}
               </button>
             );
           })}
         </div>
       </div>
 
-      {/* Optional: Custom model name input */}
+      {/* Custom model name input */}
       <div>
         <label
           htmlFor="custom-model"
-          className="block text-sm font-medium text-gray-700 mb-2"
+          className="block text-sm font-medium text-zinc-300 mb-2"
         >
-          Model Name (optional)
+          Model Name <span className="text-zinc-600">(optional)</span>
         </label>
         <input
           id="custom-model"
@@ -117,11 +128,10 @@ export default function ModelPicker({
           value={selectedModel || ""}
           onChange={handleModelChange}
           placeholder={getPlaceholder()}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+          className="w-full px-4 py-2.5 bg-zinc-800/50 border border-zinc-700/50 rounded-xl text-white text-sm placeholder-zinc-500 focus:outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/20 transition-all"
         />
-        <p className="mt-1 text-xs text-gray-500">
-          Specify a custom model name or leave empty to use the default for
-          selected provider
+        <p className="mt-2 text-xs text-zinc-600">
+          Specify a custom model or leave empty for default
         </p>
       </div>
     </div>

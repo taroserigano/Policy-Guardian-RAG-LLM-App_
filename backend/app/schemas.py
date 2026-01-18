@@ -49,6 +49,13 @@ class ModelInfo(BaseModel):
     name: str
 
 
+class RAGOptions(BaseModel):
+    """Optional advanced RAG processing options."""
+    query_expansion: bool = Field(False, description="Enable query expansion/rewriting for better coverage")
+    hybrid_search: bool = Field(False, description="Enable hybrid search (semantic + keyword)")
+    reranking: bool = Field(False, description="Enable cross-encoder reranking for better relevance")
+
+
 class ChatRequest(BaseModel):
     """Request schema for chat endpoint."""
     user_id: str = Field(..., description="User or session identifier")
@@ -57,6 +64,7 @@ class ChatRequest(BaseModel):
     question: str = Field(..., min_length=1, description="User's question")
     doc_ids: Optional[List[str]] = Field(None, description="Optional list of document IDs to restrict search")
     top_k: Optional[int] = Field(5, ge=1, le=20, description="Number of chunks to retrieve (1-20)")
+    rag_options: Optional[RAGOptions] = Field(default_factory=RAGOptions, description="Advanced RAG options")
     
     class Config:
         json_schema_extra = {

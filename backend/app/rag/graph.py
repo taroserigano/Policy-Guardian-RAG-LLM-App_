@@ -1,16 +1,25 @@
 """
 LangGraph-based RAG workflow.
 Orchestrates retrieval and generation with proper state management.
-Supports both regular and streaming responses.
+Supports both regular and streaming responses with advanced RAG options.
 """
 from typing import TypedDict, List, Dict, Any, Optional, Generator
 from langgraph.graph import StateGraph, END
 
 from app.core.logging import get_logger
-from app.rag.retrieval import retrieve_relevant_chunks, Citation
+from app.rag.retrieval import retrieve_relevant_chunks, retrieve_with_multi_query, Citation
 from app.rag.llms import get_llm, get_streaming_llm
+from app.rag.query_processor import expand_query, extract_keywords
+from app.rag.reranker import rerank_chunks_simple
 
 logger = get_logger(__name__)
+
+
+class RAGOptions(TypedDict, total=False):
+    """Advanced RAG processing options."""
+    query_expansion: bool
+    hybrid_search: bool
+    reranking: bool
 
 
 class RAGState(TypedDict):
@@ -20,6 +29,7 @@ class RAGState(TypedDict):
     model: Optional[str]
     doc_ids: Optional[List[str]]
     top_k: int
+    rag_options: Optional[RAGOptions]
     citations: List[Citation]
     context: str
     answer: str
@@ -226,10 +236,11 @@ def run_rag_pipeline_streaming(
     provider: str,
     model: Optional[str] = None,
     doc_ids: Optional[List[str]] = None,
-    top_k: int = 5
+    top_k: int = 5,
+    rag_options: Optional[Dict] = None
 ) -> Generator[Dict[str, Any], None, None]:
     """
-    Run the RAG pipeline with streaming response.
+    Run the RAG pipeline with streaming response and advanced RAG options.
     
     Args:
         question: User's question
@@ -237,6 +248,10 @@ def run_rag_pipeline_streaming(
         model: Optional specific model name
         doc_ids: Optional list of document IDs to restrict search
         top_k: Number of chunks to retrieve
+        rag_options: Optional dict with keys:
+            - query_expansion: bool - expand query into multiple variations
+            - hybrid_search: bool - use keyword + semantic search
+            - reranking: bool - rerank results for better relevance
     
     Yields:
         Dictionary events with type and data:
@@ -244,15 +259,65 @@ def run_rag_pipeline_streaming(
         - {"type": "citations", "data": [...]}
         - {"type": "model", "data": {"provider": "...", "name": "..."}}
     """
-    logger.info(f"Running streaming RAG pipeline with provider={provider}, top_k={top_k}")
+    if rag_options is None:
+        rag_options = {}
     
-    # Step 1: Retrieve relevant chunks
+    use_expansion = rag_options.get('query_expansion', False)
+    use_hybrid = rag_options.get('hybrid_search', False)
+    use_reranking = rag_options.get('reranking', False)
+    
+    logger.info(f"Running streaming RAG pipeline with provider={provider}, top_k={top_k}, "
+                f"expansion={use_expansion}, hybrid={use_hybrid}, reranking={use_reranking}")
+    
+    # Step 1: Query processing (expansion if enabled)
     try:
-        citations, context = retrieve_relevant_chunks(
-            query=question,
-            top_k=top_k,
-            doc_ids=doc_ids
-        )
+        if use_expansion:
+            queries = expand_query(question, provider=provider, model=model)
+            logger.info(f"Query expanded to {len(queries)} variations")
+        else:
+            queries = [question]
+    except Exception as e:
+        logger.warning(f"Query expansion failed, using original: {e}")
+        queries = [question]
+    
+    # Step 2: Retrieve relevant chunks
+    try:
+        if len(queries) > 1:
+            # Multi-query retrieval
+            citations, context = retrieve_with_multi_query(
+                queries=queries,
+                top_k=top_k * 2 if use_reranking else top_k,  # Get more for reranking
+                doc_ids=doc_ids,
+                use_hybrid=use_hybrid
+            )
+        else:
+            # Single query retrieval
+            citations, context = retrieve_relevant_chunks(
+                query=question,
+                top_k=top_k * 2 if use_reranking else top_k,
+                doc_ids=doc_ids,
+                use_hybrid=use_hybrid
+            )
+        
+        # Step 3: Reranking if enabled
+        if use_reranking and citations:
+            logger.info("Applying reranking to results")
+            chunks_for_rerank = [
+                {'text': c.text, 'score': c.score, 'citation': c}
+                for c in citations
+            ]
+            reranked = rerank_chunks_simple(question, chunks_for_rerank, top_k=top_k)
+            citations = [r['citation'] for r in reranked]
+            
+            # Rebuild context from reranked citations
+            context_parts = []
+            for citation in citations:
+                source_info = f"[Source: {citation.filename}"
+                if citation.page_number:
+                    source_info += f", Page {citation.page_number}"
+                source_info += f", Chunk {citation.chunk_index}]"
+                context_parts.append(f"{source_info}\n{citation.text}\n")
+            context = "\n---\n".join(context_parts)
         
         # Yield citations early so frontend can display them
         yield {

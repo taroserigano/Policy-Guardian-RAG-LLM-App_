@@ -8,6 +8,7 @@ import {
   uploadDocument,
   deleteDocument,
   bulkDeleteDocuments,
+  getDocumentContent,
   sendChatMessage,
   getChatHistory,
   clearChatHistory,
@@ -75,6 +76,20 @@ export const useBulkDeleteDocuments = () => {
       // Invalidate and refetch documents list
       queryClient.invalidateQueries({ queryKey: ["documents"] });
     },
+  });
+};
+
+/**
+ * Hook to fetch document content
+ * @param {string} docId - Document UUID
+ * @param {boolean} enabled - Whether to fetch
+ */
+export const useDocumentContent = (docId, enabled = true) => {
+  return useQuery({
+    queryKey: ["documentContent", docId],
+    queryFn: () => getDocumentContent(docId),
+    enabled: enabled && !!docId,
+    staleTime: 60000, // Cache for 1 minute
   });
 };
 

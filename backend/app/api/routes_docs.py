@@ -201,6 +201,53 @@ def get_document(doc_id: str, db: Session = Depends(get_db)):
         )
 
 
+@router.get("/{doc_id}/content")
+def get_document_content(doc_id: str, db: Session = Depends(get_db)):
+    """
+    Get full content of a document by retrieving all chunks from Pinecone.
+    
+    Args:
+        doc_id: Document UUID
+    
+    Returns:
+        Document content and metadata
+    """
+    from app.rag.retrieval import get_document_chunks
+    
+    try:
+        # Check if document exists in database
+        document = db.query(Document).filter(Document.id == doc_id).first()
+        if not document:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Document not found"
+            )
+        
+        # Get all chunks for this document from Pinecone
+        chunks = get_document_chunks(doc_id)
+        
+        # Combine chunks into full content
+        full_content = "\n\n".join([chunk["text"] for chunk in chunks])
+        
+        return {
+            "doc_id": doc_id,
+            "filename": document.filename,
+            "content_type": document.content_type,
+            "content": full_content,
+            "chunk_count": len(chunks),
+            "created_at": document.created_at.isoformat()
+        }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error retrieving document content: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error retrieving document content: {str(e)}"
+        )
+
+
 @router.delete("/{doc_id}", status_code=status.HTTP_200_OK)
 def delete_document(doc_id: str, db: Session = Depends(get_db)):
     """

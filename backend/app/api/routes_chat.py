@@ -136,19 +136,30 @@ async def chat_stream(
     
     logger.info(f"Processing streaming chat request from user {request.user_id}")
     
+    # Extract RAG options
+    rag_options = None
+    if request.rag_options:
+        rag_options = {
+            'query_expansion': request.rag_options.query_expansion,
+            'hybrid_search': request.rag_options.hybrid_search,
+            'reranking': request.rag_options.reranking
+        }
+        logger.info(f"RAG options: {rag_options}")
+    
     def generate():
         full_answer = ""
         citations = []
         model_info = {"provider": request.provider, "name": request.model or "default"}
         
         try:
-            # Stream response tokens
+            # Stream response tokens with RAG options
             for event in run_rag_pipeline_streaming(
                 question=request.question,
                 provider=request.provider,
                 model=request.model,
                 doc_ids=request.doc_ids,
-                top_k=request.top_k or 5
+                top_k=request.top_k or 5,
+                rag_options=rag_options
             ):
                 if event["type"] == "token":
                     full_answer += event["data"]

@@ -52,7 +52,7 @@ class Settings(BaseSettings):
     top_k: int = 5
     
     # CORS
-    cors_origins: list[str] = ["http://localhost:5173", "http://localhost:8000"]
+    cors_origins: list[str] = ["http://localhost:5173", "http://localhost:5174", "http://localhost:5175", "http://localhost:8000"]
     
     class Config:
         env_file = ".env"

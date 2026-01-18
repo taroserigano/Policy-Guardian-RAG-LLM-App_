@@ -2,8 +2,16 @@
  * Document list with checkbox selection for filtering.
  */
 import { useState } from "react";
-import { File, Loader, AlertCircle, Trash2 } from "lucide-react";
+import {
+  File,
+  Loader,
+  AlertCircle,
+  Trash2,
+  CheckCircle2,
+  Eye,
+} from "lucide-react";
 import { useDeleteDocument, useBulkDeleteDocuments } from "../hooks/useApi";
+import DocumentPreview from "./DocumentPreview";
 
 export default function DocumentList({
   documents,
@@ -13,6 +21,7 @@ export default function DocumentList({
   showBulkDelete = false,
 }) {
   const [selectedIds, setSelectedIds] = useState(new Set());
+  const [previewDoc, setPreviewDoc] = useState(null);
   const deleteDocumentMutation = useDeleteDocument();
   const bulkDeleteMutation = useBulkDeleteDocuments();
 
@@ -61,6 +70,12 @@ export default function DocumentList({
     }
   };
 
+  const handlePreview = (e, doc) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setPreviewDoc(doc);
+  };
+
   const handleBulkDelete = () => {
     if (selectedIds.size === 0) return;
 
@@ -82,21 +97,23 @@ export default function DocumentList({
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-8">
-        <Loader className="h-6 w-6 animate-spin text-gray-400" />
+        <div className="relative">
+          <div className="w-8 h-8 rounded-full border-2 border-violet-500/20 border-t-violet-500 animate-spin" />
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+      <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl">
         <div className="flex items-start">
-          <AlertCircle className="h-5 w-5 text-red-500 mr-2 flex-shrink-0" />
+          <AlertCircle className="h-4 w-4 text-red-400 mr-2 flex-shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm font-medium text-red-800">
+            <p className="text-sm font-medium text-red-400">
               Error loading documents
             </p>
-            <p className="text-xs text-red-600 mt-1">{error.message}</p>
+            <p className="text-xs text-red-400/70 mt-1">{error.message}</p>
           </div>
         </div>
       </div>
@@ -106,9 +123,11 @@ export default function DocumentList({
   if (!documents || documents.length === 0) {
     return (
       <div className="text-center p-8">
-        <File className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-        <p className="text-sm text-gray-500">No documents uploaded yet</p>
-        <p className="text-xs text-gray-400 mt-1">
+        <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-zinc-800/50 mb-3">
+          <File className="h-6 w-6 text-zinc-600" />
+        </div>
+        <p className="text-sm text-zinc-400">No documents uploaded yet</p>
+        <p className="text-xs text-zinc-600 mt-1">
           Upload documents to get started
         </p>
       </div>
@@ -116,12 +135,12 @@ export default function DocumentList({
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
       {/* Select All Button */}
       <div className="flex items-center justify-between">
         <button
           onClick={handleSelectAll}
-          className="text-left px-3 py-2 text-sm font-medium text-primary-700 hover:bg-primary-50 rounded-md transition-colors"
+          className="text-left px-3 py-1.5 text-xs font-medium text-violet-400 hover:bg-violet-500/10 rounded-lg transition-colors"
         >
           {selectedIds.size === documents.length
             ? "Deselect All"
@@ -133,71 +152,121 @@ export default function DocumentList({
           <button
             onClick={handleBulkDelete}
             disabled={bulkDeleteMutation.isPending}
-            className="flex items-center px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-md transition-colors disabled:opacity-50"
+            className="flex items-center px-3 py-1.5 text-xs font-medium text-red-400 hover:bg-red-500/10 rounded-lg transition-colors disabled:opacity-50"
           >
-            <Trash2 className="h-4 w-4 mr-1" />
+            <Trash2 className="h-3.5 w-3.5 mr-1" />
             Delete ({selectedIds.size})
           </button>
         )}
       </div>
 
       {/* Document List */}
-      <div className="space-y-1">
-        {documents.map((doc) => (
-          <div
-            key={doc.id}
-            className="flex items-start p-3 hover:bg-gray-50 rounded-md transition-colors border border-transparent hover:border-gray-200 group"
-          >
-            <label className="flex items-start flex-1 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={selectedIds.has(doc.id)}
-                onChange={() => handleToggle(doc.id)}
-                className="mt-1 h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-              />
+      <div className="space-y-2">
+        {documents.map((doc, index) => {
+          const isSelected = selectedIds.has(doc.id);
+          return (
+            <div
+              key={doc.id}
+              className={`flex items-start p-3 rounded-xl border transition-all duration-200 group cursor-pointer ${
+                isSelected
+                  ? "bg-amber-500/10 border-amber-500/30"
+                  : "bg-zinc-800/50 border-zinc-700/50 hover:bg-zinc-800 hover:border-zinc-600"
+              }`}
+              onClick={() => handleToggle(doc.id)}
+              style={{ animationDelay: `${index * 50}ms` }}
+            >
+              {/* Custom Checkbox */}
+              <div
+                className={`w-4 h-4 rounded-md border-2 flex items-center justify-center transition-all flex-shrink-0 mt-0.5 ${
+                  isSelected
+                    ? "bg-gradient-to-br from-amber-500 to-orange-500 border-transparent"
+                    : "border-zinc-600 group-hover:border-amber-500/50"
+                }`}
+              >
+                {isSelected && (
+                  <svg
+                    className="w-2.5 h-2.5 text-white"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={3}
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                )}
+              </div>
 
               <div className="ml-3 flex-1 min-w-0">
                 <div className="flex items-start">
-                  <File className="h-4 w-4 text-gray-400 mr-2 mt-0.5 flex-shrink-0" />
+                  <File
+                    className={`h-3.5 w-3.5 mr-2 mt-0.5 flex-shrink-0 ${isSelected ? "text-amber-400" : "text-zinc-500"}`}
+                  />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate">
+                    <p
+                      className={`text-sm font-medium truncate ${isSelected ? "text-white" : "text-zinc-300"}`}
+                    >
                       {doc.filename}
                     </p>
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-zinc-600 mt-0.5">
                       {new Date(doc.created_at).toLocaleDateString()}
                     </p>
                     {doc.preview_text && (
-                      <p className="text-xs text-gray-400 mt-1 line-clamp-2">
+                      <p className="text-xs text-zinc-600 mt-1 line-clamp-2">
                         {doc.preview_text}
                       </p>
                     )}
                   </div>
                 </div>
               </div>
-            </label>
 
-            {/* Delete Button */}
-            <button
-              onClick={(e) => handleDelete(e, doc.id)}
-              disabled={deleteDocumentMutation.isPending}
-              className="ml-2 p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded opacity-0 group-hover:opacity-100 transition-all disabled:opacity-50"
-              title="Delete document"
-            >
-              <Trash2 className="h-4 w-4" />
-            </button>
-          </div>
-        ))}
+              {/* Action Buttons */}
+              <div className="ml-2 flex items-center gap-1">
+                {/* Preview Button */}
+                <button
+                  onClick={(e) => handlePreview(e, doc)}
+                  className="p-1.5 text-zinc-600 hover:text-violet-400 hover:bg-violet-500/10 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
+                  title="Preview document"
+                >
+                  <Eye className="h-3.5 w-3.5" />
+                </button>
+
+                {/* Delete Button */}
+                <button
+                  onClick={(e) => handleDelete(e, doc.id)}
+                  disabled={deleteDocumentMutation.isPending}
+                  className="p-1.5 text-zinc-600 hover:text-red-400 hover:bg-red-500/10 rounded-lg opacity-0 group-hover:opacity-100 transition-all disabled:opacity-50"
+                  title="Delete document"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       {/* Selection Info */}
       {selectedIds.size > 0 && (
-        <div className="mt-3 p-2 bg-primary-50 border border-primary-200 rounded-md">
-          <p className="text-xs text-primary-700 text-center">
+        <div className="mt-3 p-2.5 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+          <p className="text-xs text-amber-400 text-center flex items-center justify-center">
+            <CheckCircle2 className="h-3 w-3 mr-1.5" />
             {selectedIds.size} document{selectedIds.size !== 1 ? "s" : ""}{" "}
-            selected
+            selected for filtering
           </p>
         </div>
       )}
+
+      {/* Document Preview Modal */}
+      <DocumentPreview
+        docId={previewDoc?.id}
+        filename={previewDoc?.filename}
+        isOpen={!!previewDoc}
+        onClose={() => setPreviewDoc(null)}
+      />
     </div>
   );
 }

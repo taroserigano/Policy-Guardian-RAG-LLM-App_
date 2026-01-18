@@ -1,11 +1,13 @@
 /**
  * Chat input box component for sending messages.
+ * Modern dark theme with gradient effects.
  */
 import { useState } from "react";
-import { Send } from "lucide-react";
+import { Send, Sparkles } from "lucide-react";
 
 export default function ChatBox({ onSendMessage, disabled = false }) {
   const [message, setMessage] = useState("");
+  const [isFocused, setIsFocused] = useState(false);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -17,7 +19,6 @@ export default function ChatBox({ onSendMessage, disabled = false }) {
   };
 
   const handleKeyDown = (e) => {
-    // Send on Enter, but allow Shift+Enter for new lines
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSubmit(e);
@@ -26,27 +27,52 @@ export default function ChatBox({ onSendMessage, disabled = false }) {
 
   return (
     <form onSubmit={handleSubmit} className="relative">
-      <textarea
-        value={message}
-        onChange={(e) => setMessage(e.target.value)}
-        onKeyDown={handleKeyDown}
-        placeholder="Ask a question about your documents..."
-        disabled={disabled}
-        rows={3}
-        className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none disabled:bg-gray-100 disabled:cursor-not-allowed"
+      {/* Glow effect when focused */}
+      <div
+        className={`absolute -inset-0.5 bg-gradient-to-r from-violet-500 via-fuchsia-500 to-violet-500 rounded-2xl blur-md transition-opacity duration-300 ${isFocused ? "opacity-25" : "opacity-0"}`}
       />
 
-      <button
-        type="submit"
-        disabled={disabled || !message.trim()}
-        className="absolute right-2 bottom-2 p-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-      >
-        <Send className="h-5 w-5" />
-      </button>
+      <div className="relative bg-zinc-900/80 backdrop-blur-xl rounded-2xl border border-zinc-800/80 overflow-hidden">
+        <textarea
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          onKeyDown={handleKeyDown}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+          placeholder="Ask a question about your documents..."
+          disabled={disabled}
+          rows={3}
+          className="w-full px-4 py-4 pr-14 bg-transparent text-zinc-200 placeholder-zinc-600 focus:outline-none resize-none disabled:opacity-50 disabled:cursor-not-allowed text-[15px]"
+        />
 
-      <p className="mt-2 text-xs text-gray-500">
-        Press Enter to send, Shift+Enter for new line
-      </p>
+        <button
+          type="submit"
+          disabled={disabled || !message.trim()}
+          className={`absolute right-3 bottom-3 p-2.5 rounded-xl transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed group ${
+            message.trim() && !disabled
+              ? "bg-gradient-to-br from-violet-500 to-fuchsia-500 shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40 hover:scale-105"
+              : "bg-zinc-800"
+          }`}
+        >
+          <Send
+            className={`h-4 w-4 transition-transform duration-200 ${
+              message.trim() && !disabled
+                ? "text-white group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                : "text-zinc-600"
+            }`}
+          />
+        </button>
+      </div>
+
+      <div className="mt-2.5 flex items-center justify-between text-xs text-zinc-600">
+        <div className="flex items-center gap-1.5">
+          <Sparkles className="h-3 w-3 text-amber-500/70" />
+          <span>AI-powered document analysis</span>
+        </div>
+        <span className="text-zinc-700">
+          Enter ↵ send · Shift+Enter new line
+        </span>
+      </div>
     </form>
   );
 }

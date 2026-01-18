@@ -79,6 +79,16 @@ export const getDocument = async (docId) => {
 };
 
 /**
+ * Get document content (full text) by ID
+ * @param {string} docId - Document UUID
+ * @returns {Promise} - Document content and metadata
+ */
+export const getDocumentContent = async (docId) => {
+  const response = await api.get(`/api/docs/${docId}/content`);
+  return response.data;
+};
+
+/**
  * Delete a document by ID
  * @param {string} docId - Document UUID
  * @returns {Promise} - Delete confirmation
