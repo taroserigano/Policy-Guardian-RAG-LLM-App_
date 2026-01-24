@@ -63,6 +63,9 @@ Train and Merdge Adapter into Base Model
 
 <img width="1912" height="1079" alt="image" src="https://github.com/user-attachments/assets/d7668602-3d82-40d6-b982-a6d98cf64b7c" />
 
+Fine Tuning locally on Adapter for merging 
+
+<img width="1093" height="866" alt="image" src="https://github.com/user-attachments/assets/78a10850-d9cf-4601-ab08-f5b056a2c10f" />
 
 
 ### Project Structure
