@@ -43,6 +43,28 @@ The app will open at `http://localhost:5173` with:
 - **Tailwind CSS**: Utility-first styling
 - **Lucide React**: Icon library
 
+### Training on Colab
+
+<img width="1908" height="1076" alt="image" src="https://github.com/user-attachments/assets/d2683e9b-9aea-413b-a534-970cd54f7925" />
+
+
+Loading Model
+
+<img width="1916" height="1079" alt="image" src="https://github.com/user-attachments/assets/47504f9c-82d3-48be-a74e-78bcc8c734dc" />
+
+
+Configure LoRA
+
+
+
+<img width="1919" height="1079" alt="image" src="https://github.com/user-attachments/assets/57104f1c-ea40-4e79-b899-86278a5cf3ca" />
+
+Train and Merdge Adapter into Base Model 
+
+<img width="1912" height="1079" alt="image" src="https://github.com/user-attachments/assets/d7668602-3d82-40d6-b982-a6d98cf64b7c" />
+
+
+
 ### Project Structure
 
 ```
