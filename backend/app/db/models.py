@@ -29,6 +29,12 @@ class Document(Base):
     # Preview text (first 500 chars) for UI display
     preview_text = Column(Text, nullable=True)
     
+    # Document category/type for organization
+    category = Column(String, nullable=True, index=True)  # policy, legal, hr, compliance, other
+    
+    # Tags for flexible categorization (stored as JSON array)
+    tags = Column(JSON, nullable=True)
+    
     # Timestamp
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     

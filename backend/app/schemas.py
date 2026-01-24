@@ -16,10 +16,18 @@ class DocumentResponse(BaseModel):
     filename: str
     content_type: str
     preview_text: Optional[str] = None
+    category: Optional[str] = None
+    tags: Optional[List[str]] = None
     created_at: datetime
     
     class Config:
         from_attributes = True
+
+
+class DocumentUpdateRequest(BaseModel):
+    """Request schema for updating document metadata."""
+    category: Optional[str] = Field(None, description="Document category (policy, legal, hr, compliance, other)")
+    tags: Optional[List[str]] = Field(None, description="Tags for the document")
 
 
 class UploadResponse(BaseModel):
@@ -107,6 +115,8 @@ class RAGOptions(BaseModel):
     query_expansion: bool = Field(False, description="Enable query expansion/rewriting for better coverage")
     hybrid_search: bool = Field(False, description="Enable hybrid search (semantic + keyword)")
     reranking: bool = Field(False, description="Enable cross-encoder reranking for better relevance")
+    auto_rewrite: bool = Field(False, description="Enable automatic query rewriting for better retrieval")
+    cross_encoder: bool = Field(False, description="Enable cross-encoder deep relevance scoring")
 
 
 class MultimodalOptions(BaseModel):

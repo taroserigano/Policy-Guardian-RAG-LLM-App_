@@ -4,7 +4,7 @@
  */
 import axios from "axios";
 
-const API_BASE_URL =
+export const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:8001";
 
 // Create axios instance with default config
@@ -24,6 +24,13 @@ api.interceptors.request.use(
     if (apiKey) {
       config.headers["X-API-Key"] = apiKey;
     }
+
+    // Add JWT auth token if available
+    const accessToken = localStorage.getItem("access_token");
+    if (accessToken) {
+      config.headers["Authorization"] = `Bearer ${accessToken}`;
+    }
+
     return config;
   },
   (error) => {
@@ -60,13 +67,101 @@ export const uploadDocument = async (file) => {
 };
 
 /**
+ * Upload multiple documents at once
+ * @param {File[]} files - Array of File objects to upload
+ * @returns {Promise} - Batch upload response with results
+ */
+export const uploadDocumentsBatch = async (files) => {
+  const formData = new FormData();
+  files.forEach((file) => {
+    formData.append("files", file);
+  });
+
+  const response = await api.post("/api/docs/upload/batch", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+
+  return response.data;
+};
+
+/**
+ * Upload multiple documents with per-file progress tracking
+ * @param {File[]} files - Array of File objects to upload
+ * @param {Function} onProgress - Callback with progress info (fileIndex, filename, status, percent)
+ * @returns {Promise} - Array of upload results
+ */
+export const uploadDocumentsWithProgress = async (files, onProgress) => {
+  const results = [];
+
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    onProgress?.(i, file.name, "uploading", 0);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await api.post("/api/docs/upload", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+        onUploadProgress: (progressEvent) => {
+          const percent = Math.round(
+            (progressEvent.loaded * 100) / progressEvent.total,
+          );
+          onProgress?.(i, file.name, "uploading", percent);
+        },
+      });
+
+      onProgress?.(i, file.name, "success", 100);
+      results.push({
+        filename: file.name,
+        status: "success",
+        data: response.data,
+      });
+    } catch (error) {
+      onProgress?.(i, file.name, "error", 0);
+      results.push({
+        filename: file.name,
+        status: "error",
+        error: error.response?.data?.detail || error.message,
+      });
+    }
+  }
+
+  return results;
+};
+
+/**
  * Get list of all documents
  * @returns {Promise} - Array of document metadata
  */
 export const getDocuments = async () => {
   const response = await api.get("/api/docs");
-  // Backend returns { documents: [...] }, extract the array
-  return response.data?.documents || [];
+  // Backend returns array directly
+  return Array.isArray(response.data) ? response.data : [];
+};
+
+/**
+ * Get available document categories
+ * @returns {Promise} - Categories with counts
+ */
+export const getDocumentCategories = async () => {
+  const response = await api.get("/api/docs/categories/list");
+  return response.data?.categories || [];
+};
+
+/**
+ * Update document metadata (category, tags)
+ * @param {string} docId - Document UUID
+ * @param {Object} updates - { category?: string, tags?: string[] }
+ * @returns {Promise} - Updated document
+ */
+export const updateDocument = async (docId, updates) => {
+  const response = await api.patch(`/api/docs/${docId}`, updates);
+  return response.data;
 };
 
 /**
@@ -249,6 +344,32 @@ export const clearChatHistory = async (userId) => {
   return response.data;
 };
 
+/**
+ * Export chat history for a user
+ * @param {string} userId - User identifier
+ * @param {string} format - Export format ('json' or 'markdown')
+ */
+export const exportChatHistory = async (userId, format = "json") => {
+  const response = await api.get(`/api/chat/history/${userId}/export`, {
+    params: { format },
+    responseType: "blob",
+  });
+
+  // Create download link
+  const extension = format === "markdown" ? "md" : "json";
+  const blob = new Blob([response.data], {
+    type: format === "markdown" ? "text/markdown" : "application/json",
+  });
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `chat_history_${userId}.${extension}`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  window.URL.revokeObjectURL(url);
+};
+
 // ============================================================================
 // Health Check
 // ============================================================================
@@ -283,7 +404,10 @@ export const uploadImage = async (
   if (description) {
     formData.append("description", description);
   }
-  formData.append("generate_description", generateDescription);
+  // Convert boolean to string "true" or "false" for FastAPI Form field
+  formData.append("generate_description", generateDescription.toString());
+  // Use ollama for free local vision model (LLaVA)
+  formData.append("vision_provider", "ollama");
 
   const response = await api.post("/api/images/upload", formData, {
     headers: {

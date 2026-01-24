@@ -13,7 +13,7 @@ import pypdf
 
 from app.core.config import get_settings
 from app.core.logging import get_logger
-from app.rag.embeddings import default_embeddings
+from app.rag.embeddings import get_default_embeddings
 
 settings = get_settings()
 logger = get_logger(__name__)
@@ -158,7 +158,7 @@ def index_document(
     
     # Step 3: Generate embeddings
     logger.info(f"Generating embeddings for {len(chunks)} chunks...")
-    embeddings = default_embeddings.embed_documents(chunks)
+    embeddings = get_default_embeddings().embed_documents(chunks)
     
     # Step 4: Prepare vectors for Pinecone
     vectors = []

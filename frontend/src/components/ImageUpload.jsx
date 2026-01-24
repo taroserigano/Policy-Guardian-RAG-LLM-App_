@@ -2,7 +2,7 @@
  * ImageUpload component for multimodal RAG.
  * Supports drag & drop and file selection for images.
  */
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { uploadImage } from "../api/client";
 
 const ACCEPTED_FORMATS = [
@@ -21,7 +21,12 @@ export default function ImageUpload({ onUploadSuccess, onUploadError }) {
   const [previewUrl, setPreviewUrl] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [description, setDescription] = useState("");
-  const [autoDescribe, setAutoDescribe] = useState(false); // Default to manual description
+  const [autoDescribe, setAutoDescribe] = useState(true); // Default to AI description
+  const [error, setError] = useState(null);
+
+  // Use ref to access latest autoDescribe value in callbacks
+  const autoDescribeRef = useRef(autoDescribe);
+  autoDescribeRef.current = autoDescribe;
 
   const validateFile = (file) => {
     if (!ACCEPTED_FORMATS.includes(file.type)) {
@@ -43,56 +48,93 @@ export default function ImageUpload({ onUploadSuccess, onUploadError }) {
     setIsDragging(false);
   }, []);
 
-  const handleDrop = useCallback((e) => {
-    e.preventDefault();
-    setIsDragging(false);
+  const performUpload = useCallback(
+    async (file, desc, autoDesc) => {
+      try {
+        setError(null);
+        setIsUploading(true);
+        setUploadProgress(20);
 
-    const files = Array.from(e.dataTransfer.files);
-    if (files.length > 0) {
-      handleFileSelect(files[0]);
-    }
-  }, []);
+        console.log("[ImageUpload] Starting upload:", {
+          filename: file.name,
+          autoDesc,
+          desc: desc ? "provided" : "none",
+        });
 
-  const handleFileSelect = async (file) => {
-    try {
-      validateFile(file);
+        const result = await uploadImage(file, desc, autoDesc);
 
-      // Create preview and store file for later upload
-      const reader = new FileReader();
-      reader.onload = (e) => setPreviewUrl(e.target.result);
-      reader.readAsDataURL(file);
-      setSelectedFile(file);
+        console.log("[ImageUpload] Upload success:", result);
 
-      // If auto-describe is on, upload immediately
-      if (autoDescribe) {
-        await performUpload(file, "", true);
+        setUploadProgress(100);
+        setIsUploading(false);
+        setPreviewUrl(null);
+        setSelectedFile(null);
+        setDescription("");
+
+        onUploadSuccess?.(result);
+      } catch (error) {
+        console.error("[ImageUpload] Upload failed:", error);
+        setIsUploading(false);
+        setError(error.message || "Upload failed");
+        onUploadError?.(error.message || "Upload failed");
       }
-    } catch (error) {
-      setPreviewUrl(null);
-      setSelectedFile(null);
-      onUploadError?.(error.message || "File validation failed");
-    }
-  };
+    },
+    [onUploadSuccess, onUploadError],
+  );
 
-  const performUpload = async (file, desc, autoDesc) => {
-    try {
-      setIsUploading(true);
-      setUploadProgress(20);
+  const handleFileSelect = useCallback(
+    async (file) => {
+      try {
+        setError(null);
+        validateFile(file);
 
-      const result = await uploadImage(file, desc, autoDesc);
+        console.log(
+          "[ImageUpload] File selected:",
+          file.name,
+          "autoDescribe:",
+          autoDescribeRef.current,
+        );
 
-      setUploadProgress(100);
-      setIsUploading(false);
-      setPreviewUrl(null);
-      setSelectedFile(null);
-      setDescription("");
+        // Create preview
+        const reader = new FileReader();
+        reader.onload = (e) => setPreviewUrl(e.target.result);
+        reader.readAsDataURL(file);
+        setSelectedFile(file);
 
-      onUploadSuccess?.(result);
-    } catch (error) {
-      setIsUploading(false);
-      onUploadError?.(error.message || "Upload failed");
-    }
-  };
+        // If auto-describe is on, upload immediately
+        if (autoDescribeRef.current) {
+          console.log(
+            "[ImageUpload] Auto-describe enabled, uploading immediately...",
+          );
+          await performUpload(file, "", true);
+        } else {
+          console.log(
+            "[ImageUpload] Manual mode - waiting for user to enter description",
+          );
+        }
+      } catch (error) {
+        console.error("[ImageUpload] File validation failed:", error);
+        setPreviewUrl(null);
+        setSelectedFile(null);
+        setError(error.message || "File validation failed");
+        onUploadError?.(error.message || "File validation failed");
+      }
+    },
+    [performUpload, onUploadError],
+  );
+
+  const handleDrop = useCallback(
+    (e) => {
+      e.preventDefault();
+      setIsDragging(false);
+
+      const files = Array.from(e.dataTransfer.files);
+      if (files.length > 0) {
+        handleFileSelect(files[0]);
+      }
+    },
+    [handleFileSelect],
+  );
 
   const handleManualUpload = () => {
     if (selectedFile) {
@@ -104,6 +146,7 @@ export default function ImageUpload({ onUploadSuccess, onUploadError }) {
     setPreviewUrl(null);
     setSelectedFile(null);
     setDescription("");
+    setError(null);
   };
 
   const handleInputChange = (e) => {
@@ -111,10 +154,19 @@ export default function ImageUpload({ onUploadSuccess, onUploadError }) {
     if (files && files.length > 0) {
       handleFileSelect(files[0]);
     }
+    // Reset input so same file can be selected again
+    e.target.value = "";
   };
 
   return (
     <div className="space-y-4">
+      {/* Error display */}
+      {error && (
+        <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">
+          {error}
+        </div>
+      )}
+
       {/* Options - shown at top when no file selected */}
       {!selectedFile && (
         <div className="flex items-center justify-between px-2">

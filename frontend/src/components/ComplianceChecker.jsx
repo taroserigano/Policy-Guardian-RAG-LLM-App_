@@ -342,8 +342,8 @@ ${report.image_citations?.map((i) => `- ${i.filename}`).join("\n") || "None"}
             <ChevronDown className="w-4 h-4" />
           )}
           <span>
-            Select specific documents & images (
-            {selectedDocIds.length + selectedImageIds.length} selected)
+            Select specific documents & images ({documents.length} docs,{" "}
+            {images.length} images)
           </span>
         </button>
 

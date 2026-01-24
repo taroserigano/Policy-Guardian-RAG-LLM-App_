@@ -5,15 +5,29 @@ Supports cross-modal retrieval using CLIP embeddings.
 from typing import List, Dict, Any, Optional, Tuple, Union
 from dataclasses import dataclass
 from PIL import Image
+import numpy as np
 
 from app.core.config import get_settings
 from app.core.logging import get_logger
 from app.rag.retrieval import Citation, retrieve_relevant_chunks
 from app.rag.image_embeddings import get_clip_embeddings, embed_image, embed_image_query
 from app.rag.indexing import get_pinecone_index
+from app.db.session import SessionLocal
+from app.db.models import ImageDocument
 
 settings = get_settings()
 logger = get_logger(__name__)
+
+
+def cosine_similarity(vec1: List[float], vec2: List[float]) -> float:
+    """Compute cosine similarity between two vectors."""
+    a = np.array(vec1)
+    b = np.array(vec2)
+    norm_a = np.linalg.norm(a)
+    norm_b = np.linalg.norm(b)
+    if norm_a == 0 or norm_b == 0:
+        return 0.0
+    return float(np.dot(a, b) / (norm_a * norm_b))
 
 # Namespace for image vectors in Pinecone
 IMAGE_NAMESPACE = "images"
@@ -51,6 +65,9 @@ def retrieve_relevant_images(
     """
     Retrieve relevant images using CLIP text-to-image search.
     
+    Uses local PostgreSQL storage since CLIP embeddings (512 dim) 
+    don't match Pinecone index (3072 dim for text-embedding-3-large).
+    
     Args:
         query: Text query
         top_k: Number of images to retrieve
@@ -59,46 +76,64 @@ def retrieve_relevant_images(
     Returns:
         List of ImageCitation objects
     """
-    logger.info(f"Retrieving top {top_k} images for query")
+    logger.info(f"Retrieving top {top_k} images for query (using local search)")
     
     try:
         # Generate CLIP text embedding for cross-modal search
         query_embedding = embed_image_query(query)
         
-        # Build filter if image IDs provided
-        filter_dict = None
-        if image_ids:
-            filter_dict = {"image_id": {"$in": image_ids}}
-        
-        # Query Pinecone image namespace
-        index = get_pinecone_index()
-        results = index.query(
-            vector=query_embedding,
-            top_k=top_k,
-            namespace=IMAGE_NAMESPACE,
-            include_metadata=True,
-            filter=filter_dict
-        )
-        
-        # Convert to ImageCitation objects
-        citations = []
-        for match in results.matches:
-            metadata = match.metadata or {}
-            citation = ImageCitation(
-                image_id=match.id,
-                filename=metadata.get("filename", "unknown"),
-                score=match.score,
-                description=metadata.get("description"),
-                width=metadata.get("width"),
-                height=metadata.get("height")
-            )
-            citations.append(citation)
-        
-        logger.info(f"Retrieved {len(citations)} images")
-        return citations
+        # Query PostgreSQL for images with embeddings
+        db = SessionLocal()
+        try:
+            # Filter by image_ids if provided
+            if image_ids:
+                logger.info(f"Filtering by specific image IDs: {image_ids}")
+                images = db.query(ImageDocument).filter(
+                    ImageDocument.id.in_(image_ids),
+                    ImageDocument.clip_embedding.isnot(None)
+                ).all()
+            else:
+                images = db.query(ImageDocument).filter(
+                    ImageDocument.clip_embedding.isnot(None)
+                ).all()
+            
+            logger.info(f"Found {len(images)} images with embeddings to search")
+            
+            # Compute similarity for each image
+            results = []
+            for img in images:
+                if img.clip_embedding:
+                    score = cosine_similarity(query_embedding, img.clip_embedding)
+                    results.append((img, score))
+            
+            # Sort by score descending and take top_k
+            results.sort(key=lambda x: x[1], reverse=True)
+            results = results[:top_k]
+            
+            # Convert to ImageCitation objects
+            citations = []
+            for img, score in results:
+                citation = ImageCitation(
+                    image_id=img.id,
+                    filename=img.filename,
+                    score=score,
+                    description=img.description,
+                    thumbnail_base64=img.thumbnail_base64,
+                    width=img.width,
+                    height=img.height
+                )
+                citations.append(citation)
+            
+            logger.info(f"Retrieved {len(citations)} images from local search")
+            return citations
+            
+        finally:
+            db.close()
         
     except Exception as e:
         logger.error(f"Image retrieval failed: {e}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
         return []
 
 
@@ -109,6 +144,9 @@ def retrieve_similar_images(
     """
     Find similar images using image-to-image CLIP search.
     
+    Uses local PostgreSQL storage since CLIP embeddings (512 dim) 
+    don't match Pinecone index (3072 dim).
+    
     Args:
         image: Query image (PIL Image, bytes, or base64)
         top_k: Number of similar images to retrieve
@@ -116,36 +154,48 @@ def retrieve_similar_images(
     Returns:
         List of ImageCitation objects
     """
-    logger.info(f"Finding {top_k} similar images")
+    logger.info(f"Finding {top_k} similar images (using local search)")
     
     try:
         # Generate CLIP image embedding
         image_embedding = embed_image(image)
         
-        # Query Pinecone
-        index = get_pinecone_index()
-        results = index.query(
-            vector=image_embedding,
-            top_k=top_k,
-            namespace=IMAGE_NAMESPACE,
-            include_metadata=True
-        )
-        
-        # Convert to citations
-        citations = []
-        for match in results.matches:
-            metadata = match.metadata or {}
-            citation = ImageCitation(
-                image_id=match.id,
-                filename=metadata.get("filename", "unknown"),
-                score=match.score,
-                description=metadata.get("description"),
-                width=metadata.get("width"),
-                height=metadata.get("height")
-            )
-            citations.append(citation)
-        
-        return citations
+        # Query PostgreSQL for images with embeddings
+        db = SessionLocal()
+        try:
+            images = db.query(ImageDocument).filter(
+                ImageDocument.clip_embedding.isnot(None)
+            ).all()
+            
+            # Compute similarity for each image
+            results = []
+            for img in images:
+                if img.clip_embedding:
+                    score = cosine_similarity(image_embedding, img.clip_embedding)
+                    results.append((img, score))
+            
+            # Sort by score descending and take top_k
+            results.sort(key=lambda x: x[1], reverse=True)
+            results = results[:top_k]
+            
+            # Convert to citations
+            citations = []
+            for img, score in results:
+                citation = ImageCitation(
+                    image_id=img.id,
+                    filename=img.filename,
+                    score=score,
+                    description=img.description,
+                    thumbnail_base64=img.thumbnail_base64,
+                    width=img.width,
+                    height=img.height
+                )
+                citations.append(citation)
+            
+            return citations
+            
+        finally:
+            db.close()
         
     except Exception as e:
         logger.error(f"Similar image search failed: {e}")

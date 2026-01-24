@@ -1,58 +1,110 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import ModelPicker from "../components/ModelPicker";
 
 describe("ModelPicker Component", () => {
   it("renders with default selection", () => {
-    const mockOnChange = vi.fn();
+    const mockOnProviderChange = vi.fn();
+    const mockOnModelChange = vi.fn();
     render(
-      <ModelPicker provider="ollama" model="llama3.1" onChange={mockOnChange} />
+      <ModelPicker
+        selectedProvider="ollama"
+        selectedModel="llama3.1"
+        onProviderChange={mockOnProviderChange}
+        onModelChange={mockOnModelChange}
+      />,
     );
 
     expect(screen.getByText(/ollama/i)).toBeInTheDocument();
   });
 
-  it("displays all provider options", () => {
-    const mockOnChange = vi.fn();
+  it("displays all provider options as buttons", () => {
+    const mockOnProviderChange = vi.fn();
+    const mockOnModelChange = vi.fn();
     render(
-      <ModelPicker provider="ollama" model="llama3.1" onChange={mockOnChange} />
+      <ModelPicker
+        selectedProvider="ollama"
+        selectedModel="llama3.1"
+        onProviderChange={mockOnProviderChange}
+        onModelChange={mockOnModelChange}
+      />,
     );
 
-    const providerSelect = screen.getByRole("combobox", { name: /provider/i });
-
-    // Check if select has options
-    expect(providerSelect).toBeInTheDocument();
-    expect(providerSelect.querySelectorAll("option").length).toBeGreaterThan(1);
+    // Check provider buttons exist
+    expect(screen.getByRole("button", { name: /ollama/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /openai/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /anthropic/i }),
+    ).toBeInTheDocument();
   });
 
-  it("calls onChange when provider changes", () => {
-    const mockOnChange = vi.fn();
+  it("calls onProviderChange when provider button is clicked", () => {
+    const mockOnProviderChange = vi.fn();
+    const mockOnModelChange = vi.fn();
     render(
-      <ModelPicker provider="ollama" model="llama3.1" onChange={mockOnChange} />
+      <ModelPicker
+        selectedProvider="ollama"
+        selectedModel="llama3.1"
+        onProviderChange={mockOnProviderChange}
+        onModelChange={mockOnModelChange}
+      />,
     );
 
-    const providerSelect = screen.getByRole("combobox", { name: /provider/i });
-    fireEvent.change(providerSelect, { target: { value: "openai" } });
+    const openaiButton = screen.getByRole("button", { name: /openai/i });
+    fireEvent.click(openaiButton);
 
-    expect(mockOnChange).toHaveBeenCalledWith("openai", expect.any(String));
+    expect(mockOnProviderChange).toHaveBeenCalledWith("openai");
   });
 
-  it("updates model options based on provider", () => {
-    const mockOnChange = vi.fn();
-    const { rerender } = render(
-      <ModelPicker provider="ollama" model="llama3.1" onChange={mockOnChange} />
+  it("has custom model input field", () => {
+    const mockOnProviderChange = vi.fn();
+    const mockOnModelChange = vi.fn();
+    render(
+      <ModelPicker
+        selectedProvider="ollama"
+        selectedModel="llama3.1"
+        onProviderChange={mockOnProviderChange}
+        onModelChange={mockOnModelChange}
+      />,
     );
 
-    // Check initial model
-    const modelSelect = screen.getByRole("combobox", { name: /model/i });
-    expect(modelSelect.value).toBe("llama3.1");
+    // Check model input exists
+    const modelInput = screen.getByRole("textbox");
+    expect(modelInput).toBeInTheDocument();
+  });
 
-    // Change provider
-    rerender(
-      <ModelPicker provider="openai" model="gpt-4o" onChange={mockOnChange} />
+  it("calls onModelChange when custom model is entered", () => {
+    const mockOnProviderChange = vi.fn();
+    const mockOnModelChange = vi.fn();
+    render(
+      <ModelPicker
+        selectedProvider="ollama"
+        selectedModel=""
+        onProviderChange={mockOnProviderChange}
+        onModelChange={mockOnModelChange}
+      />,
     );
 
-    // Model should update
-    expect(modelSelect.value).toBe("gpt-4o");
+    const modelInput = screen.getByRole("textbox");
+    fireEvent.change(modelInput, { target: { value: "custom-model" } });
+
+    expect(mockOnModelChange).toHaveBeenCalledWith("custom-model");
+  });
+
+  it("highlights selected provider", () => {
+    const mockOnProviderChange = vi.fn();
+    const mockOnModelChange = vi.fn();
+    render(
+      <ModelPicker
+        selectedProvider="openai"
+        selectedModel="gpt-4"
+        onProviderChange={mockOnProviderChange}
+        onModelChange={mockOnModelChange}
+      />,
+    );
+
+    const openaiButton = screen.getByRole("button", { name: /openai/i });
+    // The selected button should have specific styling
+    expect(openaiButton).toBeInTheDocument();
   });
 });

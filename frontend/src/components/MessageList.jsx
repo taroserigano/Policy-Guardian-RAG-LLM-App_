@@ -32,14 +32,14 @@ export default function MessageList({ messages, isLoading }) {
           {/* User Message */}
           {message.type === "user" && (
             <div className="flex items-start gap-3 justify-end">
-              <div className="max-w-[80%] bg-gradient-to-br from-violet-500/20 to-fuchsia-500/10 rounded-2xl rounded-tr-md px-4 py-3 border border-violet-500/10">
-                <p className="text-[var(--text-secondary)] leading-relaxed text-[15px]">
+              <div className="max-w-[80%] bg-gradient-to-br from-violet-500/20 to-fuchsia-500/10 rounded-2xl rounded-tr-md px-4 py-3 border border-violet-500/20">
+                <p className="text-[var(--text-primary)] leading-relaxed text-[15px]">
                   {message.content}
                 </p>
               </div>
               <div className="flex-shrink-0">
-                <div className="h-8 w-8 rounded-xl bg-[var(--bg-secondary)] flex items-center justify-center border border-[var(--border-subtle)]">
-                  <User className="h-4 w-4 text-[var(--text-muted)]" />
+                <div className="h-8 w-8 rounded-xl bg-[var(--bg-tertiary)] flex items-center justify-center border border-[var(--border-subtle)]">
+                  <User className="h-4 w-4 text-[var(--text-secondary)]" />
                 </div>
               </div>
             </div>
@@ -61,17 +61,17 @@ export default function MessageList({ messages, isLoading }) {
                   <div className="bg-[var(--bg-secondary)]/60 backdrop-blur-sm rounded-2xl rounded-tl-md px-4 py-3 border border-[var(--border-subtle)] transition-colors">
                     {/* Markdown rendered content */}
                     <div
-                      className="prose prose-invert prose-sm max-w-none text-[var(--text-secondary)] leading-relaxed text-[15px]
+                      className="prose prose-invert prose-sm max-w-none text-[var(--text-primary)] leading-relaxed text-[15px]
                       prose-headings:text-[var(--text-primary)] prose-headings:font-semibold prose-headings:mt-4 prose-headings:mb-2
-                      prose-p:my-2 prose-p:text-[var(--text-secondary)]
-                      prose-strong:text-[var(--text-primary)]
-                      prose-code:text-violet-300 prose-code:bg-[var(--bg-secondary)]/60 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md prose-code:text-sm prose-code:before:content-none prose-code:after:content-none
-                      prose-pre:bg-[var(--bg-secondary)]/80 prose-pre:border prose-pre:border-[var(--border-subtle)] prose-pre:rounded-xl prose-pre:my-3
-                      prose-ul:my-2 prose-ol:my-2 prose-li:my-0.5
+                      prose-p:my-2 prose-p:text-[var(--text-primary)]
+                      prose-strong:text-[var(--text-primary)] prose-strong:font-semibold
+                      prose-code:text-violet-300 prose-code:bg-[var(--bg-tertiary)] prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md prose-code:text-sm prose-code:before:content-none prose-code:after:content-none
+                      prose-pre:bg-[var(--bg-tertiary)] prose-pre:border prose-pre:border-[var(--border-subtle)] prose-pre:rounded-xl prose-pre:my-3
+                      prose-ul:my-2 prose-ol:my-2 prose-li:my-0.5 prose-li:text-[var(--text-primary)]
                       prose-a:text-violet-400 prose-a:no-underline hover:prose-a:text-violet-300
-                      prose-blockquote:border-violet-500/50 prose-blockquote:bg-[var(--bg-secondary)]/30 prose-blockquote:rounded-r-lg prose-blockquote:my-2
+                      prose-blockquote:border-violet-500/50 prose-blockquote:bg-[var(--bg-tertiary)]/50 prose-blockquote:rounded-r-lg prose-blockquote:my-2
                       prose-hr:border-[var(--border-subtle)]
-                      prose-table:text-sm prose-th:bg-[var(--bg-secondary)]/50 prose-th:px-3 prose-th:py-2 prose-td:px-3 prose-td:py-2 prose-td:border-[var(--border-subtle)]"
+                      prose-table:text-sm prose-th:bg-[var(--bg-tertiary)] prose-th:px-3 prose-th:py-2 prose-td:px-3 prose-td:py-2 prose-td:border-[var(--border-subtle)]"
                     >
                       {message.content ? (
                         <ReactMarkdown remarkPlugins={[remarkGfm]}>
@@ -94,11 +94,11 @@ export default function MessageList({ messages, isLoading }) {
                         <div className="flex items-center">
                           {message.model && (
                             <>
-                              <Sparkles className="h-3 w-3 mr-1.5 text-amber-400/80" />
-                              <span className="text-xs text-[var(--text-muted)]">
+                              <Sparkles className="h-3 w-3 mr-1.5 text-amber-400" />
+                              <span className="text-xs text-[var(--text-secondary)] font-medium">
                                 {message.model.provider}
                                 {message.model.name && (
-                                  <span className="text-[var(--text-muted)] ml-1">
+                                  <span className="text-[var(--text-secondary)] ml-1">
                                     · {message.model.name}
                                   </span>
                                 )}
@@ -108,13 +108,13 @@ export default function MessageList({ messages, isLoading }) {
                         </div>
                         <button
                           onClick={() => handleCopy(message.content, index)}
-                          className="p-1.5 rounded-lg hover:bg-[var(--hover-bg)] transition-colors group/copy"
+                          className="p-1.5 rounded-lg hover:bg-[var(--hover-bg)] transition-colors group/copy border border-transparent hover:border-[var(--border-subtle)]"
                           title="Copy to clipboard"
                         >
                           {copiedIndex === index ? (
                             <Check className="h-3.5 w-3.5 text-green-400" />
                           ) : (
-                            <Copy className="h-3.5 w-3.5 text-[var(--text-muted)] group-hover/copy:text-[var(--text-secondary)]" />
+                            <Copy className="h-3.5 w-3.5 text-[var(--text-secondary)] group-hover/copy:text-[var(--text-primary)]" />
                           )}
                         </button>
                       </div>

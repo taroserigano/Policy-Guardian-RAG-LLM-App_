@@ -7,6 +7,7 @@ import toast from "react-hot-toast";
 import {
   getDocuments,
   uploadDocument,
+  uploadDocumentsBatch,
   deleteDocument,
   bulkDeleteDocuments,
   getDocumentContent,
@@ -50,6 +51,35 @@ export const useUploadDocument = () => {
     },
     onError: (error) => {
       toast.error(error.response?.data?.detail || "Failed to upload document");
+    },
+  });
+};
+
+/**
+ * Hook to upload multiple documents at once
+ * Invalidates document list on success
+ */
+export const useUploadDocumentsBatch = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: uploadDocumentsBatch,
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["documents"] });
+      const successCount =
+        data.results?.filter((r) => r.status === "success").length || 0;
+      const failCount =
+        data.results?.filter((r) => r.status === "error").length || 0;
+      if (failCount > 0) {
+        toast.success(
+          `Uploaded ${successCount} document(s), ${failCount} failed`,
+        );
+      } else {
+        toast.success(`${successCount} document(s) uploaded successfully`);
+      }
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.detail || "Failed to upload documents");
     },
   });
 };

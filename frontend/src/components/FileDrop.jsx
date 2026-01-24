@@ -1,17 +1,28 @@
 /**
  * File drop zone component for document upload.
+ * Supports single and multiple file uploads.
  */
 import { useState, useCallback } from "react";
-import { Upload, File, AlertCircle, CheckCircle, Cloud } from "lucide-react";
+import {
+  Upload,
+  File,
+  AlertCircle,
+  CheckCircle,
+  Cloud,
+  Files,
+} from "lucide-react";
 
 export default function FileDrop({
   onFileSelect,
+  onFilesSelect,
   accept = ".pdf,.txt",
   maxSizeMB = 15,
+  multiple = false,
 }) {
   const [dragActive, setDragActive] = useState(false);
   const [error, setError] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
+  const [selectedFiles, setSelectedFiles] = useState([]);
 
   const validateFile = (file) => {
     // Check file extension
@@ -19,13 +30,13 @@ export default function FileDrop({
     const allowedExts = accept.split(",").map((e) => e.trim());
 
     if (!allowedExts.includes(ext)) {
-      return `Invalid file type. Allowed: ${accept}`;
+      return `Invalid file type: ${file.name}. Allowed: ${accept}`;
     }
 
     // Check file size
     const maxSize = maxSizeMB * 1024 * 1024;
     if (file.size > maxSize) {
-      return `File too large. Maximum size: ${maxSizeMB}MB`;
+      return `File too large: ${file.name}. Maximum size: ${maxSizeMB}MB`;
     }
 
     return null;
@@ -43,9 +54,36 @@ export default function FileDrop({
       }
 
       setSelectedFile(file);
-      onFileSelect(file);
+      onFileSelect?.(file);
     },
     [onFileSelect],
+  );
+
+  const handleFiles = useCallback(
+    (files) => {
+      setError(null);
+      const validFiles = [];
+      const errors = [];
+
+      for (const file of files) {
+        const validationError = validateFile(file);
+        if (validationError) {
+          errors.push(validationError);
+        } else {
+          validFiles.push(file);
+        }
+      }
+
+      if (errors.length > 0) {
+        setError(errors[0]); // Show first error
+      }
+
+      if (validFiles.length > 0) {
+        setSelectedFiles(validFiles);
+        onFilesSelect?.(validFiles);
+      }
+    },
+    [onFilesSelect],
   );
 
   const handleDrag = (e) => {
@@ -64,28 +102,38 @@ export default function FileDrop({
     e.stopPropagation();
     setDragActive(false);
 
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleFile(e.dataTransfer.files[0]);
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      if (multiple) {
+        handleFiles(Array.from(e.dataTransfer.files));
+      } else {
+        handleFile(e.dataTransfer.files[0]);
+      }
     }
   };
 
   const handleChange = (e) => {
     e.preventDefault();
 
-    if (e.target.files && e.target.files[0]) {
-      handleFile(e.target.files[0]);
+    if (e.target.files && e.target.files.length > 0) {
+      if (multiple) {
+        handleFiles(Array.from(e.target.files));
+      } else {
+        handleFile(e.target.files[0]);
+      }
     }
   };
+
+  const hasSelection = multiple ? selectedFiles.length > 0 : selectedFile;
 
   return (
     <div className="w-full">
       <div
-        className={`relative border-2 border-dashed rounded-2xl p-8 text-center transition-all duration-200 ${
+        className={`relative border-2 border-dashed rounded-xl sm:rounded-2xl p-6 sm:p-8 text-center transition-all duration-200 ${
           dragActive
             ? "border-violet-500 bg-violet-500/10 scale-[1.01]"
             : error
               ? "border-red-500/50 bg-red-500/10"
-              : selectedFile
+              : hasSelection
                 ? "border-emerald-500/50 bg-emerald-500/10"
                 : "border-[var(--border-subtle)] bg-[var(--bg-secondary)]/30 hover:border-violet-500/50 hover:bg-violet-500/5"
         }`}
@@ -98,56 +146,104 @@ export default function FileDrop({
           type="file"
           id="file-upload"
           accept={accept}
+          multiple={multiple}
           onChange={handleChange}
           className="hidden"
         />
 
-        <label htmlFor="file-upload" className="cursor-pointer">
+        <label
+          htmlFor="file-upload"
+          className="cursor-pointer touch-manipulation"
+        >
           <div className="flex flex-col items-center">
             {error ? (
-              <div className="w-14 h-14 rounded-2xl bg-red-500/20 flex items-center justify-center mb-4">
-                <AlertCircle className="h-7 w-7 text-red-400" />
+              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-red-500/20 flex items-center justify-center mb-3 sm:mb-4">
+                <AlertCircle className="h-6 w-6 sm:h-7 sm:w-7 text-red-400" />
               </div>
-            ) : selectedFile ? (
-              <div className="w-14 h-14 rounded-2xl bg-emerald-500/20 flex items-center justify-center mb-4">
-                <CheckCircle className="h-7 w-7 text-emerald-400" />
+            ) : hasSelection ? (
+              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-emerald-500/20 flex items-center justify-center mb-3 sm:mb-4">
+                {multiple && selectedFiles.length > 1 ? (
+                  <Files className="h-6 w-6 sm:h-7 sm:w-7 text-emerald-400" />
+                ) : (
+                  <CheckCircle className="h-6 w-6 sm:h-7 sm:w-7 text-emerald-400" />
+                )}
               </div>
             ) : (
               <div
-                className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-4 transition-all ${
+                className={`w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl flex items-center justify-center mb-3 sm:mb-4 transition-all ${
                   dragActive ? "bg-violet-500/30 scale-105" : "bg-violet-500/15"
                 }`}
               >
                 <Cloud
-                  className={`h-7 w-7 transition-colors ${dragActive ? "text-violet-300" : "text-violet-400"}`}
+                  className={`h-6 w-6 sm:h-7 sm:w-7 transition-colors ${dragActive ? "text-violet-300" : "text-violet-400"}`}
                 />
               </div>
             )}
 
-            {selectedFile ? (
+            {multiple && selectedFiles.length > 0 ? (
+              <div className="space-y-2">
+                <div className="flex items-center justify-center text-emerald-400">
+                  <Files className="h-4 w-4 mr-2" />
+                  <span className="text-sm font-semibold">
+                    {selectedFiles.length} file
+                    {selectedFiles.length > 1 ? "s" : ""} selected
+                  </span>
+                </div>
+                <div className="max-h-24 overflow-y-auto">
+                  {selectedFiles.map((file, idx) => (
+                    <p
+                      key={idx}
+                      className="text-xs text-[var(--text-secondary)] truncate max-w-[200px] sm:max-w-none mx-auto"
+                    >
+                      {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
+                    </p>
+                  ))}
+                </div>
+                <p className="text-xs text-[var(--text-secondary)]">
+                  <span className="hidden sm:inline">
+                    Click or drag to add more
+                  </span>
+                  <span className="sm:hidden">Tap to add more</span>
+                </p>
+              </div>
+            ) : selectedFile ? (
               <div className="space-y-2">
                 <div className="flex items-center justify-center text-emerald-400">
                   <File className="h-4 w-4 mr-2" />
-                  <span className="text-sm font-semibold">
+                  <span className="text-sm font-semibold truncate max-w-[200px] sm:max-w-none">
                     {selectedFile.name}
                   </span>
                 </div>
-                <p className="text-xs text-[var(--text-muted)]">
+                <p className="text-xs text-[var(--text-secondary)]">
                   {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
                 </p>
-                <p className="text-xs text-[var(--text-muted)]">
-                  Click or drag to replace
+                <p className="text-xs text-[var(--text-secondary)]">
+                  <span className="hidden sm:inline">
+                    Click or drag to replace
+                  </span>
+                  <span className="sm:hidden">Tap to replace</span>
                 </p>
               </div>
             ) : (
               <>
-                <p className="text-base font-semibold text-[var(--text-primary)] mb-1">
-                  {dragActive
-                    ? "Drop your file here"
-                    : "Drop your file here or click to browse"}
+                <p className="text-sm sm:text-base font-semibold text-[var(--text-primary)] mb-1 px-2">
+                  {dragActive ? (
+                    `Drop your file${multiple ? "s" : ""} here`
+                  ) : (
+                    <>
+                      <span className="hidden sm:inline">{`Drop your file${multiple ? "s" : ""} here or click to browse`}</span>
+                      <span className="sm:hidden">{`Tap to select file${multiple ? "s" : ""}`}</span>
+                    </>
+                  )}
                 </p>
-                <p className="text-xs text-[var(--text-muted)]">
-                  Supported: PDF, TXT (max {maxSizeMB}MB)
+                <p className="text-xs text-[var(--text-secondary)]">
+                  <span className="hidden sm:inline">
+                    Supported: PDF, TXT (max {maxSizeMB}MB)
+                    {multiple ? " • Multiple files allowed" : ""}
+                  </span>
+                  <span className="sm:hidden">
+                    PDF, TXT (max {maxSizeMB}MB)
+                  </span>
                 </p>
               </>
             )}
@@ -156,15 +252,15 @@ export default function FileDrop({
 
         {/* Animated border when dragging */}
         {dragActive && (
-          <div className="absolute inset-0 rounded-2xl border-2 border-violet-500 pointer-events-none" />
+          <div className="absolute inset-0 rounded-xl sm:rounded-2xl border-2 border-violet-500 pointer-events-none" />
         )}
       </div>
 
       {error && (
-        <div className="mt-4 p-3 bg-red-500/10 border border-red-500/30 rounded-xl">
+        <div className="mt-3 sm:mt-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg sm:rounded-xl">
           <p className="text-xs text-red-400 flex items-center">
-            <AlertCircle className="h-3.5 w-3.5 mr-2" />
-            {error}
+            <AlertCircle className="h-3.5 w-3.5 mr-2 flex-shrink-0" />
+            <span className="truncate">{error}</span>
           </p>
         </div>
       )}

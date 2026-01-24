@@ -1,0 +1,134 @@
+# QLoRA Fine-Tuning Configuration for Policy Compliance LLM
+# =========================================================
+
+# Model Configuration
+model:
+  base_model: "meta-llama/Meta-Llama-3.1-8B-Instruct"  # HuggingFace model ID
+  # Alternative models:
+  # - "mistralai/Mistral-7B-Instruct-v0.2"
+  # - "meta-llama/Llama-2-7b-chat-hf"
+  # - "microsoft/phi-2"
+  
+  # For local models, use path:
+  # base_model: "./models/llama-3.1-8b"
+  
+  torch_dtype: "float16"  # float16, bfloat16, float32
+  device_map: "auto"
+
+# Quantization Configuration (4-bit QLoRA)
+quantization:
+  load_in_4bit: true
+  bnb_4bit_quant_type: "nf4"  # nf4 or fp4
+  bnb_4bit_compute_dtype: "float16"
+  bnb_4bit_use_double_quant: true  # Nested quantization for memory savings
+
+# LoRA Configuration
+lora:
+  r: 64                    # LoRA rank (higher = more capacity, more memory)
+  lora_alpha: 128          # LoRA scaling factor (typically 2x rank)
+  lora_dropout: 0.05       # Dropout for regularization
+  bias: "none"             # none, all, or lora_only
+  task_type: "CAUSAL_LM"
+  
+  # Target modules for Llama models
+  target_modules:
+    - "q_proj"
+    - "k_proj"
+    - "v_proj"
+    - "o_proj"
+    - "gate_proj"
+    - "up_proj"
+    - "down_proj"
+
+# Training Configuration
+training:
+  output_dir: "./outputs/adapters/policy-llama"
+  
+  # Batch settings
+  per_device_train_batch_size: 4
+  per_device_eval_batch_size: 4
+  gradient_accumulation_steps: 4  # Effective batch = 4 * 4 = 16
+  
+  # Training duration
+  num_train_epochs: 3
+  max_steps: -1  # -1 means use num_train_epochs
+  
+  # Learning rate
+  learning_rate: 2.0e-4
+  weight_decay: 0.01
+  warmup_ratio: 0.03
+  lr_scheduler_type: "cosine"
+  
+  # Optimization
+  optim: "paged_adamw_32bit"  # Memory-efficient optimizer
+  max_grad_norm: 0.3
+  
+  # Logging
+  logging_steps: 10
+  logging_dir: "./outputs/logs"
+  report_to: "wandb"  # or "tensorboard", "none"
+  
+  # Evaluation
+  evaluation_strategy: "steps"
+  eval_steps: 50
+  
+  # Checkpointing
+  save_strategy: "steps"
+  save_steps: 100
+  save_total_limit: 3
+  load_best_model_at_end: true
+  
+  # Memory optimization
+  fp16: true
+  bf16: false  # Set true if your GPU supports bfloat16
+  gradient_checkpointing: true
+  
+  # Reproducibility
+  seed: 42
+
+# Dataset Configuration
+dataset:
+  train_file: "./data/processed/training_data.jsonl"
+  eval_split: 0.1  # 10% for validation
+  max_seq_length: 2048
+  
+  # Prompt template (Llama 3 format)
+  prompt_template: |
+    <|begin_of_text|><|start_header_id|>system<|end_header_id|>
+
+    You are a compliance assistant specializing in corporate policies. You provide accurate, helpful answers about policy requirements, procedures, and best practices. Always cite specific policy requirements when applicable.<|eot_id|><|start_header_id|>user<|end_header_id|>
+
+    {instruction}<|eot_id|><|start_header_id|>assistant<|end_header_id|>
+
+    {response}<|eot_id|>
+
+# Inference Configuration (for testing)
+inference:
+  max_new_tokens: 512
+  temperature: 0.7
+  top_p: 0.9
+  top_k: 50
+  repetition_penalty: 1.1
+  do_sample: true
+
+# Export Configuration
+export:
+  merge_adapter: true
+  push_to_hub: false
+  hub_model_id: ""  # e.g., "username/policy-compliance-llm"
+  
+  # GGUF quantization for Ollama
+  gguf:
+    enabled: true
+    quantization_type: "Q4_K_M"  # Q4_K_M, Q5_K_M, Q8_0, F16
+    output_dir: "./outputs/gguf"
+
+# Wandb Configuration (optional)
+wandb:
+  project: "policy-compliance-llm"
+  entity: ""  # Your wandb username/team
+  run_name: "qlora-llama3.1-8b"
+  tags:
+    - "qlora"
+    - "policy"
+    - "compliance"

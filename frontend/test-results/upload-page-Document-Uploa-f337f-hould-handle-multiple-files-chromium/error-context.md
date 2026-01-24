@@ -1,0 +1,155 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - navigation [ref=e4]:
+    - generic [ref=e6]:
+      - link "PolicyRAG AI Intelligence" [ref=e7] [cursor=pointer]:
+        - /url: /
+        - img [ref=e11]
+        - generic [ref=e13]:
+          - heading "PolicyRAG" [level=1] [ref=e14]
+          - paragraph [ref=e15]: AI Intelligence
+      - generic [ref=e16]:
+        - link "Upload" [ref=e17] [cursor=pointer]:
+          - /url: /upload
+          - img [ref=e19]
+          - generic [ref=e22]: Upload
+        - link "Chat" [ref=e23] [cursor=pointer]:
+          - /url: /chat
+          - img [ref=e24]
+          - generic [ref=e26]: Chat
+          - img [ref=e27]
+        - link "Compliance" [ref=e29] [cursor=pointer]:
+          - /url: /compliance
+          - img [ref=e30]
+          - generic [ref=e33]: Compliance
+        - button "Switch to dark mode" [ref=e35] [cursor=pointer]:
+          - img [ref=e36]
+        - link "Sign in" [ref=e38] [cursor=pointer]:
+          - /url: /login
+          - img [ref=e39]
+          - generic [ref=e42]: Sign in
+        - generic [ref=e43]:
+          - img [ref=e46]
+          - generic [ref=e48]: Online
+  - main [ref=e49]:
+    - generic [ref=e50]:
+      - generic [ref=e52]:
+        - img [ref=e54]
+        - generic [ref=e57]:
+          - heading "Upload Content" [level=1] [ref=e58]
+          - paragraph [ref=e59]: Add documents and images to your knowledge base
+      - generic [ref=e60]:
+        - button "Docs" [ref=e61] [cursor=pointer]:
+          - img [ref=e62]
+          - generic [ref=e65]: Docs
+        - button "Images New" [ref=e66] [cursor=pointer]:
+          - img [ref=e67]
+          - text: Images
+          - generic [ref=e71]: New
+      - generic [ref=e72]:
+        - generic [ref=e73]:
+          - button "Single" [ref=e74] [cursor=pointer]
+          - button "Batch" [ref=e75] [cursor=pointer]
+        - generic [ref=e79] [cursor=pointer]:
+          - img [ref=e81]
+          - paragraph [ref=e83]: Drop your file here or click to browse
+          - paragraph [ref=e84]:
+            - generic [ref=e85]: "Supported: PDF, TXT (max 15MB)"
+      - generic [ref=e86]:
+        - generic [ref=e87]:
+          - generic [ref=e88]:
+            - img [ref=e90]
+            - generic [ref=e93]:
+              - heading "Uploaded Documents" [level=2] [ref=e94]
+              - paragraph [ref=e95]: 5 of 5 documents
+          - button "Start Chat" [ref=e97] [cursor=pointer]:
+            - img [ref=e98]
+            - generic [ref=e100]: Start Chat
+            - img [ref=e101]
+        - generic [ref=e103]:
+          - generic [ref=e104]:
+            - img [ref=e105]
+            - text: "Filter:"
+          - button "All" [ref=e107] [cursor=pointer]
+          - button "policy" [ref=e108] [cursor=pointer]
+          - button "legal" [ref=e109] [cursor=pointer]
+          - button "hr" [ref=e110] [cursor=pointer]
+          - button "compliance" [ref=e111] [cursor=pointer]
+          - button "technical" [ref=e112] [cursor=pointer]
+          - button "other" [ref=e113] [cursor=pointer]
+          - button "Uncategorized" [ref=e114] [cursor=pointer]
+        - button "Select All" [ref=e115] [cursor=pointer]
+        - generic [ref=e116]:
+          - generic [ref=e118]:
+            - generic [ref=e120]:
+              - generic [ref=e121]:
+                - img [ref=e122]
+                - heading "remote_work_policy.txt" [level=3] [ref=e125]
+              - paragraph [ref=e126]: "Uploaded: 1/23/2026, 6:00:48 AM"
+              - paragraph [ref=e127]: "REMOTE WORK POLICY Version 2.0 Effective Date: January 1, 2026 PURPOSE This policy establishes guidelines for remote work arrangements to support employee flexibility while maintaining operational effectiveness and team collaboration. SCOPE This policy applies to all employees who have been approved for remote work arrangements, whether permanent, hybrid, or temporary. 1. ELIGIBILITY 1.1 General Requirements Employees must have: - Completed at least 6 months of service - Demonstrated consist"
+            - generic [ref=e128]:
+              - button "Edit category & tags" [ref=e129] [cursor=pointer]:
+                - img [ref=e130]
+              - button "Preview document" [ref=e132] [cursor=pointer]:
+                - img [ref=e133]
+              - button "Delete document" [ref=e136] [cursor=pointer]:
+                - img [ref=e137]
+          - generic [ref=e141]:
+            - generic [ref=e143]:
+              - generic [ref=e144]:
+                - img [ref=e145]
+                - heading "non_disclosure_agreement.txt" [level=3] [ref=e148]
+              - paragraph [ref=e149]: "Uploaded: 1/23/2026, 6:00:46 AM"
+              - paragraph [ref=e150]: "NON-DISCLOSURE AGREEMENT (NDA) This Non-Disclosure Agreement (\"Agreement\") is entered into as of _____________ (\"Effective Date\") BETWEEN: [Company Name] Address: _______________________________ (\"Disclosing Party\") AND: [Recipient Name] Address: _______________________________ (\"Receiving Party\") RECITALS WHEREAS, the Disclosing Party possesses certain confidential and proprietary information related to its business operations, technology, products, services, and strategies; WHEREAS, th"
+            - generic [ref=e151]:
+              - button "Edit category & tags" [ref=e152] [cursor=pointer]:
+                - img [ref=e153]
+              - button "Preview document" [ref=e155] [cursor=pointer]:
+                - img [ref=e156]
+              - button "Delete document" [ref=e159] [cursor=pointer]:
+                - img [ref=e160]
+          - generic [ref=e164]:
+            - generic [ref=e166]:
+              - generic [ref=e167]:
+                - img [ref=e168]
+                - heading "information_security_policy.txt" [level=3] [ref=e171]
+              - paragraph [ref=e172]: "Uploaded: 1/23/2026, 6:00:43 AM"
+              - paragraph [ref=e173]: "INFORMATION SECURITY POLICY Effective Date: January 1, 2026 Version: 2.0 Classification: Internal Use Only 1. PURPOSE AND SCOPE This Information Security Policy establishes the framework for protecting company information assets, systems, and data from unauthorized access, disclosure, modification, or destruction. This policy applies to all employees, contractors, vendors, and third parties who access company systems or data. 2. INFORMATION CLASSIFICATION 2.1 Classification Levels All compa"
+            - generic [ref=e174]:
+              - button "Edit category & tags" [ref=e175] [cursor=pointer]:
+                - img [ref=e176]
+              - button "Preview document" [ref=e178] [cursor=pointer]:
+                - img [ref=e179]
+              - button "Delete document" [ref=e182] [cursor=pointer]:
+                - img [ref=e183]
+          - generic [ref=e187]:
+            - generic [ref=e189]:
+              - generic [ref=e190]:
+                - img [ref=e191]
+                - heading "employee_leave_policy.txt" [level=3] [ref=e194]
+              - paragraph [ref=e195]: "Uploaded: 1/23/2026, 6:00:08 AM"
+              - paragraph [ref=e196]: "EMPLOYEE LEAVE POLICY Effective Date: January 1, 2026 Last Updated: January 1, 2026 1. ANNUAL LEAVE 1.1 Entitlement All full-time employees are entitled to 20 days of paid annual leave per calendar year. Part-time employees receive pro-rated leave based on their contracted hours. 1.2 Accrual Annual leave accrues at a rate of 1.67 days per month of continuous service. Leave can be taken once it has accrued. 1.3 Request Process Employees must submit leave requests through the HR portal at leas"
+            - generic [ref=e197]:
+              - button "Edit category & tags" [ref=e198] [cursor=pointer]:
+                - img [ref=e199]
+              - button "Preview document" [ref=e201] [cursor=pointer]:
+                - img [ref=e202]
+              - button "Delete document" [ref=e205] [cursor=pointer]:
+                - img [ref=e206]
+          - generic [ref=e210]:
+            - generic [ref=e212]:
+              - generic [ref=e213]:
+                - img [ref=e214]
+                - heading "data_privacy_policy.txt" [level=3] [ref=e217]
+              - paragraph [ref=e218]: "Uploaded: 1/23/2026, 5:59:46 AM"
+              - paragraph [ref=e219]: "DATA PRIVACY AND PROTECTION POLICY Document Information Title: Data Privacy and Protection Policy Version: 2.1 Effective Date: January 1, 2026 Last Review: December 15, 2025 Next Review: December 2026 Owner: Chief Information Security Officer Classification: Company Confidential TABLE OF CONTENTS 1. Purpose and Scope 2. Definitions 3. Data Protection Principles 4. Roles and Responsibilities 5. Lawful Basis for Processing 6. Data Subject Rights 7. Data Collection and Use 8. Data Storage and Ret"
+            - generic [ref=e220]:
+              - button "Edit category & tags" [ref=e221] [cursor=pointer]:
+                - img [ref=e222]
+              - button "Preview document" [ref=e224] [cursor=pointer]:
+                - img [ref=e225]
+              - button "Delete document" [ref=e228] [cursor=pointer]:
+                - img [ref=e229]
+```

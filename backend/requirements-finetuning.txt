@@ -1,0 +1,21 @@
+# Fine-Tuning Pipeline Requirements
+# Install with: pip install -r requirements-finetuning.txt
+
+# Core libraries
+sentence-transformers>=2.2.2  # Fine-tuning embeddings
+torch>=2.0.0                  # PyTorch backend
+transformers>=4.30.0          # Hugging Face transformers
+datasets>=2.12.0              # Dataset handling
+
+# Training utilities
+scikit-learn>=1.3.0           # Evaluation metrics
+tqdm>=4.65.0                  # Progress bars
+numpy>=1.24.0                 # Numerical operations
+
+# Model serving
+fastapi>=0.104.0              # API wrapper for embeddings
+uvicorn>=0.24.0               # ASGI server
+pydantic>=2.0.0               # Request/response models
+
+# Utilities
+requests>=2.31.0              # HTTP requests for Ollama

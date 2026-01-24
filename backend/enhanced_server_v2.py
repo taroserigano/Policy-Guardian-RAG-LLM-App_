@@ -7,6 +7,7 @@ Enhanced RAG Server - Phase 1 Complete
 """
 from fastapi import FastAPI, UploadFile, File, HTTPException, Form
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 import uvicorn
 from typing import List, Optional, Dict
@@ -224,6 +225,90 @@ async def upload_document(file: UploadFile = File(...)):
     finally:
         db.close()
 
+
+@app.post("/api/docs/upload/batch")
+async def upload_documents_batch(files: List[UploadFile] = File(...)):
+    """Upload and index multiple documents at once."""
+    results = []
+    errors = []
+    
+    for file in files:
+        db = SessionLocal()
+        try:
+            content_bytes = await file.read()
+            content_hash = hashlib.sha256(content_bytes).hexdigest()
+            
+            # Check if exists
+            existing = db.query(Document).filter(Document.content_hash == content_hash).first()
+            if existing:
+                results.append({
+                    "filename": file.filename,
+                    "status": "exists",
+                    "id": existing.id,
+                    "message": "Document already exists"
+                })
+                continue
+            
+            # Extract text
+            text = extract_text_from_file(content_bytes, file.content_type or "", file.filename or "")
+            
+            # Save to database
+            doc = Document(
+                filename=file.filename,
+                content=text,
+                content_hash=content_hash,
+                content_type=file.content_type,
+                size=len(content_bytes)
+            )
+            db.add(doc)
+            db.commit()
+            db.refresh(doc)
+            
+            # Chunk and embed
+            chunks = chunk_text(text)
+            
+            # Upload to Pinecone
+            vectors = []
+            for i, chunk in enumerate(chunks):
+                emb = get_embedding(chunk)
+                vectors.append({
+                    "id": f"{doc.id}-chunk-{i}",
+                    "values": emb,
+                    "metadata": {
+                        "doc_id": doc.id,
+                        "filename": file.filename,
+                        "chunk_index": i,
+                        "text": chunk[:500]
+                    }
+                })
+            
+            pinecone_index.upsert(vectors=vectors)
+            
+            results.append({
+                "filename": file.filename,
+                "status": "success",
+                "id": doc.id,
+                "chunks": len(chunks)
+            })
+        except Exception as e:
+            db.rollback()
+            errors.append({
+                "filename": file.filename,
+                "status": "error",
+                "message": str(e)
+            })
+        finally:
+            db.close()
+    
+    return {
+        "total": len(files),
+        "success": len(results),
+        "errors": len(errors),
+        "results": results,
+        "error_details": errors
+    }
+
+
 @app.get("/api/docs")
 async def list_documents():
     """List all documents."""
@@ -319,6 +404,242 @@ Context:
             answer=answer,
             citations=citations,
             model={"provider": request.provider, "name": model_name}
+        )
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        db.close()
+
+
+@app.post("/api/chat/stream")
+async def chat_stream(request: ChatRequest):
+    """Chat with RAG using Server-Sent Events streaming."""
+    db = SessionLocal()
+    try:
+        # Embed question
+        question_emb = get_embedding(request.question)
+        
+        # Search Pinecone
+        filter_dict = None
+        if request.doc_ids:
+            filter_dict = {"doc_id": {"$in": [int(id) for id in request.doc_ids]}}
+        
+        results = pinecone_index.query(
+            vector=question_emb,
+            top_k=5,
+            include_metadata=True,
+            filter=filter_dict
+        )
+        
+        # Build context
+        context_chunks = [
+            match.metadata.get("text", "")
+            for match in results.matches
+            if match.score > 0.3
+        ]
+        context = "\n\n".join(context_chunks)
+        
+        # Build citations
+        citations = [
+            {
+                "filename": match.metadata.get("filename"),
+                "chunk_index": match.metadata.get("chunk_index"),
+                "score": round(match.score, 3),
+                "text": match.metadata.get("text", "")[:200]
+            }
+            for match in results.matches
+            if match.score > 0.3
+        ]
+        
+        # Prepare messages
+        system_prompt = f"""You are a helpful assistant answering questions about company policies.
+Use the following context to answer the question. If the answer is not in the context, say so.
+
+Context:
+{context}"""
+        
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": request.question}
+        ]
+        
+        # Determine model based on provider
+        provider = request.provider or "ollama"
+        if provider == "ollama":
+            model_name = request.model or "llama3.1:8b"
+        elif provider == "openai":
+            model_name = request.model or "gpt-4o-mini"
+        elif provider == "anthropic":
+            model_name = request.model or "claude-3-haiku-20240307"
+        else:
+            model_name = request.model or "llama3.1:8b"
+
+        def generate():
+            """Generator for SSE streaming."""
+            full_response = ""
+            
+            # Send citations first
+            yield f"data: {json.dumps({'type': 'citations', 'data': citations})}\n\n"
+            
+            try:
+                if provider == "ollama":
+                    # Stream from Ollama
+                    response = requests.post(
+                        f"{os.getenv('OLLAMA_BASE_URL', 'http://localhost:11434')}/api/chat",
+                        json={
+                            "model": model_name,
+                            "messages": messages,
+                            "stream": True
+                        },
+                        stream=True,
+                        timeout=120
+                    )
+                    
+                    if response.status_code == 200:
+                        for line in response.iter_lines():
+                            if line:
+                                try:
+                                    data = json.loads(line)
+                                    if "message" in data and "content" in data["message"]:
+                                        token = data["message"]["content"]
+                                        full_response += token
+                                        yield f"data: {json.dumps({'type': 'token', 'data': token})}\n\n"
+                                except json.JSONDecodeError:
+                                    continue
+                    else:
+                        yield f"data: {json.dumps({'type': 'error', 'data': 'Failed to get response from Ollama'})}\n\n"
+                        full_response = "Error: Failed to generate response"
+                
+                elif provider == "openai":
+                    # Stream from OpenAI
+                    api_key = os.getenv("OPENAI_API_KEY")
+                    if not api_key:
+                        yield f"data: {json.dumps({'type': 'error', 'data': 'OpenAI API key not configured'})}\n\n"
+                        full_response = "Error: OpenAI API key not configured"
+                    else:
+                        response = requests.post(
+                            "https://api.openai.com/v1/chat/completions",
+                            headers={
+                                "Authorization": f"Bearer {api_key}",
+                                "Content-Type": "application/json"
+                            },
+                            json={
+                                "model": model_name,
+                                "messages": messages,
+                                "stream": True
+                            },
+                            stream=True,
+                            timeout=120
+                        )
+                        
+                        if response.status_code == 200:
+                            for line in response.iter_lines():
+                                if line:
+                                    line_text = line.decode("utf-8")
+                                    if line_text.startswith("data: "):
+                                        data_str = line_text[6:]
+                                        if data_str.strip() == "[DONE]":
+                                            break
+                                        try:
+                                            data = json.loads(data_str)
+                                            if "choices" in data and len(data["choices"]) > 0:
+                                                delta = data["choices"][0].get("delta", {})
+                                                if "content" in delta:
+                                                    token = delta["content"]
+                                                    full_response += token
+                                                    yield f"data: {json.dumps({'type': 'token', 'data': token})}\n\n"
+                                        except json.JSONDecodeError:
+                                            continue
+                        else:
+                            error_msg = f"OpenAI API error: {response.status_code}"
+                            yield f"data: {json.dumps({'type': 'error', 'data': error_msg})}\n\n"
+                            full_response = f"Error: {error_msg}"
+                
+                elif provider == "anthropic":
+                    # Stream from Anthropic
+                    api_key = os.getenv("ANTHROPIC_API_KEY")
+                    if not api_key:
+                        yield f"data: {json.dumps({'type': 'error', 'data': 'Anthropic API key not configured'})}\n\n"
+                        full_response = "Error: Anthropic API key not configured"
+                    else:
+                        # Convert messages for Anthropic format
+                        anthropic_messages = []
+                        system_content = ""
+                        for msg in messages:
+                            if msg["role"] == "system":
+                                system_content = msg["content"]
+                            else:
+                                anthropic_messages.append(msg)
+                        
+                        response = requests.post(
+                            "https://api.anthropic.com/v1/messages",
+                            headers={
+                                "x-api-key": api_key,
+                                "Content-Type": "application/json",
+                                "anthropic-version": "2023-06-01"
+                            },
+                            json={
+                                "model": model_name,
+                                "max_tokens": 4096,
+                                "system": system_content,
+                                "messages": anthropic_messages,
+                                "stream": True
+                            },
+                            stream=True,
+                            timeout=120
+                        )
+                        
+                        if response.status_code == 200:
+                            for line in response.iter_lines():
+                                if line:
+                                    line_text = line.decode("utf-8")
+                                    if line_text.startswith("data: "):
+                                        data_str = line_text[6:]
+                                        try:
+                                            data = json.loads(data_str)
+                                            if data.get("type") == "content_block_delta":
+                                                delta = data.get("delta", {})
+                                                if delta.get("type") == "text_delta":
+                                                    token = delta.get("text", "")
+                                                    full_response += token
+                                                    yield f"data: {json.dumps({'type': 'token', 'data': token})}\n\n"
+                                        except json.JSONDecodeError:
+                                            continue
+                        else:
+                            error_msg = f"Anthropic API error: {response.status_code}"
+                            yield f"data: {json.dumps({'type': 'error', 'data': error_msg})}\n\n"
+                            full_response = f"Error: {error_msg}"
+                    
+            except Exception as e:
+                yield f"data: {json.dumps({'type': 'error', 'data': str(e)})}\n\n"
+                full_response = f"Error: {str(e)}"
+            
+            # Save audit
+            try:
+                audit = ChatAudit(
+                    user_id=request.user_id,
+                    question=request.question,
+                    answer=full_response,
+                    model=f"{provider}:{model_name}",
+                    doc_ids=",".join(request.doc_ids) if request.doc_ids else ""
+                )
+                db.add(audit)
+                db.commit()
+            except Exception:
+                db.rollback()
+            
+            # Send done event
+            yield f"data: {json.dumps({'type': 'done', 'data': {'model': {'provider': provider, 'name': model_name}}})}\n\n"
+        
+        return StreamingResponse(
+            generate(),
+            media_type="text/event-stream",
+            headers={
+                "Cache-Control": "no-cache",
+                "Connection": "keep-alive",
+                "X-Accel-Buffering": "no"
+            }
         )
     except Exception as e:
         db.rollback()
@@ -651,6 +972,66 @@ async def clear_chat_history(user_id: str):
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        db.close()
+
+
+@app.get("/api/chat/history/{user_id}/export")
+async def export_chat_history(user_id: str, format: str = "json"):
+    """Export chat history for a user in JSON or Markdown format."""
+    db = SessionLocal()
+    try:
+        history = db.query(ChatAudit).filter(
+            ChatAudit.user_id == user_id
+        ).order_by(ChatAudit.created_at.asc()).all()
+        
+        if format == "markdown":
+            # Export as Markdown
+            content = f"# Chat History Export\n\n"
+            content += f"**User ID:** {user_id}\n"
+            content += f"**Export Date:** {datetime.utcnow().isoformat()}\n"
+            content += f"**Total Messages:** {len(history)}\n\n---\n\n"
+            
+            for h in history:
+                timestamp = h.created_at.strftime("%Y-%m-%d %H:%M:%S") if h.created_at else "Unknown"
+                content += f"## {timestamp}\n\n"
+                content += f"**Model:** {h.model}\n\n"
+                content += f"### Question\n\n{h.question}\n\n"
+                content += f"### Answer\n\n{h.answer}\n\n---\n\n"
+            
+            return StreamingResponse(
+                iter([content]),
+                media_type="text/markdown",
+                headers={
+                    "Content-Disposition": f"attachment; filename=chat_history_{user_id}.md"
+                }
+            )
+        else:
+            # Export as JSON
+            export_data = {
+                "user_id": user_id,
+                "export_date": datetime.utcnow().isoformat(),
+                "total_messages": len(history),
+                "messages": [
+                    {
+                        "id": str(h.id),
+                        "question": h.question,
+                        "answer": h.answer,
+                        "model": h.model,
+                        "doc_ids": h.doc_ids.split(",") if h.doc_ids else [],
+                        "created_at": h.created_at.isoformat() if h.created_at else None
+                    }
+                    for h in history
+                ]
+            }
+            
+            return StreamingResponse(
+                iter([json.dumps(export_data, indent=2)]),
+                media_type="application/json",
+                headers={
+                    "Content-Disposition": f"attachment; filename=chat_history_{user_id}.json"
+                }
+            )
     finally:
         db.close()
 

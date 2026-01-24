@@ -23,7 +23,7 @@ class Settings(BaseSettings):
     pinecone_index_name: str = "policy-rag"
     pinecone_cloud: str = "aws"
     pinecone_region: str = "us-east-1"
-    embed_dim: int = 768  # Default for nomic-embed-text
+    embed_dim: int = 3072  # OpenAI text-embedding-3-large
     
     # Ollama (local LLM)
     ollama_base_url: str = "http://localhost:11434"
@@ -48,6 +48,11 @@ class Settings(BaseSettings):
     
     # API Security (optional)
     api_key: str = ""  # If set, require X-API-Key header
+    
+    # JWT Authentication
+    jwt_secret_key: str = "your-secret-key-change-in-production"  # Change this!
+    jwt_access_token_expire_minutes: int = 30
+    jwt_refresh_token_expire_days: int = 7
     
     # File Upload
     max_file_size_mb: int = 15

@@ -19,7 +19,7 @@ const getUserId = () => {
 };
 
 export default function CompliancePage() {
-  const [selectedProvider, setSelectedProvider] = useState("openai");
+  const [selectedProvider, setSelectedProvider] = useState("ollama");
   const [selectedModel, setSelectedModel] = useState("");
   const [selectedDocIds, setSelectedDocIds] = useState([]);
   const [selectedImageIds, setSelectedImageIds] = useState([]);

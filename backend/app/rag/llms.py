@@ -4,8 +4,6 @@ Supports Ollama (local), OpenAI, and Anthropic.
 """
 from typing import Optional, Dict, Any
 import requests
-from langchain_openai import ChatOpenAI
-from langchain_anthropic import ChatAnthropic
 
 from app.core.config import get_settings
 from app.core.logging import get_logger
@@ -130,6 +128,7 @@ def get_llm(provider: str, model: Optional[str] = None) -> Any:
         return OllamaChat(model=model)
     
     elif provider == "openai":
+        from langchain_openai import ChatOpenAI
         if not settings.openai_api_key:
             raise ValueError("OpenAI API key not configured")
         return ChatOpenAI(
@@ -139,6 +138,7 @@ def get_llm(provider: str, model: Optional[str] = None) -> Any:
         )
     
     elif provider == "anthropic":
+        from langchain_anthropic import ChatAnthropic
         if not settings.anthropic_api_key:
             raise ValueError("Anthropic API key not configured")
         return ChatAnthropic(
@@ -166,6 +166,7 @@ def get_streaming_llm(provider: str, model: Optional[str] = None) -> Any:
         return OllamaChat(model=model)
     
     elif provider == "openai":
+        from langchain_openai import ChatOpenAI
         if not settings.openai_api_key:
             raise ValueError("OpenAI API key not configured")
         return ChatOpenAI(

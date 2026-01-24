@@ -1,82 +1,98 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import ChatBox from "../components/ChatBox";
 
 describe("ChatBox Component", () => {
-  it("renders input field and send button", () => {
-    const mockOnSend = vi.fn();
-    render(<ChatBox onSend={mockOnSend} disabled={false} />);
+  it("renders textarea and send button", () => {
+    const mockOnSendMessage = vi.fn();
+    render(<ChatBox onSendMessage={mockOnSendMessage} disabled={false} />);
 
     expect(screen.getByPlaceholderText(/ask a question/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /send/i })).toBeInTheDocument();
+    expect(screen.getByRole("button")).toBeInTheDocument();
   });
 
-  it("allows typing in the input field", () => {
-    const mockOnSend = vi.fn();
-    render(<ChatBox onSend={mockOnSend} disabled={false} />);
+  it("allows typing in the textarea", () => {
+    const mockOnSendMessage = vi.fn();
+    render(<ChatBox onSendMessage={mockOnSendMessage} disabled={false} />);
 
-    const input = screen.getByPlaceholderText(/ask a question/i);
-    fireEvent.change(input, { target: { value: "Test question" } });
+    const textarea = screen.getByPlaceholderText(/ask a question/i);
+    fireEvent.change(textarea, { target: { value: "Test question" } });
 
-    expect(input.value).toBe("Test question");
+    expect(textarea.value).toBe("Test question");
   });
 
-  it("calls onSend when send button clicked", () => {
-    const mockOnSend = vi.fn();
-    render(<ChatBox onSend={mockOnSend} disabled={false} />);
+  it("calls onSendMessage when send button clicked", () => {
+    const mockOnSendMessage = vi.fn();
+    render(<ChatBox onSendMessage={mockOnSendMessage} disabled={false} />);
 
-    const input = screen.getByPlaceholderText(/ask a question/i);
-    const button = screen.getByRole("button", { name: /send/i });
+    const textarea = screen.getByPlaceholderText(/ask a question/i);
+    const button = screen.getByRole("button");
 
-    fireEvent.change(input, { target: { value: "Test question" } });
+    fireEvent.change(textarea, { target: { value: "Test question" } });
     fireEvent.click(button);
 
-    expect(mockOnSend).toHaveBeenCalledWith("Test question");
+    expect(mockOnSendMessage).toHaveBeenCalledWith("Test question");
   });
 
-  it("calls onSend when Enter key pressed", () => {
-    const mockOnSend = vi.fn();
-    render(<ChatBox onSend={mockOnSend} disabled={false} />);
+  it("calls onSendMessage when Enter key pressed", () => {
+    const mockOnSendMessage = vi.fn();
+    render(<ChatBox onSendMessage={mockOnSendMessage} disabled={false} />);
 
-    const input = screen.getByPlaceholderText(/ask a question/i);
+    const textarea = screen.getByPlaceholderText(/ask a question/i);
 
-    fireEvent.change(input, { target: { value: "Test question" } });
-    fireEvent.keyDown(input, { key: "Enter", code: "Enter" });
+    fireEvent.change(textarea, { target: { value: "Test question" } });
+    fireEvent.keyDown(textarea, { key: "Enter", code: "Enter" });
 
-    expect(mockOnSend).toHaveBeenCalledWith("Test question");
+    expect(mockOnSendMessage).toHaveBeenCalledWith("Test question");
   });
 
-  it("clears input after sending", () => {
-    const mockOnSend = vi.fn();
-    render(<ChatBox onSend={mockOnSend} disabled={false} />);
+  it("clears textarea after sending", () => {
+    const mockOnSendMessage = vi.fn();
+    render(<ChatBox onSendMessage={mockOnSendMessage} disabled={false} />);
 
-    const input = screen.getByPlaceholderText(/ask a question/i);
-    const button = screen.getByRole("button", { name: /send/i });
+    const textarea = screen.getByPlaceholderText(/ask a question/i);
+    const button = screen.getByRole("button");
 
-    fireEvent.change(input, { target: { value: "Test question" } });
+    fireEvent.change(textarea, { target: { value: "Test question" } });
     fireEvent.click(button);
 
-    expect(input.value).toBe("");
+    expect(textarea.value).toBe("");
   });
 
   it("does not send empty messages", () => {
-    const mockOnSend = vi.fn();
-    render(<ChatBox onSend={mockOnSend} disabled={false} />);
+    const mockOnSendMessage = vi.fn();
+    render(<ChatBox onSendMessage={mockOnSendMessage} disabled={false} />);
 
-    const button = screen.getByRole("button", { name: /send/i });
+    const button = screen.getByRole("button");
     fireEvent.click(button);
 
-    expect(mockOnSend).not.toHaveBeenCalled();
+    expect(mockOnSendMessage).not.toHaveBeenCalled();
   });
 
-  it("disables input and button when disabled prop is true", () => {
-    const mockOnSend = vi.fn();
-    render(<ChatBox onSend={mockOnSend} disabled={true} />);
+  it("disables textarea and button when disabled prop is true", () => {
+    const mockOnSendMessage = vi.fn();
+    render(<ChatBox onSendMessage={mockOnSendMessage} disabled={true} />);
 
-    const input = screen.getByPlaceholderText(/ask a question/i);
-    const button = screen.getByRole("button", { name: /send/i });
+    const textarea = screen.getByPlaceholderText(/ask a question/i);
+    const button = screen.getByRole("button");
 
-    expect(input).toBeDisabled();
+    expect(textarea).toBeDisabled();
     expect(button).toBeDisabled();
+  });
+
+  it("does not allow sending with Shift+Enter (allows newlines)", () => {
+    const mockOnSendMessage = vi.fn();
+    render(<ChatBox onSendMessage={mockOnSendMessage} disabled={false} />);
+
+    const textarea = screen.getByPlaceholderText(/ask a question/i);
+
+    fireEvent.change(textarea, { target: { value: "Test question" } });
+    fireEvent.keyDown(textarea, {
+      key: "Enter",
+      code: "Enter",
+      shiftKey: true,
+    });
+
+    expect(mockOnSendMessage).not.toHaveBeenCalled();
   });
 });

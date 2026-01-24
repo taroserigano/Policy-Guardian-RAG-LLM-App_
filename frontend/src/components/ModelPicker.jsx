@@ -58,82 +58,60 @@ export default function ModelPicker({
   };
 
   return (
-    <div className="space-y-5">
-      <div>
-        <label className="flex items-center text-sm font-medium text-[var(--text-secondary)] mb-3">
-          <Zap className="h-4 w-4 mr-2 text-amber-400" />
-          Select LLM Provider
-        </label>
+    <div>
+      <label className="flex items-center text-sm font-medium text-[var(--text-secondary)] mb-3">
+        <Zap className="h-4 w-4 mr-2 text-amber-400" />
+        Select LLM Provider
+      </label>
 
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-          {PROVIDERS.map((provider) => {
-            const Icon = provider.icon;
-            const isSelected = selectedProvider === provider.id;
+      {/* Mobile: vertical stack, Desktop: 3-column grid */}
+      <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
+        {PROVIDERS.map((provider) => {
+          const Icon = provider.icon;
+          const isSelected = selectedProvider === provider.id;
 
-            return (
-              <button
-                key={provider.id}
-                onClick={() => onProviderChange(provider.id)}
-                className={`relative flex items-center p-3.5 rounded-xl border transition-all duration-200 group overflow-hidden ${
+          return (
+            <button
+              key={provider.id}
+              onClick={() => onProviderChange(provider.id)}
+              className={`relative flex items-center justify-center sm:justify-start gap-3 px-4 py-3 w-full sm:flex-1 rounded-xl border transition-all duration-200 group overflow-hidden touch-manipulation ${
+                isSelected
+                  ? `border-transparent bg-gradient-to-br ${provider.gradient}`
+                  : "border-[var(--border-subtle)] bg-[var(--bg-tertiary)]/50 hover:border-[var(--hover-border)] hover:bg-[var(--hover-bg)] active:scale-[0.98]"
+              }`}
+            >
+              {/* Icon - hidden on mobile */}
+              <div
+                className={`relative z-10 p-2 rounded-lg flex-shrink-0 hidden sm:block ${
                   isSelected
-                    ? `border-transparent bg-gradient-to-br ${provider.gradient}`
-                    : "border-[var(--border-subtle)] bg-[var(--bg-secondary)]/50 hover:border-[var(--text-muted)] hover:bg-[var(--hover-bg)]"
-                }`}
+                    ? "bg-white/20"
+                    : "bg-[var(--bg-secondary)] group-hover:bg-[var(--bg-tertiary)]"
+                } transition-colors`}
               >
+                <Icon
+                  className={`h-5 w-5 ${isSelected ? "text-white" : "text-[var(--text-secondary)] group-hover:text-[var(--text-primary)]"}`}
+                />
+              </div>
+              <div className="relative z-10 text-center sm:text-left">
                 <div
-                  className={`relative z-10 p-2 rounded-lg mr-3 ${
-                    isSelected
-                      ? "bg-white/20"
-                      : "bg-[var(--bg-secondary)]/50 group-hover:bg-[var(--bg-secondary)]"
-                  } transition-colors`}
+                  className={`text-sm font-semibold ${isSelected ? "text-white" : "text-[var(--text-primary)]"}`}
                 >
-                  <Icon
-                    className={`h-4 w-4 ${isSelected ? "text-white" : "text-[var(--text-muted)] group-hover:text-[var(--text-secondary)]"}`}
-                  />
+                  {provider.name}
                 </div>
-                <div className="relative z-10 text-left">
-                  <div
-                    className={`text-sm font-semibold ${isSelected ? "text-white" : "text-[var(--text-secondary)] group-hover:text-[var(--text-primary)]"}`}
-                  >
-                    {provider.name}
-                  </div>
-                  <div
-                    className={`text-xs ${isSelected ? "text-white/70" : "text-[var(--text-muted)]"}`}
-                  >
-                    {provider.description}
-                  </div>
+                <div
+                  className={`text-xs ${isSelected ? "text-white/80" : "text-[var(--text-secondary)]"}`}
+                >
+                  {provider.description}
                 </div>
+              </div>
 
-                {/* Selection indicator */}
-                {isSelected && (
-                  <div className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-white" />
-                )}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Custom model name input */}
-      <div>
-        <label
-          htmlFor="custom-model"
-          className="block text-sm font-medium text-[var(--text-secondary)] mb-2"
-        >
-          Model Name{" "}
-          <span className="text-[var(--text-muted)]">(optional)</span>
-        </label>
-        <input
-          id="custom-model"
-          type="text"
-          value={selectedModel || ""}
-          onChange={handleModelChange}
-          placeholder={getPlaceholder()}
-          className="w-full px-4 py-2.5 bg-[var(--bg-secondary)]/50 border border-[var(--border-subtle)] rounded-xl text-[var(--text-primary)] text-sm placeholder-[var(--text-muted)] focus:outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/20 transition-all"
-        />
-        <p className="mt-2 text-xs text-[var(--text-muted)]">
-          Specify a custom model or leave empty for default
-        </p>
+              {/* Selection indicator */}
+              {isSelected && (
+                <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-white" />
+              )}
+            </button>
+          );
+        })}
       </div>
     </div>
   );

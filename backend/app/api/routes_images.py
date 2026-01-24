@@ -170,10 +170,13 @@ async def upload_image(
         description = None
         if generate_description:
             try:
-                logger.info(f"Generating description with {vision_provider} vision model")
+                logger.info(f"Generating AI description with {vision_provider} vision model...")
                 description = generate_image_description_for_indexing(content, vision_provider)
+                logger.info(f"AI description generated successfully: {description[:100]}...")
             except Exception as e:
-                logger.warning(f"Vision description failed: {e}. Continuing without description.")
+                logger.error(f"Vision description failed with error: {e}. Continuing without description.")
+                import traceback
+                logger.error(f"Full traceback: {traceback.format_exc()}")
         
         # Create thumbnail
         thumbnail = create_thumbnail(image)

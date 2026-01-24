@@ -47,6 +47,11 @@ sentence-transformers==2.3.1
 python-dotenv==1.0.1
 aiofiles==23.2.1
 
+# Authentication
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+bcrypt==4.1.2
+
 # Caching
 redis==5.0.1
 hiredis==2.3.2

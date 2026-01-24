@@ -10,7 +10,7 @@ from collections import defaultdict
 from app.core.config import get_settings
 from app.core.logging import get_logger
 from app.core.cache import get_cache
-from app.rag.embeddings import default_embeddings
+from app.rag.embeddings import get_default_embeddings
 from app.rag.indexing import get_pinecone_index
 
 settings = get_settings()
@@ -95,7 +95,7 @@ def retrieve_relevant_chunks(
     logger.info(f"Retrieving top {top_k} chunks for query (hybrid={use_hybrid})")
     
     # Step 1: Generate query embedding
-    query_embedding = default_embeddings.embed_query(query)
+    query_embedding = get_default_embeddings().embed_query(query)
     
     # Step 2: Build filter for specific documents if provided
     filter_dict = None

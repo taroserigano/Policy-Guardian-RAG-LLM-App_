@@ -95,3 +95,31 @@ ollama_data/
 *.tmp
 *.temp
 e2e_output.txt
+
+# Machine Learning / Fine-tuning
+backend/finetune_llm/models/policy-embeddings*/
+backend/finetune_llm/policy-llama*/
+*.gguf
+*.bin
+*.safetensors
+!backend/finetune_llm/QLoRA_Colab.ipynb
+backend/models/policy-embeddings*/
+
+# Training outputs
+backend/finetune_llm/wandb/
+backend/finetune_llm/runs/
+backend/finetune_llm/checkpoints/
+*.zip
+
+# Large model files
+*.pt
+*.pth
+*.ckpt
+*.h5
+*.pkl
+*.pickle
+
+# Hugging Face cache
+.cache/
+huggingface/
+transformers_cache/

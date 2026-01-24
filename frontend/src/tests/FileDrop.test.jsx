@@ -1,50 +1,33 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import FileDrop from "../components/FileDrop";
-
-// Create a new QueryClient for each test
-const createTestQueryClient = () =>
-  new QueryClient({
-    defaultOptions: {
-      queries: { retry: false },
-      mutations: { retry: false },
-    },
-  });
-
-const wrapper = ({ children }) => (
-  <QueryClientProvider client={createTestQueryClient()}>
-    {children}
-  </QueryClientProvider>
-);
 
 describe("FileDrop Component", () => {
   it("renders upload area", () => {
-    render(<FileDrop />, { wrapper });
+    render(<FileDrop />);
 
-    expect(screen.getByText(/drag & drop/i)).toBeInTheDocument();
-    expect(screen.getByText(/click to browse/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/drop your file here or click to browse/i),
+    ).toBeInTheDocument();
   });
 
-  it("shows file input when clicked", () => {
-    render(<FileDrop />, { wrapper });
-
-    const uploadArea = screen.getByText(/drag & drop/i).parentElement;
-    fireEvent.click(uploadArea);
+  it("shows file input", () => {
+    render(<FileDrop />);
 
     const fileInput = document.querySelector('input[type="file"]');
     expect(fileInput).toBeInTheDocument();
   });
 
-  it("accepts only PDF and TXT files", () => {
-    render(<FileDrop />, { wrapper });
+  it("accepts PDF and TXT files by default", () => {
+    render(<FileDrop />);
 
     const fileInput = document.querySelector('input[type="file"]');
     expect(fileInput).toHaveAttribute("accept", ".pdf,.txt");
   });
 
-  it("displays selected file name", async () => {
-    render(<FileDrop />, { wrapper });
+  it("displays selected file name after selection", async () => {
+    const mockOnFileSelect = vi.fn();
+    render(<FileDrop onFileSelect={mockOnFileSelect} />);
 
     const fileInput = document.querySelector('input[type="file"]');
     const file = new File(["test content"], "test.pdf", {
@@ -56,5 +39,85 @@ describe("FileDrop Component", () => {
     await waitFor(() => {
       expect(screen.getByText(/test\.pdf/i)).toBeInTheDocument();
     });
+    expect(mockOnFileSelect).toHaveBeenCalledWith(file);
+  });
+
+  it("shows error for invalid file type", async () => {
+    render(<FileDrop />);
+
+    const fileInput = document.querySelector('input[type="file"]');
+    const file = new File(["test content"], "test.jpg", {
+      type: "image/jpeg",
+    });
+
+    fireEvent.change(fileInput, { target: { files: [file] } });
+
+    await waitFor(() => {
+      expect(screen.getByText(/invalid file type/i)).toBeInTheDocument();
+    });
+  });
+
+  it("shows error for file too large", async () => {
+    // maxSizeMB = 0.0001 = ~100 bytes
+    render(<FileDrop maxSizeMB={0.0001} />);
+
+    const fileInput = document.querySelector('input[type="file"]');
+    // Create a file with content larger than 100 bytes
+    const largeContent = "x".repeat(500);
+    const file = new File([largeContent], "test.pdf", {
+      type: "application/pdf",
+    });
+
+    fireEvent.change(fileInput, { target: { files: [file] } });
+
+    await waitFor(() => {
+      expect(screen.getByText(/file too large/i)).toBeInTheDocument();
+    });
+  });
+
+  it("enables multiple file selection when multiple prop is true", () => {
+    render(<FileDrop multiple={true} />);
+
+    const fileInput = document.querySelector('input[type="file"]');
+    expect(fileInput).toHaveAttribute("multiple");
+  });
+
+  it("handles drag events", () => {
+    render(<FileDrop />);
+
+    const dropZone = screen
+      .getByText(/drop your file here or click to browse/i)
+      .closest("div");
+
+    fireEvent.dragEnter(dropZone);
+    expect(screen.getByText(/drop your file here$/i)).toBeInTheDocument();
+
+    fireEvent.dragLeave(dropZone);
+    expect(
+      screen.getByText(/drop your file here or click to browse/i),
+    ).toBeInTheDocument();
+  });
+
+  it("handles file drop", async () => {
+    const mockOnFileSelect = vi.fn();
+    render(<FileDrop onFileSelect={mockOnFileSelect} />);
+
+    const dropZone = screen
+      .getByText(/drop your file here or click to browse/i)
+      .closest("div");
+    const file = new File(["test content"], "dropped.pdf", {
+      type: "application/pdf",
+    });
+
+    const dataTransfer = {
+      files: [file],
+    };
+
+    fireEvent.drop(dropZone, { dataTransfer });
+
+    await waitFor(() => {
+      expect(screen.getByText(/dropped\.pdf/i)).toBeInTheDocument();
+    });
+    expect(mockOnFileSelect).toHaveBeenCalledWith(file);
   });
 });

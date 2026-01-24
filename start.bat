@@ -26,12 +26,12 @@ if %errorlevel% neq 0 (
 
 echo.
 echo [START] Starting Backend Server (Port 8001)...
-start "Backend - Policy RAG API" cmd /k "cd /d "%~dp0backend" && python enhanced_server_v2.py"
-timeout /t 3 >nul
+start "Backend - Policy RAG API" cmd /k "cd /d "%~dp0backend" && python -m uvicorn app.main:app --host 0.0.0.0 --port 8001"
+timeout /t 5 >nul
 
 echo [START] Starting Frontend Dev Server (Port 5173)...
 start "Frontend - Policy RAG UI" cmd /k "cd /d "%~dp0frontend" && npm run dev"
-timeout /t 3 >nul
+timeout /t 5 >nul
 
 echo.
 echo ======================================================================

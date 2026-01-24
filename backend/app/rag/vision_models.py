@@ -339,6 +339,19 @@ class OllamaVision:
         self.base_url = base_url or settings.ollama_base_url
         self.model = model or "llava"  # LLaVA is Ollama's vision model
         self.endpoint = f"{self.base_url}/api/generate"
+        
+        # Check if llava model is available
+        try:
+            import httpx
+            response = httpx.get(f"{self.base_url}/api/tags", timeout=5.0)
+            if response.status_code == 200:
+                models = response.json().get("models", [])
+                model_names = [m.get("name", "") for m in models]
+                if not any("llava" in name.lower() for name in model_names):
+                    logger.warning(f"LLaVA model not found in Ollama. Available models: {model_names}")
+                    logger.warning("Run 'ollama pull llava' to enable AI image descriptions")
+        except Exception as e:
+            logger.warning(f"Could not check Ollama models: {e}")
     
     def analyze_image(
         self,

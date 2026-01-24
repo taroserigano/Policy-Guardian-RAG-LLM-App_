@@ -13,7 +13,7 @@ import re
 
 from app.db.session import get_db
 from app.db.models import Document
-from app.schemas import DocumentResponse, UploadResponse, ErrorResponse
+from app.schemas import DocumentResponse, UploadResponse, ErrorResponse, DocumentUpdateRequest
 from app.rag.indexing import index_document, delete_document_from_index
 from app.core.config import get_settings
 from app.core.logging import get_logger
@@ -309,6 +309,111 @@ def delete_document(doc_id: str, db: Session = Depends(get_db)):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error deleting document: {str(e)}"
+        )
+
+
+@router.patch("/{doc_id}", response_model=DocumentResponse)
+def update_document(
+    doc_id: str,
+    update_data: DocumentUpdateRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    Update document metadata (category, tags).
+    
+    Args:
+        doc_id: Document UUID
+        update_data: Category and/or tags to update
+    
+    Returns:
+        Updated document metadata
+    """
+    try:
+        document = db.query(Document).filter(Document.id == doc_id).first()
+        if not document:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Document not found"
+            )
+        
+        # Update fields if provided
+        if update_data.category is not None:
+            # Validate category
+            valid_categories = ["policy", "legal", "hr", "compliance", "technical", "other"]
+            if update_data.category and update_data.category not in valid_categories:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Invalid category. Must be one of: {', '.join(valid_categories)}"
+                )
+            document.category = update_data.category
+        
+        if update_data.tags is not None:
+            document.tags = update_data.tags
+        
+        db.commit()
+        db.refresh(document)
+        
+        # Invalidate cache
+        cache = get_cache()
+        cache.invalidate_api("/api/docs")
+        
+        logger.info(f"Document {doc_id} updated with category={update_data.category}, tags={update_data.tags}")
+        
+        return document
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating document: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error updating document: {str(e)}"
+        )
+
+
+@router.get("/categories/list")
+def list_categories(db: Session = Depends(get_db)):
+    """
+    Get list of available document categories and count of documents in each.
+    
+    Returns:
+        List of categories with document counts
+    """
+    try:
+        from sqlalchemy import func
+        
+        # Get count of documents per category
+        category_counts = db.query(
+            Document.category,
+            func.count(Document.id).label("count")
+        ).group_by(Document.category).all()
+        
+        # Define available categories
+        categories = [
+            {"id": "policy", "name": "Policy", "color": "violet"},
+            {"id": "legal", "name": "Legal", "color": "blue"},
+            {"id": "hr", "name": "HR", "color": "emerald"},
+            {"id": "compliance", "name": "Compliance", "color": "amber"},
+            {"id": "technical", "name": "Technical", "color": "cyan"},
+            {"id": "other", "name": "Other", "color": "gray"},
+        ]
+        
+        # Add counts to categories
+        count_map = {row.category: row.count for row in category_counts}
+        for cat in categories:
+            cat["count"] = count_map.get(cat["id"], 0)
+        
+        # Add uncategorized count
+        uncategorized = count_map.get(None, 0)
+        categories.append({"id": None, "name": "Uncategorized", "color": "gray", "count": uncategorized})
+        
+        return {"categories": categories}
+    
+    except Exception as e:
+        logger.error(f"Error listing categories: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error listing categories"
         )
 
 

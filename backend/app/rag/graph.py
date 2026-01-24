@@ -265,19 +265,30 @@ def run_rag_pipeline_streaming(
     use_expansion = rag_options.get('query_expansion', False)
     use_hybrid = rag_options.get('hybrid_search', False)
     use_reranking = rag_options.get('reranking', False)
+    use_auto_rewrite = rag_options.get('auto_rewrite', False)
+    use_cross_encoder = rag_options.get('cross_encoder', False)
     
     logger.info(f"Running streaming RAG pipeline with provider={provider}, top_k={top_k}, "
-                f"expansion={use_expansion}, hybrid={use_hybrid}, reranking={use_reranking}")
+                f"expansion={use_expansion}, hybrid={use_hybrid}, reranking={use_reranking}, "
+                f"auto_rewrite={use_auto_rewrite}, cross_encoder={use_cross_encoder}")
     
-    # Step 1: Query processing (expansion if enabled)
+    # Step 1: Query processing (expansion or rewrite if enabled)
     try:
+        processed_question = question
+        
+        # Auto-rewrite improves query for better retrieval
+        if use_auto_rewrite:
+            from app.rag.query_processor import rewrite_query
+            processed_question = rewrite_query(question, provider=provider, model=model)
+            logger.info(f"Query rewritten: {processed_question[:100]}...")
+        
         if use_expansion:
-            queries = expand_query(question, provider=provider, model=model)
+            queries = expand_query(processed_question, provider=provider, model=model)
             logger.info(f"Query expanded to {len(queries)} variations")
         else:
-            queries = [question]
+            queries = [processed_question]
     except Exception as e:
-        logger.warning(f"Query expansion failed, using original: {e}")
+        logger.warning(f"Query processing failed, using original: {e}")
         queries = [question]
     
     # Step 2: Retrieve relevant chunks
@@ -300,13 +311,21 @@ def run_rag_pipeline_streaming(
             )
         
         # Step 3: Reranking if enabled
-        if use_reranking and citations:
-            logger.info("Applying reranking to results")
+        if (use_reranking or use_cross_encoder) and citations:
+            logger.info(f"Applying reranking to results (cross_encoder={use_cross_encoder})")
             chunks_for_rerank = [
                 {'text': c.text, 'score': c.score, 'citation': c}
                 for c in citations
             ]
-            reranked = rerank_chunks_simple(question, chunks_for_rerank, top_k=top_k)
+            
+            if use_cross_encoder:
+                # Use more accurate cross-encoder (LLM-based deep scoring)
+                from app.rag.reranker import rerank_chunks_llm
+                reranked = rerank_chunks_llm(question, chunks_for_rerank, provider=provider, model=model, top_k=top_k)
+            else:
+                # Use simpler reranking
+                reranked = rerank_chunks_simple(question, chunks_for_rerank, top_k=top_k)
+            
             citations = [r['citation'] for r in reranked]
             
             # Rebuild context from reranked citations

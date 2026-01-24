@@ -4,7 +4,7 @@ For MVP, we use SQLAlchemy's create_all().
 For production, consider using Alembic for proper migrations.
 """
 from app.db.session import engine, Base
-from app.db.models import Document, ChatAudit
+from app.db.models import Document, ChatAudit, ImageDocument, ComplianceReport
 from app.core.logging import get_logger
 
 logger = get_logger(__name__)

@@ -19,6 +19,7 @@ from app.api.routes_chat import router as chat_router
 from app.api.routes_images import router as images_router
 from app.api.routes_cache import router as cache_router
 from app.api.routes_compliance import router as compliance_router
+from app.auth.routes import router as auth_router
 
 settings = get_settings()
 
@@ -182,6 +183,7 @@ async def check_api_key(request: Request, call_next):
 # ============================================================================
 
 # Include routers
+app.include_router(auth_router)
 app.include_router(docs_router)
 app.include_router(chat_router)
 app.include_router(images_router)
