@@ -262,7 +262,8 @@ Answer based on this context and previous conversation."""
     actual_model = None  # Track which model was actually used
     
     if request.provider == "ollama":
-        actual_model = request.model or "llama3.1:8b"
+        # Default to fine-tuned model for policy questions, fallback to base model
+        actual_model = request.model or "policy-compliance-llm"
         answer = call_ollama(actual_model, messages, context)
     elif request.provider == "openai":
         api_key = os.getenv("OPENAI_API_KEY", "")

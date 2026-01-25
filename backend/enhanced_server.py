@@ -244,7 +244,8 @@ Context:
         
         # Call provider
         if request.provider == "ollama":
-            model = request.model or "llama3.1:8b"
+            # Use fine-tuned model by default for better policy understanding
+            model = request.model or "policy-compliance-llm"
             response = requests.post(
                 f"{os.getenv('OLLAMA_BASE_URL', 'http://localhost:11434')}/api/chat",
                 json={"model": model, "messages": messages, "stream": False}

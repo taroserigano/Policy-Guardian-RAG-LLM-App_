@@ -95,31 +95,25 @@ ollama_data/
 *.tmp
 *.temp
 e2e_output.txt
+test_results.txt
 
-# Machine Learning / Fine-tuning
-backend/finetune_llm/models/policy-embeddings*/
-backend/finetune_llm/policy-llama*/
-*.gguf
-*.bin
-*.safetensors
-!backend/finetune_llm/QLoRA_Colab.ipynb
-backend/models/policy-embeddings*/
+# Fine-tuned models (large files)
+backend/finetune_llm/*.gguf
+backend/finetune_llm/policy-llama/
+backend/finetune_llm/policy-llama-merged/
+backend/finetune_llm/outputs/
+backend/finetune_llm/final/
+backend/finetune_llm/data/
+backend/llama.cpp/
 
-# Training outputs
-backend/finetune_llm/wandb/
-backend/finetune_llm/runs/
-backend/finetune_llm/checkpoints/
-*.zip
+# Model files
+backend/models/
 
-# Large model files
-*.pt
-*.pth
-*.ckpt
-*.h5
-*.pkl
-*.pickle
+# Training data (if large)
+training_data/*.bin
+training_data/*.pt
 
-# Hugging Face cache
-.cache/
-huggingface/
-transformers_cache/
+# Playwright
+frontend/test-results/
+frontend/playwright-report/
+frontend/.playwright/

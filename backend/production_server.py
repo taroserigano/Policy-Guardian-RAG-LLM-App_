@@ -381,7 +381,8 @@ provide general guidance and suggest the user check with HR."""
     actual_model = None
     
     if request.provider == "ollama":
-        actual_model = request.model or "llama3.1:8b"
+        # Use fine-tuned model by default for better policy understanding
+        actual_model = request.model or "policy-compliance-llm"
         answer = call_ollama(actual_model, messages, context)
     
     elif request.provider == "openai":

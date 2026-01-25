@@ -47,7 +47,7 @@ export default function ModelPicker({
   const getPlaceholder = () => {
     switch (selectedProvider) {
       case "ollama":
-        return "e.g., llama3.1:8b, gemma2:9b";
+        return "Default: policy-compliance-llm (fine-tuned)";
       case "openai":
         return "e.g., gpt-4o-mini, gpt-4";
       case "anthropic":
@@ -55,6 +55,19 @@ export default function ModelPicker({
       default:
         return "Leave empty for default";
     }
+  };
+
+  const getModelHint = () => {
+    if (selectedProvider === "ollama") {
+      return (
+        <div className="mt-2 text-xs text-[var(--text-secondary)]">
+          💡 <strong>policy-compliance-llm</strong> is fine-tuned on company policies for best accuracy.
+          <br />
+          Other models: llama3.1:8b, gemma2:9b, etc.
+        </div>
+      );
+    }
+    return null;
   };
 
   return (
@@ -113,6 +126,9 @@ export default function ModelPicker({
           );
         })}
       </div>
+
+      {/* Model hint for Ollama */}
+      {getModelHint()}
     </div>
   );
 }
