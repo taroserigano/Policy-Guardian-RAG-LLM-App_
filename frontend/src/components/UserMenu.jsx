@@ -2,13 +2,13 @@
  * User Menu Component
  * Displays user avatar and dropdown menu with profile options.
  */
-import { useState, useRef, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import { User, Settings, LogOut, ChevronDown } from 'lucide-react';
-import toast from 'react-hot-toast';
+import { useState, useRef, useEffect, useCallback, memo } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
+import { User, Settings, LogOut, ChevronDown } from "lucide-react";
+import toast from "react-hot-toast";
 
-export default function UserMenu() {
+function UserMenu() {
   const [isOpen, setIsOpen] = useState(false);
   const { user, logout, isAuthenticated } = useAuth();
   const navigate = useNavigate();
@@ -22,15 +22,19 @@ export default function UserMenu() {
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleLogout = async () => {
+  const handleLogout = useCallback(async () => {
     await logout();
-    toast.success('Logged out successfully');
-    navigate('/login');
-  };
+    toast.success("Logged out successfully");
+    navigate("/login");
+  }, [logout, navigate]);
+
+  const handleToggleMenu = useCallback(() => {
+    setIsOpen(!isOpen);
+  }, [isOpen]);
 
   // Not authenticated - show login button
   if (!isAuthenticated) {
@@ -47,26 +51,33 @@ export default function UserMenu() {
 
   // Get initials for avatar
   const initials = user?.full_name
-    ? user.full_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
-    : user?.email?.[0]?.toUpperCase() || 'U';
+    ? user.full_name
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2)
+    : user?.email?.[0]?.toUpperCase() || "U";
 
   return (
     <div className="relative" ref={menuRef}>
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={handleToggleMenu}
         className="flex items-center gap-2 px-3 py-2 rounded-xl bg-[var(--bg-secondary)] border border-[var(--border-subtle)] hover:border-violet-500/30 transition-all duration-200"
       >
         {/* Avatar */}
         <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center">
           <span className="text-xs font-bold text-white">{initials}</span>
         </div>
-        
+
         {/* Name (hidden on mobile) */}
         <span className="hidden sm:block text-sm text-[var(--text-secondary)] max-w-[120px] truncate">
-          {user?.full_name || user?.email?.split('@')[0]}
+          {user?.full_name || user?.email?.split("@")[0]}
         </span>
-        
-        <ChevronDown className={`h-4 w-4 text-[var(--text-muted)] transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+
+        <ChevronDown
+          className={`h-4 w-4 text-[var(--text-muted)] transition-transform ${isOpen ? "rotate-180" : ""}`}
+        />
       </button>
 
       {/* Dropdown Menu */}
@@ -75,7 +86,7 @@ export default function UserMenu() {
           {/* User Info */}
           <div className="px-4 py-3 border-b border-[var(--border-subtle)]">
             <p className="text-sm font-medium text-[var(--text-primary)] truncate">
-              {user?.full_name || 'User'}
+              {user?.full_name || "User"}
             </p>
             <p className="text-xs text-[var(--text-muted)] truncate">
               {user?.email}
@@ -92,7 +103,7 @@ export default function UserMenu() {
               <Settings className="h-4 w-4" />
               <span>Settings</span>
             </Link>
-            
+
             <button
               onClick={handleLogout}
               className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 transition-colors"
@@ -106,3 +117,5 @@ export default function UserMenu() {
     </div>
   );
 }
+
+export default memo(UserMenu);

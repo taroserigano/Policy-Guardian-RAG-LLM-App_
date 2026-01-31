@@ -44,7 +44,7 @@ export const useUploadDocument = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: uploadDocument,
+    mutationFn: ({ file, category }) => uploadDocument(file, category),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["documents"] });
       toast.success(`Document "${data.filename}" uploaded successfully`);

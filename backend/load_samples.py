@@ -41,7 +41,7 @@ Annual Leave: All full-time employees are entitled to 20 days of paid annual lea
 
 Sick Leave: Employees receive 10 days of paid sick leave annually. Medical documentation is required for absences exceeding 3 consecutive days.
 
-Parental Leave: New mothers are entitled to 16 weeks of paid maternity leave. New fathers and adoptive parents receive 2 weeks of paid parental leave.
+Parental Leave: Eligible employees may receive up to 16 weeks of leave for a primary caregiver following birth, adoption, or placement, and up to 2 weeks for a secondary caregiver (subject to local law and HR guidance).
 
 Bereavement Leave: Employees may take up to 5 days of paid leave for the death of an immediate family member.
 
@@ -61,15 +61,15 @@ Full Remote Eligibility: Employees may apply for full remote work (3+ days per w
 
 Core Hours: All remote workers must be available during core hours of 9 AM - 4 PM in their local timezone for meetings and collaboration.
 
-Home Office Requirements: Remote workers must have a dedicated workspace with reliable high-speed internet (minimum 50 Mbps), a webcam, and a quiet environment for video calls.
+Home Office Requirements: Remote workers must have a dedicated workspace with reliable high-speed internet, a webcam, and a quiet environment for video calls.
 
 Equipment: Company will provide a laptop and essential peripherals. Additional equipment requests (monitors, chairs, etc.) may be approved based on role requirements.
 
-Communication: Remote workers must respond to Slack messages within 1 hour during core hours and join all scheduled team meetings via video.
+Communication: Remote workers must respond within reasonable timeframes during core hours and join scheduled team meetings.
 
 Performance Monitoring: Remote work privileges may be revoked if performance standards are not maintained or communication expectations are not met.
 
-Security: All remote work must comply with company security policies. Use of VPN is mandatory when accessing company systems."""
+Security: All remote work must comply with company security policies. Use of VPN (or equivalent secure access) is required when accessing internal resources."""
     },
     {
         "filename": "data_privacy_policy.txt",

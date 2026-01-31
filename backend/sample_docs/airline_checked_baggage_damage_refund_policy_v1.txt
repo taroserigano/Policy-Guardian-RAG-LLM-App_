@@ -1,0 +1,162 @@
+AIRLINE CHECKED BAGGAGE DAMAGE – HARD-SHELL SUITCASE REFUND/REIMBURSEMENT POLICY
+Version: 1.0
+Effective Date: 2026-01-30
+Owner: Customer Care / Baggage Services
+Applies To: Checked baggage (hard-shell suitcases) handled by the airline on eligible flights
+
+1. PURPOSE
+This policy defines when a passenger is eligible for repair, replacement, or reimbursement when a checked hard-shell suitcase is returned damaged.
+
+2. SCOPE
+This policy applies to:
+- Hard-shell suitcases checked at the airline’s check-in/bag drop and handled by the airline.
+- Damage discovered at baggage claim or shortly after delivery (for delivered baggage).
+
+This policy does not apply to:
+- Carry-on baggage, gate-checked items handled as “limited release,” or items packed inside the suitcase.
+- Loss or delay claims (covered by separate policies).
+
+3. DEFINITIONS
+- “Hard-shell suitcase”: A suitcase with a rigid exterior shell (polycarbonate/ABS/aluminum or similar).
+- “Structural damage”: Damage that compromises the suitcase’s ability to protect contents or be used for travel.
+- “Cosmetic damage”: Surface-level marks that do not affect function.
+- “Pre-existing damage”: Damage present before airline acceptance.
+- “Reported on time”: A claim created within the reporting windows in Section 6.
+
+4. ELIGIBILITY (HIGH-LEVEL)
+A claim is eligible when ALL of the following are true:
+A) The item was checked and handled by the airline (baggage tag or tracking evidence).
+B) The damage is consistent with airline handling and was not pre-existing.
+C) The damage meets the “Eligible Damage” criteria (Section 5).
+D) The passenger reports the damage within the required timeframe (Section 6).
+E) Required documentation is provided (Section 7).
+
+5. DAMAGE CATEGORIES
+5.1 ELIGIBLE DAMAGE (REFUND/REIMBURSEMENT CONSIDERED)
+The following damage to a hard-shell suitcase is generally eligible because it affects usability or structural integrity:
+- Cracks or fractures through the shell (visible split lines that open under pressure).
+- Holes or punctures through the shell.
+- Shell separation (shell halves separating; seam separation; exposed interior).
+- Frame deformation that prevents proper closure/locking.
+- Broken, detached, or non-functional wheels (one or more) that prevents normal rolling.
+- Broken, detached, or non-functional telescoping handle or carry handle.
+- Broken hinge(s) preventing closure.
+- Broken integrated lock or latch preventing secure closure.
+
+5.2 CONDITIONALLY ELIGIBLE DAMAGE (REVIEW REQUIRED)
+The following may be eligible depending on severity and impact on function:
+- Deep dents in metal shells that prevent closing or compromise structure.
+- Severe corner impact/crumpling that causes gaps or instability.
+- Multiple large gouges that thin the shell material.
+- Zipper-track damage (if applicable) that prevents closure.
+
+5.3 NOT ELIGIBLE DAMAGE (NO REFUND/REIMBURSEMENT)
+The following is generally not eligible because it is considered normal wear or minor cosmetic damage:
+- Scuffs, scratches, small abrasions, paint transfer.
+- Minor dents that do not affect closure or function.
+- Small chips, nicks, or superficial cracks that do not penetrate the shell and do not expand under pressure.
+- Dirty marks or stains.
+
+5.4 EXCLUSIONS (ALWAYS NOT ELIGIBLE)
+Claims are not eligible when any of the following applies:
+- Pre-existing damage (including prior cracks, broken wheels/handles noted at check-in).
+- Manufacturer defects, aging materials, or normal wear-and-tear.
+- Overpacking/overstuffing or contents that caused the suitcase to fail.
+- Improper packing, including unsecured heavy items inside that caused internal pressure damage.
+- Fragile/unsuitable items checked against airline guidance.
+- Damage to contents inside the suitcase (handled under contents policy; may have different limits).
+- Damage caused after delivery/receipt by the passenger or third parties.
+
+6. REPORTING DEADLINES
+To be considered, passengers must report damage:
+- At the airport: before leaving the baggage claim area whenever possible.
+- After leaving the airport: within 24 hours of baggage pickup for damage discovered later.
+- For delivered baggage (hotel/home delivery): within 24 hours of delivery.
+
+If local law or an applicable international convention provides a longer window, the longer window may apply.
+
+7. REQUIRED DOCUMENTATION
+The passenger must provide:
+- Passenger name and contact details.
+- Flight number(s), date(s), and itinerary.
+- Bag tag number(s) or proof of check-in.
+- Photos of the suitcase (see Section 8).
+- Description of damage and when/where it was discovered.
+
+For reimbursement (cash/credit) beyond repair:
+- Proof of purchase or approximate age and comparable market value.
+- Repair estimate (if requested) or receipt if passenger already paid for emergency repair (pre-approval may be required).
+
+8. PHOTO REQUIREMENTS (FOR IMAGE-BASED ELIGIBILITY)
+To support automated and manual review, photos should include:
+- Full suitcase front and back (entire bag visible).
+- Close-up of damaged area with good lighting.
+- Angle shot showing depth/extent (e.g., crack opening, wheel detachment).
+- Photo of bag tag attached to the bag (or tag receipt).
+- Optional: photo of suitcase closed to show misalignment or inability to latch.
+
+Photos must be clear, in focus, and show the damage without obstruction.
+
+9. ASSESSMENT & DECISION RULES (COMPLIANCE LOGIC)
+This section is designed for consistent eligibility decisions.
+
+9.1 CLASSIFY DAMAGE SEVERITY
+- Severity 0 (Cosmetic): surface marks only; no missing parts; bag closes/rolls normally.
+- Severity 1 (Minor Functional Risk): small chip or shallow crack that does not penetrate; bag still closes/rolls.
+- Severity 2 (Functional Impairment): wheel/handle/hinge/latch failure OR shell damage that affects closure.
+- Severity 3 (Structural Failure): hole/puncture, major crack through shell, shell separation, frame deformation.
+
+9.2 ELIGIBILITY DECISION
+- Eligible: Severity 2 or 3 AND exclusions do not apply AND reported on time.
+- Not eligible: Severity 0 AND no other functional damage.
+- Review required: Severity 1 or unclear photos OR conflicting evidence.
+
+9.3 IMAGE-BASED INDICATORS (WHAT TO LOOK FOR)
+For a hard-shell suitcase, the following visual indicators strongly suggest eligibility:
+- Through-crack: crack line with visible gap, or crack that opens when bag is slightly flexed.
+- Puncture/hole: visible opening through outer shell material.
+- Broken wheel: wheel missing, hanging, or axle detached; bag cannot stand level.
+- Handle failure: telescoping handle stuck, missing, bent, or cannot extend/retract.
+- Closure failure: misaligned shell halves, broken latch/lock, lid cannot stay closed.
+
+Indicators that suggest “not eligible” (cosmetic only):
+- Light scuffs, scratches, paint transfer without deformation.
+- Small shallow dents with intact closure and wheels.
+
+10. REMEDIES
+If eligible, the airline may provide one of the following remedies:
+- Repair: approved repair at airline-authorized repair center.
+- Replacement: replacement with a comparable suitcase if repair is not feasible or cost-effective.
+- Reimbursement: monetary reimbursement for repair or depreciated value replacement when appropriate.
+
+The airline may choose the remedy based on feasibility, local availability, and cost.
+
+11. COMPENSATION LIMITS
+Reimbursement is subject to applicable legal limits and conditions. Limits may vary by itinerary and governing rules (e.g., domestic regulations or international conventions such as Montreal Convention).
+
+12. CLAIM PROCESS
+A) Create a damage report (Property Irregularity Report / online claim).
+B) Upload required documentation and photos.
+C) Airline reviews and may request additional evidence.
+D) Decision issued (approve / deny / request more info).
+E) Remedy delivered (repair authorization, replacement pickup/shipment, or reimbursement payout).
+
+Target timelines (non-binding):
+- Initial acknowledgment: within 24 hours
+- Decision: within 7–14 business days after receiving complete documentation
+
+13. CUSTOMER COMMUNICATION GUIDELINES
+When denying claims:
+- State the reason clearly (e.g., cosmetic-only; pre-existing; late reporting; excluded cause).
+- Provide guidance on next steps (appeal process, additional evidence options).
+
+14. APPEALS
+Passengers may request a review if they provide new evidence (clearer photos, receipts, additional context). Appeals should be submitted within 14 days of denial, unless local law provides otherwise.
+
+15. EXAMPLES (FOR TRAINING / QA)
+Example A (Eligible): “A crack runs across the front panel; bag does not close properly; photo shows crack opening and misalignment.”
+Example B (Eligible): “Rear wheel snapped off; wheel assembly missing; bag cannot roll.”
+Example C (Not eligible): “Multiple scratches and scuffing on shell; wheels/handles intact; bag closes normally.”
+Example D (Review): “Small chip near corner; unclear if crack penetrates; request close-ups and photo of bag closed.”
+
+END OF POLICY

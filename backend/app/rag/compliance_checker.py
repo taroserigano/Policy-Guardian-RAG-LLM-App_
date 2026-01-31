@@ -20,6 +20,7 @@ from app.core.logging import get_logger
 from app.rag.retrieval import Citation, retrieve_relevant_chunks
 from app.rag.multimodal_retrieval import ImageCitation, retrieve_multimodal, MultimodalRetriever
 from app.rag.llms import get_llm, get_streaming_llm
+from app.rag.vision_models import get_vision_model
 
 settings = get_settings()
 logger = get_logger(__name__)
@@ -186,6 +187,7 @@ class ComplianceChecker:
             default_top_k_images=5
         )
         self.default_provider = default_provider
+        self._policy_cache: Dict[str, str] = {}  # Cache policy files
     
     def check_compliance(
         self,
@@ -463,6 +465,189 @@ class ComplianceChecker:
                 "overall_status": "needs_review",
                 "summary": response_text[:500],
                 "findings": []
+            }
+
+    def check_baggage_damage_refund_eligibility(
+        self,
+        image_bytes: bytes,
+        filename: str,
+        reported_within_hours: Optional[int] = None,
+        vision_provider: str = "openai",
+        vision_model: Optional[str] = None,
+        policy_text: Optional[str] = None,
+        policy_filename: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """
+        Determine refund/repair eligibility for a damaged checked hard-shell suitcase
+        using a policy document + the uploaded image.
+
+        Returns a structured JSON-like dict for frontend consumption.
+        """
+        # Load default policy text if not provided
+        if not policy_text:
+            import os
+
+            default_policy_name = (
+                policy_filename
+                or "airline_checked_baggage_damage_refund_policy_v1.txt"
+            )
+            
+            # Check cache first
+            if default_policy_name in self._policy_cache:
+                policy_text = self._policy_cache[default_policy_name]
+                logger.debug(f"Using cached policy: {default_policy_name}")
+            else:
+                policy_path = os.path.join(
+                    os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
+                    "sample_docs",
+                    default_policy_name,
+                )
+                try:
+                    with open(policy_path, "r", encoding="utf-8") as f:
+                        policy_text = f.read()
+                    # Cache for future requests
+                    self._policy_cache[default_policy_name] = policy_text
+                    logger.info(f"Loaded and cached policy: {default_policy_name}")
+                except Exception as e:
+                    logger.warning(f"Could not load policy file {policy_path}: {e}")
+                    policy_text = ""
+
+        # Build the vision prompt (force JSON output)
+        reporting_context = "unknown"
+        if reported_within_hours is not None:
+            reporting_context = str(reported_within_hours)
+
+        prompt = f"""You are a baggage damage claims eligibility analyst.
+
+Decide whether the uploaded image shows damage to a CHECKED hard-shell suitcase that is eligible for repair/replacement/reimbursement under the policy below.
+
+POLICY (authoritative; use ONLY this policy text):
+{policy_text}
+
+CASE DETAILS:
+- Item type: hard-shell suitcase (checked baggage)
+- Photo filename: {filename}
+- Reported within hours of pickup/delivery: {reporting_context}
+
+TASK:
+1) Visually assess the damage shown in the image.
+2) Map the observed damage to the policy’s Eligible / Conditionally Eligible / Not Eligible categories.
+3) Consider exclusions and reporting deadlines from the policy.
+4) Return a strict JSON object (no markdown) matching this schema:
+
+{{
+  "decision": "eligible" | "not_eligible" | "needs_review",
+  "confidence": 0.85,
+  "damage_assessment": {{
+    "observed_damage_types": ["crack_through_shell"|"hole_puncture"|"shell_separation"|"frame_deformation"|"wheel_broken"|"handle_broken"|"hinge_broken"|"latch_lock_broken"|"dent"|"gouge"|"cosmetic_scuff"|"unknown"],
+    "severity": 0 | 1 | 2 | 3,
+    "functional_impairment": true | false | "unknown",
+    "notes": "string"
+  }},
+  "policy_application": {{
+    "reporting_window_met": true | false | "unknown",
+    "eligible_damage_match": true | false | "unknown",
+    "exclusion_triggers": ["pre_existing"|"wear_and_tear"|"overpacking"|"improper_packing"|"post_delivery"|"unknown"],
+    "policy_references": [{{"section": "string", "quote": "string"}}]
+  }},
+  "rationale": "string",
+  "next_steps": ["string"],
+  "needs_more_info": ["string"]
+}}
+
+DECISION RULES:
+- If you clearly see Severity 2–3 eligible damage and no exclusion is indicated, set decision=eligible.
+- If you only see cosmetic scuffs/scratches with no functional impact, set decision=not_eligible.
+- If the photo is unclear, severity is 1, or reporting deadline is unknown/likely missed, set decision=needs_review and specify what info is needed.
+"""
+
+        try:
+            vision = get_vision_model(vision_provider)
+            # Override model if supported by provider
+            if vision_model and hasattr(vision, "model"):
+                try:
+                    vision.model = vision_model
+                except Exception:
+                    pass
+
+            response_text = vision.analyze_image(
+                image=image_bytes,
+                prompt=prompt,
+                max_tokens=900,
+            )
+            result = self._parse_llm_response(response_text)
+
+            # Validate and normalize the result
+            if isinstance(result, dict) and "decision" in result:
+                # Ensure confidence is a float between 0 and 1
+                if "confidence" in result:
+                    try:
+                        result["confidence"] = float(result["confidence"])
+                        result["confidence"] = max(0.0, min(1.0, result["confidence"]))
+                    except (ValueError, TypeError):
+                        result["confidence"] = 0.5  # Default to moderate confidence
+                else:
+                    result["confidence"] = 0.5
+                
+                # Ensure required nested structures exist
+                result.setdefault("damage_assessment", {})
+                result.setdefault("policy_application", {})
+                result.setdefault("rationale", "No detailed rationale provided.")
+                result.setdefault("next_steps", [])
+                result.setdefault("needs_more_info", [])
+                
+                return result
+
+            # Ensure minimal shape for frontend even if parse failed
+            if not isinstance(result, dict) or "decision" not in result:
+                return {
+                    "decision": "needs_review",
+                    "confidence": 0.0,
+                    "damage_assessment": {
+                        "observed_damage_types": ["unknown"],
+                        "severity": 1,
+                        "functional_impairment": "unknown",
+                        "notes": "Model output could not be parsed as expected."
+                    },
+                    "policy_application": {
+                        "reporting_window_met": "unknown",
+                        "eligible_damage_match": "unknown",
+                        "exclusion_triggers": ["unknown"],
+                        "policy_references": []
+                    },
+                    "rationale": (response_text or "")[:500],
+                    "next_steps": [
+                        "Upload clearer photos: full bag front/back and close-up of the damage.",
+                        "Include a photo of the bag tag if available."
+                    ],
+                    "needs_more_info": ["clear_damage_closeup", "bag_tag_photo"]
+                }
+
+            return result
+
+        except Exception as e:
+            logger.error(f"Baggage damage eligibility check failed: {e}")
+            return {
+                "decision": "needs_review",
+                "confidence": 0.0,
+                "damage_assessment": {
+                    "observed_damage_types": ["unknown"],
+                    "severity": 1,
+                    "functional_impairment": "unknown",
+                    "notes": "Vision analysis could not be completed."
+                },
+                "policy_application": {
+                    "reporting_window_met": "unknown",
+                    "eligible_damage_match": "unknown",
+                    "exclusion_triggers": ["unknown"],
+                    "policy_references": []
+                },
+                "rationale": f"Unable to run vision-based eligibility check: {str(e)}",
+                "next_steps": [
+                    "Ensure a vision provider is configured (OpenAI/Anthropic API key or Ollama with llava).",
+                    "Try again with a clear photo in good lighting."
+                ],
+                "needs_more_info": ["vision_provider_configured"]
             }
 
 

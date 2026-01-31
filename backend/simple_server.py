@@ -41,7 +41,7 @@ documents = [
         "id": "doc-1",
         "filename": "employee_leave_policy.txt",
         "content_type": "text/plain",
-        "preview_text": "EMPLOYEE LEAVE POLICY - Annual Leave: 20 days per year, Sick Leave: 10 days, Parental Leave: 16 weeks maternity...",
+        "preview_text": "EMPLOYEE LEAVE POLICY - Annual Leave: 20 days per year, Sick Leave: 10 days, Parental Leave: up to 16 weeks (primary caregiver)...",
         "size": 3500
     },
     {
@@ -55,7 +55,7 @@ documents = [
         "id": "doc-3",
         "filename": "data_privacy_policy.txt",
         "content_type": "text/plain",
-        "preview_text": "DATA PRIVACY POLICY - GDPR/CCPA compliance, Data retention: 7 years, Encryption required, Breach notification...",
+        "preview_text": "DATA PRIVACY POLICY - Cross-jurisdiction privacy principles, retention schedule, security controls, incident handling...",
         "size": 5800
     },
     {

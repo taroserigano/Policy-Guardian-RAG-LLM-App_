@@ -57,7 +57,7 @@ class Settings(BaseSettings):
     
     # File Upload
     max_file_size_mb: int = 15
-    allowed_extensions: list[str] = [".pdf", ".txt"]
+    allowed_extensions: list[str] = [".pdf", ".txt", ".docx", ".doc"]
     
     # RAG Settings
     chunk_size: int = 1000

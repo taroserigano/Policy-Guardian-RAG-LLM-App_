@@ -4,8 +4,9 @@
  */
 import axios from "axios";
 
-export const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:8001";
+// Use relative URLs to leverage Vite's proxy in development
+// In production, this should be configured via VITE_API_BASE_URL env var
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
 
 // Create axios instance with default config
 const api = axios.create({
@@ -51,11 +52,15 @@ api.interceptors.response.use(
 /**
  * Upload a document file
  * @param {File} file - File object to upload
+ * @param {string} category - Optional category for the document
  * @returns {Promise} - Upload response with doc_id
  */
-export const uploadDocument = async (file) => {
+export const uploadDocument = async (file, category = null) => {
   const formData = new FormData();
   formData.append("file", file);
+  if (category) {
+    formData.append("category", category);
+  }
 
   const response = await api.post("/api/docs/upload", formData, {
     headers: {
@@ -350,24 +355,41 @@ export const clearChatHistory = async (userId) => {
  * @param {string} format - Export format ('json' or 'markdown')
  */
 export const exportChatHistory = async (userId, format = "json") => {
-  const response = await api.get(`/api/chat/history/${userId}/export`, {
-    params: { format },
-    responseType: "blob",
-  });
+  try {
+    const response = await api.get(`/api/chat/history/${userId}/export`, {
+      params: { format },
+      responseType: "blob",
+    });
 
-  // Create download link
-  const extension = format === "markdown" ? "md" : "json";
-  const blob = new Blob([response.data], {
-    type: format === "markdown" ? "text/markdown" : "application/json",
-  });
-  const url = window.URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = `chat_history_${userId}.${extension}`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  window.URL.revokeObjectURL(url);
+    // Check if response is actually a blob
+    if (!(response.data instanceof Blob)) {
+      throw new Error("Invalid response format");
+    }
+
+    // Check if it's an error response (JSON instead of the expected format)
+    if (response.data.type === "application/json") {
+      const text = await response.data.text();
+      const error = JSON.parse(text);
+      throw new Error(error.detail || "Failed to export chat history");
+    }
+
+    // Create download link
+    const extension = format === "markdown" ? "md" : "json";
+    const blob = new Blob([response.data], {
+      type: format === "markdown" ? "text/markdown" : "application/json",
+    });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `chat_history_${userId}_${new Date().toISOString().split("T")[0]}.${extension}`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error("Export chat history error:", error);
+    throw error;
+  }
 };
 
 // ============================================================================
@@ -714,6 +736,47 @@ export const deleteComplianceReport = async (reportId) => {
  */
 export const getComplianceStatusOptions = async () => {
   const response = await api.get("/api/compliance/status-options");
+  return response.data;
+};
+
+/**
+ * Check baggage damage refund eligibility using vision model
+ * @param {File} imageFile - Image file of damaged suitcase
+ * @param {number|null} reportedWithinHours - Hours since baggage pickup/delivery
+ * @param {string} [provider="openai"] - Vision provider (openai, anthropic, ollama)
+ * @returns {Promise} - Eligibility decision with damage assessment
+ */
+export const checkBaggageDamageEligibility = async (
+  imageFile,
+  reportedWithinHours = null,
+  provider = "openai",
+) => {
+  const formData = new FormData();
+  formData.append("file", imageFile); // Backend expects "file" not "image_file"
+  if (reportedWithinHours !== null) {
+    formData.append("reported_within_hours", String(reportedWithinHours));
+  }
+  formData.append("vision_provider", provider); // Backend expects "vision_provider"
+
+  console.log("Sending baggage damage check request:", {
+    fileName: imageFile.name,
+    fileSize: imageFile.size,
+    provider,
+    reportedWithinHours,
+  });
+
+  const response = await api.post(
+    "/api/compliance/baggage/damage-refund/check",
+    formData,
+    {
+      headers: {
+        // Let axios set the Content-Type with boundary automatically
+        "Content-Type": undefined,
+      },
+    },
+  );
+
+  console.log("Baggage damage check response:", response.data);
   return response.data;
 };
 

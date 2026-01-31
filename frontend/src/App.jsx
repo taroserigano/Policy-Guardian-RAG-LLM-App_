@@ -38,7 +38,7 @@ export default function App() {
                 {/* Public routes */}
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
-                
+
                 {/* Protected routes */}
                 <Route
                   path="/*"
@@ -46,10 +46,16 @@ export default function App() {
                     <ProtectedRoute>
                       <Layout>
                         <Routes>
-                          <Route path="/" element={<Navigate to="/upload" replace />} />
+                          <Route
+                            path="/"
+                            element={<Navigate to="/upload" replace />}
+                          />
                           <Route path="/upload" element={<UploadPage />} />
                           <Route path="/chat" element={<ChatPage />} />
-                          <Route path="/compliance" element={<CompliancePage />} />
+                          <Route
+                            path="/compliance"
+                            element={<CompliancePage />}
+                          />
                         </Routes>
                       </Layout>
                     </ProtectedRoute>
@@ -72,6 +78,9 @@ export default function App() {
                 color: "#f3f4f6",
                 border: "1px solid rgba(139, 92, 246, 0.3)",
                 borderRadius: "12px",
+                maxWidth: "500px",
+                wordBreak: "break-word",
+                whiteSpace: "normal",
               },
               success: {
                 iconTheme: {

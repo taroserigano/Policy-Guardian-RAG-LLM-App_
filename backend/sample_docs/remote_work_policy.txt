@@ -1,6 +1,11 @@
-REMOTE WORK POLICY
-Version 2.0
-Effective Date: January 1, 2026
+REMOTE WORK POLICY (SAMPLE)
+Organization: ExampleCo, Inc. (fictional)
+Version: 2.1
+Effective Date: January 29, 2026
+Classification: Internal
+
+Important Note
+This is a sample internal policy provided for demonstration/training purposes. It is not legal advice.
 
 PURPOSE
 This policy establishes guidelines for remote work arrangements to support employee flexibility while maintaining operational effectiveness and team collaboration.
@@ -16,6 +21,8 @@ Employees must have:
 - Demonstrated consistent performance meeting or exceeding expectations
 - A role suitable for remote work that does not require regular in-person presence
 - Appropriate home workspace with reliable internet connectivity
+
+Exceptions may be approved by HR and the employee’s manager based on business need.
 
 1.2 Manager Approval
 All remote work arrangements require written approval from the employee's direct manager and HR.
@@ -44,7 +51,7 @@ Short-term remote work may be approved for special circumstances (e.g., home rep
 Remote workers must be available during core business hours (9:00 AM - 4:00 PM local time) unless alternative arrangements are approved.
 
 3.2 Response Time
-Employees must respond to emails, calls, and messages within the same timeframes expected of in-office workers (typically within 2 hours during business hours).
+Employees must respond within reasonable timeframes for their role and team norms (for example, within 2 business hours unless in meetings).
 
 3.3 Calendar Updates
 Remote workers must maintain accurate calendars indicating their availability, including breaks and lunch periods.
@@ -64,7 +71,7 @@ Minimum requirements:
 - Stable connection with backup option (mobile hotspot)
 
 4.3 Ergonomics
-Employees are responsible for setting up an ergonomic workspace. The company provides a one-time $500 home office stipend for approved full remote workers.
+Employees are responsible for setting up an ergonomic workspace. ExampleCo may provide a one-time home office stipend for approved full remote workers (amount and eligibility set by HR).
 
 5. EQUIPMENT AND TECHNOLOGY
 
@@ -89,11 +96,12 @@ All company equipment must be returned within 5 business days of employment term
 
 6.1 Data Protection
 Employees must:
-- Use VPN for all work-related activities
+- Use VPN (or equivalent secure access) when connecting to internal resources
 - Lock computers when stepping away
 - Ensure confidential materials are not visible to others
-- Use secure file sharing methods only
-- Never use public Wi-Fi for work purposes
+- Use approved file-sharing methods only
+
+Public Wi‑Fi should be avoided. If public Wi‑Fi is unavoidable, employees must use VPN and should avoid accessing highly sensitive systems unless specifically approved.
 
 6.2 Document Security
 Physical documents containing confidential information must be stored securely and shredded when no longer needed.
@@ -141,6 +149,8 @@ Remote work arrangements will be reviewed quarterly for the first year, then ann
 8.3 Productivity Monitoring
 The company may use productivity tracking tools to ensure work is being performed. Employees will be notified of any monitoring tools in use.
 
+ExampleCo will use the least intrusive monitoring reasonable for security and operational needs and will comply with applicable laws.
+
 9. TIME TRACKING AND EXPENSES
 
 9.1 Time Recording
@@ -150,7 +160,7 @@ All hours worked must be accurately recorded in the time tracking system. Overti
 Approved business expenses incurred while working remotely are reimbursable per the company's expense policy.
 
 9.3 Utilities and Internet
-The company does not reimburse personal utility bills or home internet costs for hybrid workers. Full remote workers receive a monthly stipend of $75 for internet.
+Hybrid workers generally do not receive reimbursements for personal utilities or home internet. Full-remote roles may be eligible for a monthly internet stipend per HR policy.
 
 10. HEALTH AND SAFETY
 
@@ -177,7 +187,7 @@ Employees are encouraged to maintain clear boundaries between work and personal 
 12. TERMINATION OF REMOTE WORK
 
 12.1 Company Discretion
-The company reserves the right to modify or terminate remote work arrangements at any time with 30 days notice, based on business needs.
+ExampleCo may modify or terminate remote work arrangements with reasonable notice based on business needs, role changes, or compliance requirements.
 
 12.2 Performance Issues
 Remote work privileges may be revoked immediately if:
@@ -215,9 +225,9 @@ This policy is subject to change based on business needs, legal requirements, an
 
 QUESTIONS AND SUPPORT
 For questions about this policy, contact:
-- HR Department: remotecontact@company.com
-- IT Support: itsupport@company.com
-- Facilities: facilities@company.com
+- HR Department (sample): hr@example.com
+- IT Support (sample): it-help@example.com
+- Facilities (sample): facilities@example.com
 
 ACKNOWLEDGMENT
 All employees working remotely must sign an acknowledgment that they have read, understood, and agree to comply with this Remote Work Policy.

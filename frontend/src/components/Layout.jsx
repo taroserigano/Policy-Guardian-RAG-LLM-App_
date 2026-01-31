@@ -3,7 +3,7 @@
  * Supports dark/light theme with glassmorphism effects.
  * Mobile responsive with hamburger menu.
  */
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, memo } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   FileText,
@@ -25,7 +25,10 @@ export default function Layout({ children }) {
   const { theme, toggleTheme } = useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const isActive = (path) => location.pathname === path;
+  const isActive = useCallback(
+    (path) => location.pathname === path,
+    [location.pathname],
+  );
 
   // Close mobile menu on route change
   useEffect(() => {
@@ -65,90 +68,90 @@ export default function Layout({ children }) {
         )}
       </div>
 
-      {/* Top Navigation */}
-      <nav className="relative z-10 border-b border-[var(--border-subtle)] bg-[var(--bg-primary)]/80 backdrop-blur-xl transition-colors duration-300">
+      {/* Top Navigation - Solid Glass Navbar */}
+      <nav className="relative z-10 bg-gradient-to-r from-slate-900/95 via-purple-900/90 to-slate-900/95 backdrop-blur-2xl border-b border-purple-500/30 shadow-[0_0_50px_rgba(139,92,246,0.3)] transition-all duration-500">
+        {/* Animated gradient border at bottom */}
+        <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-violet-500 to-transparent" />
+        {/* Inner glow */}
+        <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent pointer-events-none" />
+
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-14 md:h-16">
             {/* Logo/Title */}
             <Link to="/" className="flex items-center group">
               <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-xl blur-lg opacity-40 group-hover:opacity-60 transition-all duration-500" />
-                <div className="relative bg-gradient-to-br from-violet-500 to-fuchsia-500 p-2 md:p-2.5 rounded-xl shadow-lg">
-                  <Zap className="h-4 w-4 md:h-5 md:w-5 text-white" />
+                <div className="absolute inset-0 bg-gradient-to-r from-violet-500 via-fuchsia-500 to-pink-500 rounded-xl blur-xl opacity-70 group-hover:opacity-100 transition-all duration-500 scale-125" />
+                <div className="relative bg-gradient-to-br from-violet-500 via-fuchsia-500 to-pink-500 p-2.5 md:p-3 rounded-xl shadow-2xl shadow-violet-500/50 border border-white/20">
+                  <Zap className="h-5 w-5 md:h-6 md:w-6 text-white drop-shadow-lg" />
                 </div>
               </div>
-              <div className="ml-2.5 md:ml-3.5">
-                <h1 className="text-base md:text-lg font-bold tracking-tight">
-                  <span className="text-[var(--text-primary)]">Policy</span>
-                  <span className="gradient-text-vibrant">RAG</span>
+              <div className="ml-3 md:ml-4">
+                <h1 className="text-lg md:text-xl font-black tracking-tight">
+                  <span className="text-white">Policy</span>
+                  <span className="bg-gradient-to-r from-violet-400 via-fuchsia-400 to-pink-400 bg-clip-text text-transparent">
+                    RAG
+                  </span>
                 </h1>
-                <p className="text-[9px] md:text-[10px] text-[var(--text-secondary)] font-semibold tracking-wide uppercase hidden sm:block">
+                <p className="text-[10px] md:text-xs text-purple-300/80 font-bold tracking-[0.2em] uppercase hidden sm:block">
                   AI Intelligence
                 </p>
               </div>
             </Link>
 
             {/* Desktop Navigation Links */}
-            <div className="hidden md:flex items-center gap-1">
+            <div className="hidden md:flex items-center gap-2 bg-black/30 rounded-xl p-1.5 border border-white/10">
               <Link
                 to="/upload"
-                className={`relative flex items-center px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
+                className={`relative flex items-center px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 ${
                   isActive("/upload")
-                    ? "text-[var(--text-primary)]"
-                    : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--hover-bg)]"
+                    ? "text-white"
+                    : "text-purple-200/70 hover:text-white hover:bg-white/10"
                 }`}
               >
                 {isActive("/upload") && (
-                  <div className="absolute inset-0 bg-gradient-to-r from-violet-500/15 to-fuchsia-500/15 rounded-xl border border-violet-500/20" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-violet-600 to-fuchsia-600 rounded-lg shadow-lg shadow-violet-500/50" />
                 )}
-                <FileText
-                  className={`relative h-4 w-4 mr-2 ${isActive("/upload") ? "text-violet-400" : ""}`}
-                />
+                <FileText className="relative h-4 w-4 mr-2" />
                 <span className="relative">Upload</span>
               </Link>
 
               <Link
                 to="/chat"
-                className={`relative flex items-center px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
+                className={`relative flex items-center px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 ${
                   isActive("/chat")
-                    ? "text-[var(--text-primary)]"
-                    : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--hover-bg)]"
+                    ? "text-white"
+                    : "text-purple-200/70 hover:text-white hover:bg-white/10"
                 }`}
               >
                 {isActive("/chat") && (
-                  <div className="absolute inset-0 bg-gradient-to-r from-violet-500/15 to-fuchsia-500/15 rounded-xl border border-violet-500/20" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-violet-600 to-fuchsia-600 rounded-lg shadow-lg shadow-violet-500/50" />
                 )}
-                <MessageSquare
-                  className={`relative h-4 w-4 mr-2 ${isActive("/chat") ? "text-violet-400" : ""}`}
-                />
+                <MessageSquare className="relative h-4 w-4 mr-2" />
                 <span className="relative">Chat</span>
-                <Sparkles className="relative h-3 w-3 ml-1.5 text-amber-400" />
               </Link>
 
               <Link
                 to="/compliance"
-                className={`relative flex items-center px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
+                className={`relative flex items-center px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 ${
                   isActive("/compliance")
-                    ? "text-[var(--text-primary)]"
-                    : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--hover-bg)]"
+                    ? "text-white"
+                    : "text-purple-200/70 hover:text-white hover:bg-white/10"
                 }`}
               >
                 {isActive("/compliance") && (
-                  <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/15 to-cyan-500/15 rounded-xl border border-emerald-500/20" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-emerald-600 to-cyan-600 rounded-lg shadow-lg shadow-emerald-500/50" />
                 )}
-                <ShieldCheck
-                  className={`relative h-4 w-4 mr-2 ${isActive("/compliance") ? "text-emerald-400" : ""}`}
-                />
+                <ShieldCheck className="relative h-4 w-4 mr-2" />
                 <span className="relative">Compliance</span>
               </Link>
+            </div>
 
-              {/* Divider */}
-              <div className="w-px h-6 bg-[var(--border-subtle)] mx-2" />
-
+            {/* Right side controls */}
+            <div className="hidden md:flex items-center gap-3">
               {/* Theme Toggle */}
               <button
                 onClick={toggleTheme}
-                className="p-2 rounded-xl text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--hover-bg)] transition-all duration-200"
+                className="p-2.5 rounded-xl text-purple-200/70 hover:text-white bg-white/5 hover:bg-white/15 border border-white/10 hover:border-purple-400/50 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/20"
                 title={
                   theme === "dark"
                     ? "Switch to light mode"
@@ -156,9 +159,9 @@ export default function Layout({ children }) {
                 }
               >
                 {theme === "dark" ? (
-                  <Sun className="h-4 w-4" />
+                  <Sun className="h-5 w-5" />
                 ) : (
-                  <Moon className="h-4 w-4" />
+                  <Moon className="h-5 w-5" />
                 )}
               </button>
 
@@ -166,28 +169,31 @@ export default function Layout({ children }) {
               <UserMenu />
 
               {/* Status indicator */}
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
-                <div className="relative">
-                  <div className="absolute inset-0 bg-emerald-400 rounded-full animate-ping opacity-20" />
-                  <Circle className="relative h-2 w-2 text-emerald-400 fill-emerald-400" />
-                </div>
-                <span className="text-xs text-emerald-400 font-medium">
-                  Online
+              <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500/20 to-cyan-500/20 border border-emerald-400/40 shadow-lg shadow-emerald-500/20">
+                <span className="relative flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                </span>
+                <span className="text-sm text-emerald-300 font-bold tracking-wide">
+                  Live
                 </span>
               </div>
             </div>
 
             {/* Mobile: Status + Menu Button */}
-            <div className="flex md:hidden items-center gap-2">
+            <div className="flex md:hidden items-center gap-3">
               {/* Mobile status dot */}
-              <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
-                <Circle className="h-2 w-2 text-emerald-400 fill-emerald-400" />
+              <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-emerald-500/20 border border-emerald-400/40">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
               </div>
 
               {/* Mobile menu button */}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="mobile-menu-btn"
+                className="p-2.5 rounded-xl text-purple-200 bg-white/10 border border-white/20 hover:bg-white/20 transition-all"
                 aria-label="Toggle menu"
               >
                 {mobileMenuOpen ? (

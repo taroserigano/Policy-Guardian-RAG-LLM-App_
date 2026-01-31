@@ -138,12 +138,12 @@ def retrieve_relevant_chunks(
         citations.append(citation)
         
         # Build context string
-        source_info = f"[Source: {citation.filename}"
+        source_info = f"Source: {citation.filename}"
         if citation.page_number:
             source_info += f", Page {citation.page_number}"
-        source_info += f", Chunk {citation.chunk_index}]"
+        source_info += "]"
         
-        context_parts.append(f"{source_info}\n{citation.text}\n")
+        context_parts.append(f"[{source_info}\n{citation.text}\n")
     
     context_text = "\n---\n".join(context_parts)
     
@@ -274,11 +274,10 @@ def retrieve_with_multi_query(
     # Build context
     context_parts = []
     for citation in final_citations:
-        source_info = f"[Source: {citation.filename}"
+        source_info = f"Source: {citation.filename}"
         if citation.page_number:
-            source_info += f", Page {citation.page_number}"
-        source_info += f", Chunk {citation.chunk_index}]"
-        context_parts.append(f"{source_info}\n{citation.text}\n")
+            source_info += f", page {citation.page_number}"
+        context_parts.append(f"[{source_info}]\n{citation.text}\n")
     
     context_text = "\n---\n".join(context_parts)
     

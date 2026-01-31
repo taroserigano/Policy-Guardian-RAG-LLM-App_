@@ -2,8 +2,10 @@
  * Chat page with document filtering and conversation interface.
  * Supports streaming responses and conversation history.
  */
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import toast from "react-hot-toast";
+import { useQueryClient } from "@tanstack/react-query";
+import DocumentPreview from "../components/DocumentPreview";
 import {
   AlertCircle,
   History,
@@ -21,6 +23,13 @@ import {
   Wand2,
   Layers,
   Zap,
+  Upload,
+  Plus,
+  Check,
+  Eye,
+  Loader2,
+  Library,
+  Cloud,
 } from "lucide-react";
 import MessageList from "../components/MessageList";
 import ChatBox from "../components/ChatBox";
@@ -31,11 +40,15 @@ import {
   useDocuments,
   useChatHistory,
   useClearChatHistory,
+  useImages,
 } from "../hooks/useApi";
 import {
   streamChatMessage,
   streamMultimodalChat,
   exportChatHistory,
+  uploadDocument,
+  uploadImage,
+  deleteImage as deleteImageApi,
 } from "../api/client";
 
 // Generate a simple session ID for user tracking
@@ -51,15 +64,40 @@ const getUserId = () => {
 export default function ChatPage() {
   // Core state
   const [messages, setMessages] = useState([]);
-  const [selectedProvider, setSelectedProvider] = useState("ollama");
+  const [selectedProvider, setSelectedProvider] = useState("openai");
   const [selectedModel, setSelectedModel] = useState("");
   const [selectedDocIds, setSelectedDocIds] = useState([]);
   const [selectedImageIds, setSelectedImageIds] = useState([]);
-  const [images, setImages] = useState([]);
   const [showImages, setShowImages] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [showRagOptions, setShowRagOptions] = useState(false);
+
+  // Upload section state
+  const [showUploadSection, setShowUploadSection] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [dragActive, setDragActive] = useState(false);
+  const fileInputRef = useRef(null);
+
+  // Upload mode state
+  const [uploadMode, setUploadMode] = useState("single"); // 'single' or 'batch'
+  const [autoDescribe, setAutoDescribe] = useState(false); // AI description for images - default OFF
+  const [pendingImageFile, setPendingImageFile] = useState(null); // File waiting for manual description
+  const [pendingImagePreview, setPendingImagePreview] = useState(null);
+  const [manualDescription, setManualDescription] = useState("");
+
+  // Library selection state
+  const [showLibrarySection, setShowLibrarySection] = useState(true);
+  const [showLibraryDocs, setShowLibraryDocs] = useState(false);
+  const [showLibraryImages, setShowLibraryImages] = useState(false);
+  const [libDocSearch, setLibDocSearch] = useState("");
+  const [libImageSearch, setLibImageSearch] = useState("");
+  const [previewLibImage, setPreviewLibImage] = useState(null);
+  const [deletingImageId, setDeletingImageId] = useState(null);
+  const [previewDocument, setPreviewDocument] = useState(null);
+  const [deletingDocId, setDeletingDocId] = useState(null);
+
+  const queryClient = useQueryClient();
 
   // Advanced RAG options
   const [ragOptions, setRagOptions] = useState({
@@ -90,24 +128,214 @@ export default function ChatPage() {
     error: docsError,
   } = useDocuments();
 
+  const { data: images = [], isLoading: imagesLoading } = useImages();
+
   const { data: chatHistory, refetch: refetchHistory } = useChatHistory(userId);
   const clearHistoryMutation = useClearChatHistory();
 
-  // Load images on mount
-  useEffect(() => {
-    const loadImages = async () => {
+  // Filter library items by search - memoized to prevent recalculation on every render
+  const filteredLibDocs = useMemo(
+    () =>
+      (documents || []).filter(
+        (d) =>
+          d.filename?.toLowerCase().includes(libDocSearch.toLowerCase()) ||
+          d.name?.toLowerCase().includes(libDocSearch.toLowerCase()),
+      ),
+    [documents, libDocSearch],
+  );
+
+  const filteredLibImages = useMemo(
+    () =>
+      (images || []).filter(
+        (i) =>
+          i.filename?.toLowerCase().includes(libImageSearch.toLowerCase()) ||
+          i.name?.toLowerCase().includes(libImageSearch.toLowerCase()),
+      ),
+    [images, libImageSearch],
+  );
+
+  // Upload handlers
+  const handleFiles = async (files) => {
+    if (!files || files.length === 0) return;
+
+    const fileArray = Array.from(files);
+
+    for (const file of fileArray) {
       try {
-        const response = await fetch("http://localhost:8001/api/images");
-        if (response.ok) {
-          const data = await response.json();
-          setImages(data);
+        const isImage =
+          file.type.startsWith("image/") ||
+          file.name.toLowerCase().endsWith(".heic") ||
+          file.name.toLowerCase().endsWith(".heif");
+
+        if (isImage) {
+          // If auto describe is off, show the manual description form
+          if (!autoDescribe) {
+            const preview = URL.createObjectURL(file);
+            setPendingImageFile(file);
+            setPendingImagePreview(preview);
+            setManualDescription("");
+            return; // Wait for user to enter description
+          }
+          // Auto describe - upload immediately
+          setIsUploading(true);
+          const result = await uploadImage(file, "", true);
+          setSelectedImageIds((prev) => [...prev, result.id]);
+          toast.success(`Image uploaded: ${file.name}`);
+        } else {
+          // For documents (PDFs, etc.), upload immediately
+          setIsUploading(true);
+          const result = await uploadDocument(file);
+          setSelectedDocIds((prev) => [...prev, result.id]);
+          toast.success(`Document uploaded: ${file.name}`);
         }
-      } catch (error) {
-        console.error("Failed to load images:", error);
+      } catch (err) {
+        console.error("Upload failed:", err);
+        toast.error(`Failed to upload ${file.name}: ${err.message}`);
       }
-    };
-    loadImages();
+    }
+
+    // Refresh library
+    queryClient.invalidateQueries({ queryKey: ["documents"] });
+    queryClient.invalidateQueries({ queryKey: ["images"] });
+    setIsUploading(false);
+  };
+
+  // Handle manual image upload with description
+  const handleManualImageUpload = async (useAI = false) => {
+    if (!pendingImageFile) return;
+
+    setIsUploading(true);
+    try {
+      const result = await uploadImage(
+        pendingImageFile,
+        useAI ? "" : manualDescription,
+        useAI,
+      );
+      setSelectedImageIds((prev) => [...prev, result.id]);
+      toast.success(`Image uploaded: ${pendingImageFile.name}`);
+
+      // Clear pending state
+      setPendingImageFile(null);
+      setPendingImagePreview(null);
+      setManualDescription("");
+
+      // Refresh library
+      queryClient.invalidateQueries({ queryKey: ["images"] });
+    } catch (err) {
+      console.error("Upload failed:", err);
+      toast.error(`Failed to upload: ${err.message}`);
+    }
+    setIsUploading(false);
+  };
+
+  const cancelPendingUpload = () => {
+    if (pendingImagePreview) {
+      URL.revokeObjectURL(pendingImagePreview);
+    }
+    setPendingImageFile(null);
+    setPendingImagePreview(null);
+    setManualDescription("");
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    handleFiles(e.dataTransfer?.files);
+  };
+
+  // Library selection handlers - memoized to prevent child re-renders
+  const toggleLibDocSelection = useCallback((id) => {
+    setSelectedDocIds((prev) =>
+      prev.includes(id) ? prev.filter((d) => d !== id) : [...prev, id],
+    );
   }, []);
+
+  const toggleLibImageSelection = useCallback((id) => {
+    setSelectedImageIds((prev) =>
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id],
+    );
+  }, []);
+
+  const selectAllLibDocs = useCallback(() => {
+    setSelectedDocIds(filteredLibDocs.map((d) => d.id));
+  }, [filteredLibDocs]);
+
+  const deselectAllLibDocs = useCallback(() => {
+    setSelectedDocIds([]);
+  }, []);
+
+  const selectAllLibImages = useCallback(() => {
+    setSelectedImageIds(filteredLibImages.map((i) => i.id));
+  }, [filteredLibImages]);
+
+  const deselectAllLibImages = useCallback(() => {
+    setSelectedImageIds([]);
+  }, []);
+
+  const handleDeleteLibImage = async (e, imageId) => {
+    e.stopPropagation();
+    if (deletingImageId) return;
+
+    // Ask for confirmation
+    if (
+      !window.confirm(
+        "Are you sure you want to delete this image? This action cannot be undone.",
+      )
+    ) {
+      return;
+    }
+
+    setDeletingImageId(imageId);
+    try {
+      await deleteImageApi(imageId);
+      setSelectedImageIds((prev) => prev.filter((id) => id !== imageId));
+      queryClient.invalidateQueries({ queryKey: ["images"] });
+      toast.success("Image deleted");
+    } catch (err) {
+      console.error("Delete failed:", err);
+      toast.error("Failed to delete image");
+    } finally {
+      setDeletingImageId(null);
+    }
+  };
+
+  const handlePreviewDocument = (doc) => {
+    setPreviewDocument(doc);
+  };
+
+  const handleDeleteDocument = async (doc) => {
+    if (deletingDocId) return;
+
+    if (!confirm(`Delete "${doc.filename || doc.name}"?`)) return;
+
+    setDeletingDocId(doc.id);
+    try {
+      await fetch(`http://localhost:8001/api/docs/${doc.id}`, {
+        method: "DELETE",
+      });
+      setSelectedDocIds((prev) => prev.filter((id) => id !== doc.id));
+      queryClient.invalidateQueries({ queryKey: ["documents"] });
+      toast.success("Document deleted");
+    } catch (err) {
+      console.error("Delete failed:", err);
+      toast.error("Failed to delete document");
+    } finally {
+      setDeletingDocId(null);
+    }
+  };
 
   // Sync streaming text to ref for onDone callback
   useEffect(() => {
@@ -118,9 +346,20 @@ export default function ChatPage() {
     finalCitationsRef.current = streamingCitations;
   }, [streamingCitations]);
 
-  // Auto-scroll when streaming text changes
+  // Auto-scroll only if user is already near bottom
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    const scrollContainer = messagesEndRef.current?.parentElement;
+    if (!scrollContainer) return;
+
+    const isNearBottom =
+      scrollContainer.scrollHeight -
+        scrollContainer.scrollTop -
+        scrollContainer.clientHeight <
+      100;
+
+    if (isNearBottom) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
   }, [messages, streamingText]);
 
   // Cleanup stream on unmount
@@ -171,10 +410,10 @@ export default function ChatPage() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [messages, userId]);
 
-  const handleProviderChange = (newProvider) => {
+  const handleProviderChange = useCallback((newProvider) => {
     setSelectedProvider(newProvider);
     setSelectedModel("");
-  };
+  }, []);
 
   const handleSendMessage = useCallback(
     async (content) => {
@@ -285,13 +524,13 @@ export default function ChatPage() {
     ],
   );
 
-  const handleClearHistory = () => {
+  const handleClearHistory = useCallback(() => {
     if (window.confirm("Are you sure you want to clear all chat history?")) {
       clearHistoryMutation.mutate(userId);
     }
-  };
+  }, [clearHistoryMutation, userId]);
 
-  const loadHistoryEntry = (entry) => {
+  const loadHistoryEntry = useCallback((entry) => {
     setMessages([
       { type: "user", content: entry.question },
       {
@@ -302,25 +541,31 @@ export default function ChatPage() {
       },
     ]);
     setShowHistory(false);
-  };
+  }, []);
 
-  // Build display messages - include streaming message if active
-  const displayMessages = isStreaming
-    ? [
-        ...messages,
-        {
-          type: "assistant",
-          content: streamingText,
-          citations: streamingCitations,
-          model: null,
-          isStreaming: true,
-        },
-      ]
-    : messages;
+  // Build display messages - memoized to prevent array recreation
+  const displayMessages = useMemo(
+    () =>
+      isStreaming
+        ? [
+            ...messages,
+            {
+              type: "assistant",
+              content: streamingText,
+              citations: streamingCitations,
+              model: null,
+              isStreaming: true,
+            },
+          ]
+        : messages,
+    [isStreaming, messages, streamingText, streamingCitations],
+  );
 
-  // Count active RAG options
-  const activeRagOptionsCount =
-    Object.values(ragOptions).filter(Boolean).length;
+  // Count active RAG options - memoized
+  const activeRagOptionsCount = useMemo(
+    () => Object.values(ragOptions).filter(Boolean).length,
+    [ragOptions],
+  );
 
   return (
     <div className="min-h-[calc(100vh-7rem)] md:min-h-[calc(100vh-8rem)] flex flex-col">
@@ -338,24 +583,6 @@ export default function ChatPage() {
 
         {/* Action buttons - horizontal scroll on mobile */}
         <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0 -mx-1 px-1 sm:mx-0 sm:px-0">
-          {/* Export Chat Button */}
-          {messages.length > 0 && (
-            <button
-              onClick={async () => {
-                try {
-                  await exportChatHistory(userId, "markdown");
-                  toast.success("Chat history exported");
-                } catch (error) {
-                  toast.error("Failed to export chat history");
-                }
-              }}
-              className="flex-shrink-0 flex items-center px-3 md:px-4 py-2 rounded-xl text-xs md:text-sm font-medium transition-all duration-200 text-[var(--text-muted)] hover:text-emerald-400 bg-[var(--bg-secondary)]/50 border border-[var(--border-subtle)] hover:border-emerald-500/30 hover:bg-emerald-500/10"
-              title="Export chat history (Ctrl+E)"
-            >
-              <Download className="h-4 w-4 md:mr-2" />
-              <span className="hidden md:inline">Export</span>
-            </button>
-          )}
           {/* Clear Conversation Button */}
           {messages.length > 0 && (
             <button
@@ -376,32 +603,32 @@ export default function ChatPage() {
           )}
           <button
             onClick={() => setShowRagOptions(!showRagOptions)}
-            className={`flex-shrink-0 flex items-center px-3 md:px-4 py-2 rounded-xl text-xs md:text-sm font-medium transition-all duration-200 ${
+            className={`flex-shrink-0 flex items-center px-3 md:px-4 py-2 rounded-xl text-xs md:text-sm font-bold transition-all duration-200 shadow-lg ${
               showRagOptions
-                ? "bg-violet-500/15 text-violet-300 border border-violet-500/25"
-                : "text-[var(--text-muted)] hover:text-[var(--text-primary)] bg-[var(--bg-secondary)]/50 border border-[var(--border-subtle)] hover:border-violet-500/30"
+                ? "bg-gradient-to-r from-violet-600 to-purple-600 text-white border-2 border-violet-400 shadow-violet-500/50"
+                : "bg-gradient-to-r from-violet-500/20 to-purple-500/20 text-violet-300 border-2 border-violet-500/40 hover:from-violet-500/30 hover:to-purple-500/30 hover:border-violet-400/60 hover:text-white hover:shadow-violet-500/30"
             }`}
           >
             <Settings2
-              className={`h-4 w-4 md:mr-2 ${showRagOptions ? "text-violet-400" : ""}`}
+              className={`h-4 w-4 md:mr-2 ${showRagOptions ? "text-white" : "text-violet-400"}`}
             />
-            <span className="hidden md:inline">RAG</span>
+            <span className="hidden md:inline">Advanced Options</span>
             {activeRagOptionsCount > 0 && (
-              <span className="ml-1 md:ml-2 bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold">
+              <span className="ml-1 md:ml-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-gray-900 text-[10px] px-1.5 py-0.5 rounded-full font-bold shadow-md">
                 {activeRagOptionsCount}
               </span>
             )}
           </button>
           <button
             onClick={() => setShowHistory(!showHistory)}
-            className={`flex-shrink-0 flex items-center px-3 md:px-4 py-2 rounded-xl text-xs md:text-sm font-medium transition-all duration-200 ${
+            className={`flex-shrink-0 flex items-center px-3 md:px-4 py-2 rounded-xl text-xs md:text-sm font-bold transition-all duration-200 shadow-lg ${
               showHistory
-                ? "bg-blue-500/15 text-blue-300 border border-blue-500/25"
-                : "text-[var(--text-muted)] hover:text-[var(--text-primary)] bg-[var(--bg-secondary)]/50 border border-[var(--border-subtle)] hover:border-blue-500/30"
+                ? "bg-gradient-to-r from-blue-600 to-cyan-600 text-white border-2 border-blue-400 shadow-blue-500/50"
+                : "bg-gradient-to-r from-blue-500/20 to-cyan-500/20 text-blue-300 border-2 border-blue-500/40 hover:from-blue-500/30 hover:to-cyan-500/30 hover:border-blue-400/60 hover:text-white hover:shadow-blue-500/30"
             }`}
           >
             <History
-              className={`h-4 w-4 md:mr-2 ${showHistory ? "text-blue-400" : ""}`}
+              className={`h-4 w-4 md:mr-2 ${showHistory ? "text-white" : "text-blue-400"}`}
             />
             <span className="hidden md:inline">History</span>
           </button>
@@ -828,136 +1055,524 @@ export default function ChatPage() {
         />
       </div>
 
-      {/* Main Chat Layout - Mobile stacked, desktop side-by-side */}
-      <div className="flex flex-col lg:grid lg:grid-cols-4 gap-4 md:gap-6 flex-1 min-h-[400px] md:min-h-[500px]">
-        {/* Left Sidebar - Document Filter (collapsible on mobile) */}
-        <div className="order-2 lg:order-1 lg:col-span-1 bg-[var(--bg-secondary)]/60 backdrop-blur-sm rounded-xl md:rounded-2xl border border-[var(--border-subtle)] p-4 md:p-5 overflow-y-auto custom-scrollbar max-h-[300px] lg:max-h-[600px] transition-colors">
-          <div className="flex items-center mb-3 md:mb-4">
-            <div className="p-1.5 md:p-2 rounded-lg md:rounded-xl bg-amber-500/15 mr-2 md:mr-3">
-              <FileText className="h-4 w-4 md:h-5 md:w-5 text-amber-400" />
+      {/* Upload Section - Expandable */}
+      <div className="mb-4 md:mb-6 bg-[var(--bg-secondary)]/60 backdrop-blur-sm rounded-xl md:rounded-2xl border border-[var(--border-subtle)] transition-colors overflow-hidden">
+        <button
+          onClick={() => setShowUploadSection(!showUploadSection)}
+          className="w-full flex items-center justify-between p-4 md:p-5 hover:bg-[var(--hover-bg)] transition-colors"
+        >
+          <div className="flex items-center">
+            <div className="p-1.5 md:p-2 rounded-lg md:rounded-xl bg-emerald-500/15 mr-2 md:mr-3">
+              <Upload className="h-4 w-4 md:h-5 md:w-5 text-emerald-400" />
             </div>
-            <h2 className="text-sm font-semibold text-[var(--text-primary)]">
-              Documents
-            </h2>
+            <div className="text-left">
+              <h3 className="font-semibold text-[var(--text-primary)] text-sm">
+                Upload Files
+              </h3>
+              <p className="text-xs text-[var(--text-muted)]">
+                Add documents or images to chat about
+              </p>
+            </div>
           </div>
+          {showUploadSection ? (
+            <ChevronUp className="h-4 w-4 text-[var(--text-muted)]" />
+          ) : (
+            <ChevronDown className="h-4 w-4 text-[var(--text-muted)]" />
+          )}
+        </button>
 
-          <DocumentList
-            documents={documents}
-            isLoading={docsLoading}
-            error={docsError}
-            onSelectionChange={setSelectedDocIds}
-          />
+        {showUploadSection && (
+          <div className="px-4 md:px-5 pb-4 md:pb-5 border-t border-[var(--border-subtle)]">
+            {/* Top Row: Single/Batch Toggle + Auto-describe option */}
+            <div className="flex items-center justify-between mt-4 mb-4 flex-wrap gap-3">
+              {/* Single / Batch Toggle */}
+              <div className="flex gap-1 p-1 bg-[var(--bg-tertiary)] rounded-full w-fit">
+                <button
+                  onClick={() => setUploadMode("single")}
+                  className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
+                    uploadMode === "single"
+                      ? "bg-violet-500 text-white shadow-md"
+                      : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                  }`}
+                >
+                  Single
+                </button>
+                <button
+                  onClick={() => setUploadMode("batch")}
+                  className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
+                    uploadMode === "batch"
+                      ? "bg-violet-500 text-white shadow-md"
+                      : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                  }`}
+                >
+                  Batch
+                </button>
+              </div>
 
-          {!docsLoading &&
-            !docsError &&
-            (!documents || documents.length === 0) && (
-              <div className="mt-4 p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl">
-                <p className="text-xs text-amber-400">
-                  No documents available. Upload documents first.
-                </p>
+              {/* Auto-describe toggle */}
+              <button
+                onClick={() => setAutoDescribe(!autoDescribe)}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-all border ${
+                  autoDescribe
+                    ? "bg-violet-500/20 border-violet-500/50 text-violet-300"
+                    : "bg-[var(--bg-tertiary)] border-[var(--border-subtle)] text-[var(--text-secondary)] hover:border-violet-500/30"
+                }`}
+              >
+                <Wand2
+                  className={`w-4 h-4 ${autoDescribe ? "text-violet-400" : "text-[var(--text-muted)]"}`}
+                />
+                <span>Auto AI description</span>
+                <div
+                  className={`w-8 h-4 rounded-full relative transition-all ${
+                    autoDescribe ? "bg-violet-500" : "bg-[var(--bg-secondary)]"
+                  }`}
+                >
+                  <div
+                    className={`absolute top-0.5 w-3 h-3 rounded-full bg-white transition-all ${
+                      autoDescribe ? "left-4" : "left-0.5"
+                    }`}
+                  />
+                </div>
+              </button>
+            </div>
+
+            {/* Pending Image - Manual Description Form */}
+            {pendingImageFile && !isUploading && (
+              <div className="mb-4 p-6 bg-[var(--bg-tertiary)] rounded-xl border border-[var(--border-subtle)]">
+                <div className="space-y-4">
+                  {/* Image Preview and Info */}
+                  <div className="flex items-start gap-4">
+                    <img
+                      src={pendingImagePreview}
+                      alt="Preview"
+                      className="w-48 h-48 object-cover rounded-lg border-2 border-[var(--border-subtle)] shadow-lg"
+                    />
+                    <div className="flex-1 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-base font-semibold text-[var(--text-primary)]">
+                            {pendingImageFile.name}
+                          </p>
+                          <p className="text-xs text-[var(--text-muted)] mt-1">
+                            {(pendingImageFile.size / 1024 / 1024).toFixed(2)}{" "}
+                            MB
+                          </p>
+                        </div>
+                        <button
+                          onClick={cancelPendingUpload}
+                          className="text-xs text-[var(--text-muted)] hover:text-red-400 transition-colors px-3 py-1 rounded-lg hover:bg-red-500/10"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                      {/* Show current description if entered */}
+                      {manualDescription.trim() && (
+                        <div className="mt-3 p-3 bg-[var(--bg-secondary)] rounded-lg border border-[var(--border-subtle)]">
+                          <p className="text-xs font-medium text-violet-400 mb-1">
+                            Description:
+                          </p>
+                          <p className="text-sm text-[var(--text-primary)]">
+                            {manualDescription}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Description Input */}
+                  <div>
+                    <label className="text-xs font-medium text-[var(--text-secondary)] mb-2 block">
+                      Image Description (Optional)
+                    </label>
+                    <textarea
+                      value={manualDescription}
+                      onChange={(e) => setManualDescription(e.target.value)}
+                      placeholder="Enter image description..."
+                      className="w-full px-4 py-3 text-sm bg-[var(--bg-secondary)] border border-[var(--border-subtle)] rounded-lg
+                                 text-[var(--text-primary)] placeholder-[var(--text-muted)] resize-none
+                                 focus:outline-none focus:ring-2 focus:ring-violet-500/50"
+                      rows={3}
+                      autoFocus
+                    />
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => handleManualImageUpload(false)}
+                      className="flex-1 px-4 py-2.5 rounded-lg text-sm font-medium bg-violet-500 hover:bg-violet-400 text-white transition-all shadow-lg shadow-violet-500/20"
+                    >
+                      {manualDescription.trim()
+                        ? "Upload with Description"
+                        : "Upload without Description"}
+                    </button>
+                    <button
+                      onClick={() => handleManualImageUpload(true)}
+                      className="px-4 py-2.5 rounded-lg text-sm font-medium bg-[var(--bg-secondary)] hover:bg-[var(--hover-bg)] 
+                                 text-[var(--text-secondary)] transition-all border border-[var(--border-subtle)] flex items-center gap-2"
+                    >
+                      <Wand2 className="w-4 h-4" />
+                      Use AI
+                    </button>
+                  </div>
+                </div>
               </div>
             )}
 
-          {/* Images Section */}
-          <div className="mt-6 pt-6 border-t border-[var(--border-subtle)]">
-            <button
-              onClick={() => setShowImages(!showImages)}
-              className="w-full flex items-center justify-between mb-3"
-            >
-              <div className="flex items-center">
-                <div className="p-2 rounded-xl bg-fuchsia-500/15 mr-3">
-                  <Image className="h-5 w-5 text-fuchsia-400" />
-                </div>
-                <h2 className="text-sm font-semibold text-[var(--text-primary)]">
-                  Images
-                </h2>
-                {selectedImageIds.length > 0 && (
-                  <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-fuchsia-500/20 text-fuchsia-400 border border-fuchsia-500/30">
-                    {selectedImageIds.length} selected
-                  </span>
-                )}
-              </div>
-              {showImages ? (
-                <ChevronUp className="h-4 w-4 text-[var(--text-muted)]" />
-              ) : (
-                <ChevronDown className="h-4 w-4 text-[var(--text-muted)]" />
-              )}
-            </button>
-
-            {showImages && (
-              <div className="space-y-3">
-                {images.length > 0 ? (
-                  <>
-                    <p className="text-xs text-[var(--text-muted)] mb-2">
-                      Select images to ask questions about them
-                    </p>
-                    <div className="grid grid-cols-2 gap-2">
-                      {images.map((img) => (
-                        <button
-                          key={img.id}
-                          onClick={() => {
-                            setSelectedImageIds((prev) =>
-                              prev.includes(img.id)
-                                ? prev.filter((id) => id !== img.id)
-                                : [...prev, img.id],
-                            );
-                          }}
-                          className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all ${
-                            selectedImageIds.includes(img.id)
-                              ? "border-fuchsia-500 ring-2 ring-fuchsia-500/30"
-                              : "border-[var(--border-subtle)] hover:border-[var(--text-muted)]"
-                          }`}
-                        >
-                          <img
-                            src={`data:${img.content_type};base64,${img.thumbnail_base64}`}
-                            alt={img.filename || "Image"}
-                            className="w-full h-full object-cover"
-                          />
-                          {selectedImageIds.includes(img.id) && (
-                            <div className="absolute inset-0 bg-fuchsia-500/20 flex items-center justify-center">
-                              <div className="w-6 h-6 rounded-full bg-fuchsia-500 flex items-center justify-center">
-                                <svg
-                                  className="w-4 h-4 text-white"
-                                  fill="none"
-                                  viewBox="0 0 24 24"
-                                  stroke="currentColor"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M5 13l4 4L19 7"
-                                  />
-                                </svg>
-                              </div>
-                            </div>
-                          )}
-                        </button>
-                      ))}
+            {/* Drop Zone */}
+            {!pendingImageFile && (
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                className={`relative border-2 border-dashed rounded-2xl p-10 text-center cursor-pointer transition-all bg-gradient-to-b from-[var(--bg-primary)] to-[var(--bg-secondary)]/50 ${
+                  dragActive
+                    ? "border-violet-500 bg-violet-500/5"
+                    : "border-[var(--border-subtle)] hover:border-violet-400/50"
+                }`}
+              >
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  multiple={uploadMode === "batch"}
+                  accept=".pdf,.doc,.docx,.txt,.md,.json,.csv,image/*,.heic,.heif"
+                  onChange={(e) => handleFiles(e.target.files)}
+                  className="hidden"
+                />
+                {isUploading ? (
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="w-16 h-16 rounded-2xl bg-violet-500/15 flex items-center justify-center">
+                      <Loader2 className="w-8 h-8 text-violet-400 animate-spin" />
                     </div>
-                    {selectedImageIds.length > 0 && (
-                      <button
-                        onClick={() => setSelectedImageIds([])}
-                        className="w-full mt-2 text-xs text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors"
-                      >
-                        Clear selection
-                      </button>
-                    )}
-                  </>
-                ) : (
-                  <div className="p-4 bg-fuchsia-500/10 border border-fuchsia-500/20 rounded-xl">
-                    <p className="text-xs text-fuchsia-400">
-                      No images uploaded. Go to Upload page to add images.
+                    <p className="text-sm text-[var(--text-secondary)]">
+                      {autoDescribe
+                        ? "Generating AI description..."
+                        : "Uploading..."}
                     </p>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-3">
+                    <div
+                      className={`w-16 h-16 rounded-2xl flex items-center justify-center transition-all ${
+                        dragActive
+                          ? "bg-violet-500/25 scale-110"
+                          : "bg-violet-500/15"
+                      }`}
+                    >
+                      <Cloud
+                        className={`w-8 h-8 transition-colors ${
+                          dragActive ? "text-violet-300" : "text-violet-400"
+                        }`}
+                      />
+                    </div>
+                    <div className="text-center">
+                      <p className="text-base font-semibold text-[var(--text-primary)]">
+                        Drop your file{uploadMode === "batch" ? "s" : ""} here
+                        or click to browse
+                      </p>
+                      <p className="text-sm text-[var(--text-muted)] mt-1">
+                        Supported: PDF, Word, TXT, Images (max 15MB)
+                      </p>
+                    </div>
                   </div>
                 )}
               </div>
             )}
           </div>
-        </div>
+        )}
+      </div>
 
-        {/* Right Side - Chat Interface */}
-        <div className="order-1 lg:order-2 lg:col-span-3 bg-[var(--bg-secondary)]/60 backdrop-blur-sm rounded-xl md:rounded-2xl border border-[var(--border-subtle)] flex flex-col min-h-[350px] md:min-h-[500px] max-h-[60vh] lg:max-h-[700px] transition-colors">
+      {/* Library Selection Section - Expandable */}
+      <div className="mb-4 md:mb-6 bg-[var(--bg-secondary)]/60 backdrop-blur-sm rounded-xl md:rounded-2xl border border-[var(--border-subtle)] transition-colors overflow-hidden">
+        <button
+          onClick={() => setShowLibrarySection(!showLibrarySection)}
+          className="w-full flex items-center justify-between p-4 md:p-5 hover:bg-[var(--hover-bg)] transition-colors"
+        >
+          <div className="flex items-center">
+            <div className="p-1.5 md:p-2 rounded-lg md:rounded-xl bg-violet-500/15 mr-2 md:mr-3">
+              <Library className="h-4 w-4 md:h-5 md:w-5 text-violet-400" />
+            </div>
+            <div className="text-left">
+              <h3 className="font-semibold text-[var(--text-primary)] text-sm">
+                Select from Library
+              </h3>
+              <p className="text-xs text-[var(--text-muted)]">
+                {(documents || []).length} docs, {(images || []).length} images
+                {(selectedDocIds.length > 0 || selectedImageIds.length > 0) && (
+                  <span className="ml-2 text-violet-400">
+                    ({selectedDocIds.length + selectedImageIds.length} selected)
+                  </span>
+                )}
+              </p>
+            </div>
+          </div>
+          {showLibrarySection ? (
+            <ChevronUp className="h-4 w-4 text-[var(--text-muted)]" />
+          ) : (
+            <ChevronDown className="h-4 w-4 text-[var(--text-muted)]" />
+          )}
+        </button>
+
+        {showLibrarySection && (
+          <div className="px-4 md:px-5 pb-4 md:pb-5 border-t border-[var(--border-subtle)] space-y-3">
+            {/* Library Documents Accordion */}
+            <div className="mt-4 border border-[var(--border-subtle)] rounded-lg overflow-hidden">
+              <button
+                onClick={() => setShowLibraryDocs(!showLibraryDocs)}
+                className="w-full flex items-center justify-between px-3 py-2 bg-[var(--bg-tertiary)] hover:bg-[var(--bg-tertiary)]/80 transition-colors"
+              >
+                <span className="text-sm text-[var(--text-primary)] flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-blue-400" />
+                  Documents ({(documents || []).length})
+                  {selectedDocIds.length > 0 && (
+                    <span className="text-xs px-1.5 py-0.5 bg-violet-500/20 text-violet-400 rounded">
+                      {selectedDocIds.length} selected
+                    </span>
+                  )}
+                </span>
+                {showLibraryDocs ? (
+                  <ChevronUp className="w-4 h-4 text-[var(--text-muted)]" />
+                ) : (
+                  <ChevronDown className="w-4 h-4 text-[var(--text-muted)]" />
+                )}
+              </button>
+
+              {showLibraryDocs && (
+                <div className="p-2 space-y-2">
+                  {/* Search & Actions */}
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={libDocSearch}
+                      onChange={(e) => setLibDocSearch(e.target.value)}
+                      placeholder="Search documents..."
+                      className="flex-1 px-2 py-1 text-xs bg-[var(--bg-primary)] border border-[var(--border-subtle)] rounded text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-1 focus:ring-violet-500/50"
+                    />
+                    <button
+                      onClick={selectAllLibDocs}
+                      className="text-xs px-2 py-1 text-violet-400 hover:bg-violet-500/10 rounded transition-colors"
+                    >
+                      All
+                    </button>
+                    <button
+                      onClick={deselectAllLibDocs}
+                      className="text-xs px-2 py-1 text-[var(--text-muted)] hover:bg-[var(--bg-tertiary)] rounded transition-colors"
+                    >
+                      None
+                    </button>
+                  </div>
+
+                  {/* Document List */}
+                  <div className="max-h-[200px] overflow-y-auto space-y-1">
+                    {docsLoading ? (
+                      <div className="flex items-center justify-center py-4">
+                        <Loader2 className="w-4 h-4 text-violet-400 animate-spin" />
+                      </div>
+                    ) : filteredLibDocs.length === 0 ? (
+                      <p className="text-xs text-[var(--text-muted)] py-2 text-center">
+                        {libDocSearch
+                          ? "No matching documents"
+                          : "No documents in library"}
+                      </p>
+                    ) : (
+                      filteredLibDocs.map((doc) => (
+                        <div
+                          key={doc.id}
+                          className={`group flex items-center gap-2 px-2 py-1.5 rounded transition-colors ${
+                            selectedDocIds.includes(doc.id)
+                              ? "bg-violet-500/20 border border-violet-500/30"
+                              : "hover:bg-[var(--bg-tertiary)] border border-transparent"
+                          }`}
+                        >
+                          <div
+                            className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 cursor-pointer ${
+                              selectedDocIds.includes(doc.id)
+                                ? "bg-violet-500 border-violet-500"
+                                : "border-[var(--border-subtle)]"
+                            }`}
+                            onClick={() => toggleLibDocSelection(doc.id)}
+                          >
+                            {selectedDocIds.includes(doc.id) && (
+                              <Check className="w-3 h-3 text-white" />
+                            )}
+                          </div>
+                          <span
+                            className="text-xs text-[var(--text-primary)] truncate cursor-pointer"
+                            onClick={() => toggleLibDocSelection(doc.id)}
+                          >
+                            {doc.filename || doc.name}
+                          </span>
+                          <div className="flex items-center gap-1 ml-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handlePreviewDocument(doc);
+                              }}
+                              className="p-1 hover:bg-blue-500/20 rounded text-blue-400 transition-colors"
+                              title="Preview document"
+                            >
+                              <Eye className="w-3 h-3" />
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteDocument(doc);
+                              }}
+                              className="p-1 hover:bg-red-500/20 rounded text-red-400 transition-colors"
+                              title="Delete document"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Library Images Accordion */}
+            <div className="border border-[var(--border-subtle)] rounded-lg overflow-hidden">
+              <button
+                onClick={() => setShowLibraryImages(!showLibraryImages)}
+                className="w-full flex items-center justify-between px-3 py-2 bg-[var(--bg-tertiary)] hover:bg-[var(--bg-tertiary)]/80 transition-colors"
+              >
+                <span className="text-sm text-[var(--text-primary)] flex items-center gap-2">
+                  <Image className="w-4 h-4 text-green-400" />
+                  Images ({(images || []).length})
+                  {selectedImageIds.length > 0 && (
+                    <span className="text-xs px-1.5 py-0.5 bg-violet-500/20 text-violet-400 rounded">
+                      {selectedImageIds.length} selected
+                    </span>
+                  )}
+                </span>
+                {showLibraryImages ? (
+                  <ChevronUp className="w-4 h-4 text-[var(--text-muted)]" />
+                ) : (
+                  <ChevronDown className="w-4 h-4 text-[var(--text-muted)]" />
+                )}
+              </button>
+
+              {showLibraryImages && (
+                <div className="p-2 space-y-2">
+                  {/* Search & Actions */}
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={libImageSearch}
+                      onChange={(e) => setLibImageSearch(e.target.value)}
+                      placeholder="Search images..."
+                      className="flex-1 px-2 py-1 text-xs bg-[var(--bg-primary)] border border-[var(--border-subtle)] rounded text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-1 focus:ring-violet-500/50"
+                    />
+                    <button
+                      onClick={selectAllLibImages}
+                      className="text-xs px-2 py-1 text-violet-400 hover:bg-violet-500/10 rounded transition-colors"
+                    >
+                      All
+                    </button>
+                    <button
+                      onClick={deselectAllLibImages}
+                      className="text-xs px-2 py-1 text-[var(--text-muted)] hover:bg-[var(--bg-tertiary)] rounded transition-colors"
+                    >
+                      None
+                    </button>
+                  </div>
+
+                  {/* Image Grid with Thumbnails */}
+                  <div className="max-h-[250px] overflow-y-auto">
+                    {imagesLoading ? (
+                      <div className="flex items-center justify-center py-4">
+                        <Loader2 className="w-4 h-4 text-violet-400 animate-spin" />
+                      </div>
+                    ) : filteredLibImages.length === 0 ? (
+                      <p className="text-xs text-[var(--text-muted)] py-4 text-center">
+                        {libImageSearch
+                          ? "No matching images"
+                          : "No images in library"}
+                      </p>
+                    ) : (
+                      <div className="grid grid-cols-4 md:grid-cols-6 gap-2">
+                        {filteredLibImages.map((img) => (
+                          <div
+                            key={img.id}
+                            className={`relative group cursor-pointer rounded-lg overflow-hidden border-2 transition-colors ${
+                              selectedImageIds.includes(img.id)
+                                ? "border-violet-500"
+                                : "border-transparent hover:border-[var(--border-subtle)]"
+                            }`}
+                            onClick={() => toggleLibImageSelection(img.id)}
+                          >
+                            {/* Thumbnail */}
+                            <div className="aspect-square bg-[var(--bg-tertiary)]">
+                              {img.thumbnail_base64 ? (
+                                <img
+                                  src={`data:image/png;base64,${img.thumbnail_base64}`}
+                                  alt={img.filename || img.name}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center">
+                                  <Image className="w-4 h-4 text-[var(--text-muted)]" />
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Selection indicator */}
+                            <div
+                              className={`absolute top-1 left-1 w-4 h-4 rounded border flex items-center justify-center ${
+                                selectedImageIds.includes(img.id)
+                                  ? "bg-violet-500 border-violet-500"
+                                  : "bg-black/50 border-white/30"
+                              }`}
+                            >
+                              {selectedImageIds.includes(img.id) && (
+                                <Check className="w-2.5 h-2.5 text-white" />
+                              )}
+                            </div>
+
+                            {/* Actions overlay */}
+                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setPreviewLibImage(img);
+                                }}
+                                className="p-2 bg-white/20 rounded hover:bg-white/30 transition-colors"
+                                title="Preview"
+                              >
+                                <Eye className="w-5 h-5 text-white" />
+                              </button>
+                              <button
+                                onClick={(e) => handleDeleteLibImage(e, img.id)}
+                                disabled={deletingImageId === img.id}
+                                className="p-2 bg-red-500/50 rounded hover:bg-red-500/70 transition-colors disabled:opacity-50"
+                                title="Delete"
+                              >
+                                {deletingImageId === img.id ? (
+                                  <Loader2 className="w-5 h-5 text-white animate-spin" />
+                                ) : (
+                                  <Trash2 className="w-5 h-5 text-white" />
+                                )}
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Main Chat Layout - Full width */}
+      <div className="flex flex-col flex-1 min-h-[400px] md:min-h-[500px]">
+        {/* Chat Interface - Full Width */}
+        <div className="bg-[var(--bg-secondary)]/60 backdrop-blur-sm rounded-xl md:rounded-2xl border border-[var(--border-subtle)] flex flex-col min-h-[350px] md:min-h-[500px] max-h-[60vh] lg:max-h-[700px] transition-colors flex-1">
           {/* Messages Area */}
           <div className="flex-1 overflow-y-auto p-4 md:p-6 custom-scrollbar">
             {displayMessages.length === 0 ? (
@@ -997,6 +1612,76 @@ export default function ChatPage() {
           </div>
         </div>
       </div>
+
+      {/* Library Image Preview Modal */}
+      {previewLibImage && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-6"
+          onClick={() => setPreviewLibImage(null)}
+        >
+          <div
+            className="relative w-full max-w-7xl h-[95vh] flex flex-col gap-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="relative flex-1 flex items-center justify-center overflow-hidden">
+              {previewLibImage.thumbnail_base64 ? (
+                <img
+                  src={`data:image/png;base64,${previewLibImage.thumbnail_base64}`}
+                  alt={previewLibImage.filename || previewLibImage.name}
+                  className="w-full h-full object-contain rounded-lg shadow-2xl"
+                />
+              ) : (
+                <div className="w-64 h-64 bg-[var(--bg-tertiary)] rounded-lg flex items-center justify-center">
+                  <Image className="w-16 h-16 text-[var(--text-muted)]" />
+                </div>
+              )}
+              <button
+                onClick={() => setPreviewLibImage(null)}
+                className="absolute top-2 right-2 p-2 bg-black/50 rounded-full hover:bg-black/70 transition-colors"
+              >
+                <X className="w-5 h-5 text-white" />
+              </button>
+            </div>
+
+            {/* Image Info Card */}
+            <div className="bg-[var(--bg-secondary)] rounded-lg p-6 border border-[var(--border-subtle)] max-h-[40vh] overflow-y-auto">
+              <div className="space-y-4">
+                <div>
+                  <p className="text-sm font-medium text-[var(--text-muted)] mb-2">
+                    Filename
+                  </p>
+                  <p className="text-lg font-semibold text-[var(--text-primary)]">
+                    {previewLibImage.filename || previewLibImage.name}
+                  </p>
+                </div>
+                {previewLibImage.description && (
+                  <div>
+                    <p className="text-sm font-medium text-[var(--text-muted)] mb-2">
+                      Description
+                    </p>
+                    <p className="text-base text-[var(--text-secondary)] leading-relaxed">
+                      {previewLibImage.description}
+                    </p>
+                  </div>
+                )}
+                {!previewLibImage.description && (
+                  <p className="text-sm text-[var(--text-muted)] italic">
+                    No description available
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Document Preview Modal */}
+      <DocumentPreview
+        docId={previewDocument?.id}
+        filename={previewDocument?.filename || previewDocument?.name}
+        isOpen={!!previewDocument}
+        onClose={() => setPreviewDocument(null)}
+      />
     </div>
   );
 }

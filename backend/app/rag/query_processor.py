@@ -33,21 +33,21 @@ def expand_query(query: str, provider: str = "ollama", model: str = None) -> Lis
     try:
         llm = get_llm(provider=provider, model=model)
         
-        expansion_prompt = f"""Generate 2-3 alternative search queries for the following question. 
-These should be variations that might help find relevant information in policy/legal documents.
+        expansion_prompt = f"""Generate 2-3 alternative phrasings of this question for searching policy and compliance documents.
 
 Original question: {query}
 
 Rules:
+- Use policy-relevant synonyms (e.g., "remote work" → "work from home", "WFH", "telework"; "vacation" → "annual leave", "PTO", "time off")
+- Include both formal policy language and casual employee questions
+- Rephrase using different question structures (e.g., "How many..." vs "What is the policy for...")
 - Keep queries concise and focused
-- Use different phrasings and synonyms
-- Include relevant legal/policy terminology if applicable
-- Return ONLY the queries, one per line, no numbering or bullets
+- Return ONLY the alternative queries, one per line, no numbering or bullets
 
 Alternative queries:"""
 
         messages = [
-            {"role": "system", "content": "You are a helpful assistant that generates search query variations. Output only the queries, one per line."},
+            {"role": "system", "content": "You are a query expansion assistant for policy document search. Generate semantically similar queries that capture different ways employees might ask the same question. Output only the queries, one per line."},
             {"role": "user", "content": expansion_prompt}
         ]
         
@@ -99,15 +99,20 @@ def rewrite_query(query: str, provider: str = "ollama", model: str = None) -> st
     try:
         llm = get_llm(provider=provider, model=model)
         
-        rewrite_prompt = f"""Rewrite the following question to be more effective for searching policy and legal documents.
-Make it clearer and more specific while preserving the original intent.
+        rewrite_prompt = f"""Rewrite the following question to be clearer and more effective for searching organizational policy documents.
+
+Improve clarity by:
+- Expanding abbreviations (e.g., "PTO" → "paid time off" or "leave")
+- Using formal policy terms when the question is casual (e.g., "sick days" → "sick leave policy")
+- Making implicit context explicit (e.g., "Can I..." → "What is the employee policy for...")
+- Preserving the core intent and scope
 
 Original question: {query}
 
 Rewritten question (output ONLY the rewritten question, nothing else):"""
 
         messages = [
-            {"role": "system", "content": "You are a helpful assistant that rewrites questions for better search. Output only the rewritten question."},
+            {"role": "system", "content": "You are a query rewriting assistant for policy document search. Clarify and formalize employee questions to improve retrieval accuracy. Output only the rewritten question."},
             {"role": "user", "content": rewrite_prompt}
         ]
         

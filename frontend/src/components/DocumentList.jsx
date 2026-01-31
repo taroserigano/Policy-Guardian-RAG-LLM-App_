@@ -1,7 +1,7 @@
 /**
  * Document list with checkbox selection for filtering.
  */
-import { useState } from "react";
+import { useState, useCallback, memo } from "react";
 import {
   File,
   Loader,
@@ -14,7 +14,7 @@ import { useDeleteDocument, useBulkDeleteDocuments } from "../hooks/useApi";
 import DocumentPreview from "./DocumentPreview";
 import { DocumentListSkeleton } from "./Skeleton";
 
-export default function DocumentList({
+function DocumentList({
   documents,
   isLoading,
   error,
@@ -26,20 +26,23 @@ export default function DocumentList({
   const deleteDocumentMutation = useDeleteDocument();
   const bulkDeleteMutation = useBulkDeleteDocuments();
 
-  const handleToggle = (docId) => {
-    const newSelected = new Set(selectedIds);
+  const handleToggle = useCallback(
+    (docId) => {
+      const newSelected = new Set(selectedIds);
 
-    if (newSelected.has(docId)) {
-      newSelected.delete(docId);
-    } else {
-      newSelected.add(docId);
-    }
+      if (newSelected.has(docId)) {
+        newSelected.delete(docId);
+      } else {
+        newSelected.add(docId);
+      }
 
-    setSelectedIds(newSelected);
-    onSelectionChange(Array.from(newSelected));
-  };
+      setSelectedIds(newSelected);
+      onSelectionChange(Array.from(newSelected));
+    },
+    [selectedIds, onSelectionChange],
+  );
 
-  const handleSelectAll = () => {
+  const handleSelectAll = useCallback(() => {
     if (selectedIds.size === documents.length) {
       // Deselect all
       setSelectedIds(new Set());
@@ -50,34 +53,36 @@ export default function DocumentList({
       setSelectedIds(allIds);
       onSelectionChange(Array.from(allIds));
     }
-  };
+  }, [selectedIds.size, documents, onSelectionChange]);
 
-  const handleDelete = (e, docId) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleDelete = useCallback(
+    (e, docId) => {
+      e.preventDefault();
+      e.stopPropagation();
 
-    if (window.confirm("Are you sure you want to delete this document?")) {
-      deleteDocumentMutation.mutate(docId, {
-        onSuccess: () => {
-          // Remove from selected if it was selected
-          if (selectedIds.has(docId)) {
-            const newSelected = new Set(selectedIds);
-            newSelected.delete(docId);
-            setSelectedIds(newSelected);
-            onSelectionChange(Array.from(newSelected));
-          }
-        },
-      });
-    }
-  };
+      if (window.confirm("Are you sure you want to delete this document?")) {
+        deleteDocumentMutation.mutate(docId, {
+          onSuccess: () => {
+            if (selectedIds.has(docId)) {
+              const newSelected = new Set(selectedIds);
+              newSelected.delete(docId);
+              setSelectedIds(newSelected);
+              onSelectionChange(Array.from(newSelected));
+            }
+          },
+        });
+      }
+    },
+    [deleteDocumentMutation, selectedIds, onSelectionChange],
+  );
 
-  const handlePreview = (e, doc) => {
+  const handlePreview = useCallback((e, doc) => {
     e.preventDefault();
     e.stopPropagation();
     setPreviewDoc(doc);
-  };
+  }, []);
 
-  const handleBulkDelete = () => {
+  const handleBulkDelete = useCallback(() => {
     if (selectedIds.size === 0) return;
 
     const count = selectedIds.size;
@@ -93,7 +98,7 @@ export default function DocumentList({
         },
       });
     }
-  };
+  }, [selectedIds, bulkDeleteMutation, onSelectionChange]);
 
   if (isLoading) {
     return <DocumentListSkeleton count={4} />;
@@ -164,7 +169,7 @@ export default function DocumentList({
           return (
             <div
               key={doc.id}
-              className={`flex items-start p-3 rounded-xl border transition-all duration-200 group cursor-pointer ${
+              className={`group cursor-pointer rounded-xl border transition-all duration-200 ${
                 isSelected
                   ? "bg-amber-500/10 border-amber-500/30"
                   : "bg-[var(--bg-secondary)]/50 border-[var(--border-subtle)] hover:bg-[var(--hover-bg)] hover:border-[var(--border-subtle)]"
@@ -172,74 +177,95 @@ export default function DocumentList({
               onClick={() => handleToggle(doc.id)}
               style={{ animationDelay: `${index * 50}ms` }}
             >
-              {/* Custom Checkbox */}
-              <div
-                className={`w-4 h-4 rounded-md border-2 flex items-center justify-center transition-all flex-shrink-0 mt-0.5 ${
-                  isSelected
-                    ? "bg-gradient-to-br from-amber-500 to-orange-500 border-transparent"
-                    : "border-[var(--border-subtle)] group-hover:border-amber-500/50"
-                }`}
-              >
-                {isSelected && (
-                  <svg
-                    className="w-2.5 h-2.5 text-white"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={3}
-                      d="M5 13l4 4L19 7"
-                    />
-                  </svg>
-                )}
-              </div>
+              <div className="flex items-start gap-4 p-4">
+                {/* Custom Checkbox */}
+                <div
+                  className={`mt-1 w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all flex-shrink-0 ${
+                    isSelected
+                      ? "bg-gradient-to-br from-amber-500 to-orange-500 border-transparent"
+                      : "border-[var(--border-subtle)] group-hover:border-amber-500/50"
+                  }`}
+                >
+                  {isSelected && (
+                    <svg
+                      className="w-3 h-3 text-white"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={3}
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                  )}
+                </div>
 
-              <div className="ml-3 flex-1 min-w-0">
-                <div className="flex items-start">
-                  <File
-                    className={`h-3.5 w-3.5 mr-2 mt-0.5 flex-shrink-0 ${isSelected ? "text-amber-400" : "text-[var(--text-muted)]"}`}
-                  />
-                  <div className="flex-1 min-w-0">
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-col gap-2">
                     <p
-                      className={`text-sm font-medium truncate ${isSelected ? "text-[var(--text-primary)]" : "text-[var(--text-secondary)]"}`}
+                      className={`text-sm font-semibold leading-snug break-words ${isSelected ? "text-[var(--text-primary)]" : "text-[var(--text-secondary)]"}`}
+                      style={{
+                        wordBreak: "break-word",
+                        overflowWrap: "anywhere",
+                      }}
                     >
                       {doc.filename}
                     </p>
-                    <p className="text-xs text-[var(--text-muted)] mt-0.5">
+                    <p className="text-xs text-[var(--text-muted)]">
                       {new Date(doc.created_at).toLocaleDateString()}
                     </p>
                     {doc.preview_text && (
-                      <p className="text-xs text-[var(--text-muted)] mt-1 line-clamp-2">
+                      <p className="text-xs text-[var(--text-muted)] leading-relaxed line-clamp-3 break-words">
                         {doc.preview_text}
                       </p>
                     )}
+                    <div className="mt-2 flex items-center justify-between gap-2">
+                      {doc.category ? (
+                        <span
+                          className={`px-2.5 py-1 text-xs font-medium rounded-md whitespace-nowrap ${
+                            doc.category === "policy"
+                              ? "bg-blue-500/20 text-blue-400"
+                              : doc.category === "contract"
+                                ? "bg-purple-500/20 text-purple-400"
+                                : doc.category === "procedure"
+                                  ? "bg-green-500/20 text-green-400"
+                                  : doc.category === "guide"
+                                    ? "bg-cyan-500/20 text-cyan-400"
+                                    : doc.category === "form"
+                                      ? "bg-yellow-500/20 text-yellow-400"
+                                      : doc.category === "report"
+                                        ? "bg-pink-500/20 text-pink-400"
+                                        : "bg-gray-500/20 text-gray-400"
+                          }`}
+                        >
+                          {doc.category}
+                        </span>
+                      ) : (
+                        <span />
+                      )}
+                      <div className="flex items-center gap-1 flex-shrink-0">
+                        <button
+                          onClick={(e) => handlePreview(e, doc)}
+                          className="p-2 text-[var(--text-muted)] hover:text-violet-400 hover:bg-violet-500/10 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
+                          title="Preview document"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={(e) => handleDelete(e, doc.id)}
+                          disabled={deleteDocumentMutation.isPending}
+                          className="p-2 text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 rounded-lg opacity-0 group-hover:opacity-100 transition-all disabled:opacity-50"
+                          title="Delete document"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="ml-2 flex items-center gap-1">
-                {/* Preview Button */}
-                <button
-                  onClick={(e) => handlePreview(e, doc)}
-                  className="p-1.5 text-[var(--text-muted)] hover:text-violet-400 hover:bg-violet-500/10 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
-                  title="Preview document"
-                >
-                  <Eye className="h-3.5 w-3.5" />
-                </button>
-
-                {/* Delete Button */}
-                <button
-                  onClick={(e) => handleDelete(e, doc.id)}
-                  disabled={deleteDocumentMutation.isPending}
-                  className="p-1.5 text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 rounded-lg opacity-0 group-hover:opacity-100 transition-all disabled:opacity-50"
-                  title="Delete document"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </button>
               </div>
             </div>
           );
@@ -267,3 +293,5 @@ export default function DocumentList({
     </div>
   );
 }
+
+export default memo(DocumentList);

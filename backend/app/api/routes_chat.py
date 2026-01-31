@@ -4,10 +4,11 @@ Handles RAG-based question answering with LLM provider selection.
 Supports both regular and streaming responses.
 """
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, Response
 from sqlalchemy.orm import Session
 from typing import List
 import json
+from datetime import datetime
 
 from app.db.session import get_db
 from app.db.models import ChatAudit, ImageDocument
@@ -84,16 +85,19 @@ async def chat(
         
         # Save to audit log
         try:
-            audit = ChatAudit(
-                user_id=request.user_id,
-                provider=request.provider,
-                model=request.model or result["model"]["name"],
-                question=request.question,
-                answer=result["answer"],
-                cited_doc_ids=cited_doc_ids if cited_doc_ids else None
-            )
-            db.add(audit)
-            db.commit()
+            if db is not None:
+                audit = ChatAudit(
+                    user_id=request.user_id,
+                    provider=request.provider,
+                    model=request.model or result["model"]["name"],
+                    question=request.question,
+                    answer=result["answer"],
+                    cited_doc_ids=cited_doc_ids if cited_doc_ids else None
+                )
+                db.add(audit)
+                db.commit()
+            else:
+                logger.warning("Database not available, skipping audit log")
         except Exception as e:
             # Log error but don't fail the request
             logger.error(f"Error saving chat audit: {e}")
@@ -141,22 +145,45 @@ async def chat_stream(
     # Check if multimodal mode (images selected)
     is_multimodal = request.image_ids and len(request.image_ids) > 0
     image_details = []
+    image_data_for_vision = []  # Store actual image data for vision analysis
     
     if is_multimodal:
         logger.info(f"Multimodal chat with {len(request.image_ids)} images")
         # Fetch image details from database for context
         try:
-            images = db.query(ImageDocument).filter(ImageDocument.id.in_(request.image_ids)).all()
-            logger.info(f"Found {len(images)} images in database")
-            for img in images:
-                desc = img.description or img.extracted_text or "No description available"
-                image_details.append({
-                    "id": img.id,
-                    "filename": img.filename,
-                    "description": desc,
-                    "thumbnail_base64": img.thumbnail_base64,
-                    "content_type": img.content_type
-                })
+            if db is not None:
+                images = db.query(ImageDocument).filter(ImageDocument.id.in_(request.image_ids)).all()
+                logger.info(f"Found {len(images)} images in database")
+                for img in images:
+                    desc = img.description or img.extracted_text or "No description available"
+                    image_details.append({
+                        "id": img.id,
+                        "filename": img.filename,
+                        "description": desc,
+                        "thumbnail_base64": img.thumbnail_base64,
+                        "content_type": img.content_type
+                    })
+                    # Store actual image data for vision model analysis
+                    # Prefer full image, but fall back to thumbnail for basic vision analysis
+                if img.image_base64:
+                    image_data_for_vision.append({
+                        "id": img.id,
+                        "filename": img.filename,
+                        "image_base64": img.image_base64,
+                        "content_type": img.content_type
+                    })
+                    logger.info(f"Image {img.filename}: has full image data for vision analysis")
+                elif img.thumbnail_base64:
+                    # Use thumbnail as fallback for vision analysis
+                    image_data_for_vision.append({
+                        "id": img.id,
+                        "filename": img.filename,
+                        "image_base64": img.thumbnail_base64,  # Use thumbnail
+                        "content_type": "image/png"  # Thumbnails are PNG
+                    })
+                    logger.info(f"Image {img.filename}: using thumbnail for vision analysis (lower quality)")
+                else:
+                    logger.info(f"Image {img.filename}: no image data, using description only")
                 logger.info(f"Image {img.filename}: description={desc[:100] if desc else 'None'}...")
         except Exception as e:
             logger.error(f"Error fetching image details: {e}")
@@ -188,43 +215,189 @@ async def chat_stream(
         model_info = {"provider": request_data["provider"], "name": request_data["model"] or "default"}
         
         try:
-            # If images are selected, use image-focused chat
+            # If images are selected, use image-focused chat with vision model
             if is_multimodal and image_details:
                 logger.info(f"Running image-focused chat with {len(image_details)} images")
                 
-                # Build system prompt for image analysis
-                system_prompt = """You are an AI assistant that helps users understand images. 
+                # Check if we have actual image data for vision analysis
+                if image_data_for_vision:
+                    logger.info(f"Using vision model for {len(image_data_for_vision)} images with actual image data")
+                    
+                    # Get document context if doc_ids provided
+                    doc_context = ""
+                    if request_data["doc_ids"]:
+                        try:
+                            from app.rag.retrieval import retrieve_relevant_chunks
+                            # retrieve_relevant_chunks returns (List[Citation], context_str)
+                            citation_objs, doc_context = retrieve_relevant_chunks(
+                                query=request_data["question"],
+                                top_k=request_data["top_k"],
+                                doc_ids=request_data["doc_ids"]
+                            )
+                            if citation_objs:
+                                citations = [c.to_dict() for c in citation_objs]
+                                logger.info(f"Retrieved {len(citation_objs)} document chunks for vision context")
+                        except Exception as e:
+                            logger.error(f"Error retrieving document context: {e}")
+                            import traceback
+                            logger.error(f"Full traceback: {traceback.format_exc()}")
+                    
+                    # Use vision model for real image analysis
+                    from app.rag.vision_models import get_vision_model
+                    import base64
+                    
+                    # Build the prompt with context - include eligibility category
+                    if doc_context:
+                        vision_prompt = f"""You are an AI assistant analyzing images in the context of policy documents.
+
+=== RELEVANT POLICY DOCUMENTS ===
+{doc_context}
+
+=== USER QUESTION ===
+{request_data['question']}
+
+IMPORTANT: Start your response with EXACTLY this format on the first line:
+**Eligibility Score: XX/100 - [CATEGORY]**
+
+Where [CATEGORY] is one of:
+- "Approved" (80-100)
+- "Likely Eligible" (60-79)  
+- "Needs Review" (40-59)
+- "Unlikely" (20-39)
+- "Not Eligible" (0-19)
+
+Then give a BRIEF explanation (3-4 sentences max) of why, citing the key policy criteria met or not met. Be concise. DO NOT repeat the score or category."""
+                    else:
+                        vision_prompt = f"""You are an AI assistant helping analyze images.
+
+=== USER QUESTION ===
+{request_data['question']}
+
+Provide a brief, helpful answer (3-4 sentences max)."""
+                    
+                    # Use the first image for vision analysis (for now, supporting single image)
+                    img_data = image_data_for_vision[0]
+                    image_bytes = base64.b64decode(img_data["image_base64"])
+                    
+                    # Get vision model based on provider
+                    vision_provider = request_data["provider"]
+                    
+                    # For Ollama, check if LLaVA is available, otherwise fallback to OpenAI
+                    if vision_provider == "ollama":
+                        try:
+                            import httpx
+                            ollama_url = "http://localhost:11434"
+                            resp = httpx.get(f"{ollama_url}/api/tags", timeout=3.0)
+                            if resp.status_code == 200:
+                                models = resp.json().get("models", [])
+                                has_llava = any("llava" in m.get("name", "").lower() for m in models)
+                                if has_llava:
+                                    logger.info("Using Ollama LLaVA for vision analysis")
+                                else:
+                                    vision_provider = "openai"
+                                    logger.info("LLaVA not found in Ollama, falling back to OpenAI vision")
+                            else:
+                                vision_provider = "openai"
+                                logger.info("Ollama not responding, falling back to OpenAI vision")
+                        except Exception as e:
+                            vision_provider = "openai"
+                            logger.info(f"Ollama check failed ({e}), falling back to OpenAI vision")
+                    
+                    vision_model = get_vision_model(vision_provider)
+                    
+                    # Analyze image with vision model
+                    logger.info(f"Analyzing image with {vision_provider} vision model...")
+                    analysis = vision_model.analyze_image(image_bytes, vision_prompt, max_tokens=500)
+                    
+                    # Stream the response
+                    model_info = {"provider": vision_provider, "name": f"{vision_provider}-vision"}
+                    
+                    # Send the analysis in chunks to simulate streaming
+                    chunk_size = 20
+                    for i in range(0, len(analysis), chunk_size):
+                        chunk = analysis[i:i + chunk_size]
+                        full_answer += chunk
+                        yield f"data: {json.dumps({'type': 'token', 'data': chunk})}\n\n"
+                    
+                    # Send citations if we have document context
+                    yield f"data: {json.dumps({'type': 'citations', 'data': citations})}\n\n"
+                
+                else:
+                    # No image data for vision - use description-based fallback
+                    logger.info("Using description-based analysis (no image data for vision)")
+                    
+                    # Check if any images lack descriptions - they need to be re-uploaded
+                    images_without_data = [img for img in image_details if not img['description'] or img['description'] == "No description available"]
+                    if images_without_data:
+                        missing_names = [img['filename'] for img in images_without_data]
+                        logger.warning(f"Images without description or image data: {missing_names}")
+                    
+                    # Get document context if doc_ids provided
+                    doc_context = ""
+                    if request_data["doc_ids"]:
+                        try:
+                            from app.rag.retrieval import retrieve_relevant_chunks
+                            # retrieve_relevant_chunks returns (List[Citation], context_str)
+                            citation_objs, doc_context = retrieve_relevant_chunks(
+                                query=request_data["question"],
+                                top_k=request_data["top_k"],
+                                doc_ids=request_data["doc_ids"]
+                            )
+                            if citation_objs:
+                                citations = [c.to_dict() for c in citation_objs]
+                                logger.info(f"Retrieved {len(citation_objs)} document chunks for fallback context")
+                        except Exception as e:
+                            logger.error(f"Error retrieving document context: {e}")
+                            import traceback
+                            logger.error(f"Full traceback: {traceback.format_exc()}")
+                    
+                    # Build system prompt for image analysis
+                    if doc_context:
+                        system_prompt = """You are an AI assistant that helps users understand images in the context of policy documents.
+You have been provided with descriptions of images and relevant policy documents.
+Answer the user's question based on both the image descriptions and the policy documents.
+If the question is about eligibility or compliance, compare the image details against the policy requirements.
+If an image has no description, explain that it was uploaded before vision analysis was enabled and needs to be re-uploaded for proper analysis."""
+                    else:
+                        system_prompt = """You are an AI assistant that helps users understand images. 
 You have been provided with descriptions of images that the user wants to ask about.
 Answer the user's question based on the image descriptions provided.
-Be specific and reference the image details when answering."""
+Be specific and reference the image details when answering.
+If an image has no description, explain that it was uploaded before vision analysis was enabled and needs to be re-uploaded with 'Auto AI Description' enabled for proper analysis."""
 
-                # Build image context
-                image_context_parts = ["=== IMAGE DESCRIPTIONS ==="]
-                for img in image_details:
-                    image_context_parts.append(f"\nImage: {img['filename']}")
-                    image_context_parts.append(f"Description: {img['description']}")
-                image_context = "\n".join(image_context_parts)
-                
-                # Create messages for LLM
-                messages = [
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": f"{image_context}\n\n=== USER QUESTION ===\n{request_data['question']}"}
-                ]
-                
-                # Get streaming LLM and generate response
-                llm = get_streaming_llm(request_data["provider"], request_data["model"])
-                model_info = {"provider": request_data["provider"], "name": request_data["model"] or llm.model if hasattr(llm, 'model') else "default"}
-                
-                for token in llm.stream(messages):
-                    if hasattr(token, 'content'):
-                        token_text = token.content
+                    # Build image context
+                    image_context_parts = ["=== IMAGE DESCRIPTIONS ==="]
+                    for img in image_details:
+                        image_context_parts.append(f"\nImage: {img['filename']}")
+                        image_context_parts.append(f"Description: {img['description']}")
+                    image_context = "\n".join(image_context_parts)
+                    
+                    # Build full context with documents if available
+                    if doc_context:
+                        full_context = f"{image_context}\n\n=== RELEVANT POLICY DOCUMENTS ===\n{doc_context}\n\n=== USER QUESTION ===\n{request_data['question']}"
                     else:
-                        token_text = str(token)
-                    full_answer += token_text
-                    yield f"data: {json.dumps({'type': 'token', 'data': token_text})}\n\n"
-                
-                # Send empty citations (no document sources for image-only queries)
-                yield f"data: {json.dumps({'type': 'citations', 'data': []})}\n\n"
+                        full_context = f"{image_context}\n\n=== USER QUESTION ===\n{request_data['question']}"
+                    
+                    # Create messages for LLM
+                    messages = [
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": full_context}
+                    ]
+                    
+                    # Get streaming LLM and generate response
+                    llm = get_streaming_llm(request_data["provider"], request_data["model"])
+                    model_info = {"provider": request_data["provider"], "name": request_data["model"] or llm.model if hasattr(llm, 'model') else "default"}
+                    
+                    for token in llm.stream(messages):
+                        if hasattr(token, 'content'):
+                            token_text = token.content
+                        else:
+                            token_text = str(token)
+                        full_answer += token_text
+                        yield f"data: {json.dumps({'type': 'token', 'data': token_text})}\n\n"
+                    
+                    # Send citations (from document sources if any)
+                    yield f"data: {json.dumps({'type': 'citations', 'data': citations})}\n\n"
                 
             else:
                 # Normal document RAG flow
@@ -313,6 +486,10 @@ def get_chat_history(
         List of chat history entries ordered by most recent first
     """
     try:
+        if db is None:
+            logger.warning("Database not available, returning empty chat history")
+            return []
+            
         history = db.query(ChatAudit)\
             .filter(ChatAudit.user_id == user_id)\
             .order_by(ChatAudit.created_at.desc())\
@@ -344,6 +521,13 @@ def clear_chat_history(
         Number of entries deleted
     """
     try:
+        if db is None:
+            logger.warning("Database not available, cannot clear chat history")
+            return {
+                "message": "Database not available",
+                "deleted_count": 0
+            }
+            
         deleted_count = db.query(ChatAudit)\
             .filter(ChatAudit.user_id == user_id)\
             .delete()
@@ -361,4 +545,94 @@ def clear_chat_history(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error clearing chat history"
+        )
+
+
+@router.get("/history/{user_id}/export")
+def export_chat_history(
+    user_id: str,
+    format: str = "json",
+    db: Session = Depends(get_db)
+):
+    """
+    Export chat history for a user in specified format.
+    
+    Args:
+        user_id: User identifier
+        format: Export format ('json' or 'markdown')
+    
+    Returns:
+        File download with chat history
+    """
+    try:
+        if db is None:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Database not available"
+            )
+        
+        # Get chat history
+        history = db.query(ChatAudit)\
+            .filter(ChatAudit.user_id == user_id)\
+            .order_by(ChatAudit.created_at.asc())\
+            .all()
+        
+        if not history:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="No chat history found for this user"
+            )
+        
+        # Format content based on requested format
+        if format == "markdown":
+            content = f"# Chat History - {user_id}\n\n"
+            content += f"Exported: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n"
+            content += "---\n\n"
+            
+            for entry in history:
+                timestamp = entry.created_at.strftime('%Y-%m-%d %H:%M:%S')
+                content += f"## {timestamp}\n\n"
+                content += f"**User:** {entry.question}\n\n"
+                content += f"**Assistant:** {entry.answer}\n\n"
+                
+                if entry.context_docs:
+                    content += f"**Sources:** {', '.join(entry.context_docs)}\n\n"
+                
+                content += "---\n\n"
+            
+            media_type = "text/markdown"
+            filename = f"chat_history_{user_id}_{datetime.now().strftime('%Y%m%d')}.md"
+            
+        else:  # json format
+            history_data = []
+            for entry in history:
+                history_data.append({
+                    "timestamp": entry.created_at.isoformat(),
+                    "question": entry.question,
+                    "answer": entry.answer,
+                    "provider": entry.provider,
+                    "model": entry.model,
+                    "context_docs": entry.context_docs,
+                    "context_images": entry.context_images
+                })
+            
+            content = json.dumps(history_data, indent=2)
+            media_type = "application/json"
+            filename = f"chat_history_{user_id}_{datetime.now().strftime('%Y%m%d')}.json"
+        
+        return Response(
+            content=content,
+            media_type=media_type,
+            headers={
+                "Content-Disposition": f"attachment; filename={filename}"
+            }
+        )
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error exporting chat history: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error exporting chat history: {str(e)}"
         )

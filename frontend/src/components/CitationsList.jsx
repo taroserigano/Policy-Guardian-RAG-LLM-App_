@@ -1,7 +1,7 @@
 /**
  * Citations list component showing source documents with visual score indicators.
  */
-import { useState } from "react";
+import { useState, useCallback, memo } from "react";
 import {
   FileText,
   ExternalLink,
@@ -45,17 +45,21 @@ const getRelevanceLabel = (score) => {
   return "Low";
 };
 
-export default function CitationsList({ citations }) {
+function CitationsList({ citations }) {
   const [expandedIndex, setExpandedIndex] = useState(null);
   const [showAll, setShowAll] = useState(false);
+
+  const toggleExpand = useCallback((index) => {
+    setExpandedIndex((prev) => (prev === index ? null : index));
+  }, []);
+
+  const toggleShowAll = useCallback(() => {
+    setShowAll((prev) => !prev);
+  }, []);
 
   if (!citations || citations.length === 0) {
     return null;
   }
-
-  const toggleExpand = (index) => {
-    setExpandedIndex(expandedIndex === index ? null : index);
-  };
 
   // Show only top 3 by default
   const displayedCitations = showAll ? citations : citations.slice(0, 3);
@@ -102,15 +106,19 @@ export default function CitationsList({ citations }) {
                     {citation.filename}
                   </p>
 
+                  {/* Show text preview */}
+                  {citation.text && (
+                    <p className="text-xs text-[var(--text-secondary)] mt-1 line-clamp-2 leading-relaxed">
+                      {citation.text}
+                    </p>
+                  )}
+
                   <div className="flex items-center flex-wrap gap-2 mt-1.5">
                     {citation.page_number && (
                       <span className="text-xs px-2 py-0.5 rounded-md bg-[var(--bg-tertiary)] text-[var(--text-secondary)] border border-[var(--border-subtle)]">
                         Page {citation.page_number}
                       </span>
                     )}
-                    <span className="text-xs px-2 py-0.5 rounded-md bg-[var(--bg-tertiary)] text-[var(--text-secondary)] border border-[var(--border-subtle)]">
-                      Chunk {citation.chunk_index}
-                    </span>
                     <span
                       className={`text-xs px-2 py-0.5 rounded-md ${scoreColors.bg} ${scoreColors.text} border ${scoreColors.border} font-medium`}
                     >
@@ -131,13 +139,13 @@ export default function CitationsList({ citations }) {
                 )}
               </button>
 
-              {/* Expandable text snippet with highlighted keywords */}
+              {/* Expandable full text */}
               {citation.text && expandedIndex === index && (
                 <div className="px-3 pb-3 pt-0 animate-slideUp">
                   <div
                     className={`text-xs text-[var(--text-secondary)] bg-[var(--bg-primary)]/60 p-3 rounded-lg border ${scoreColors.border}`}
                   >
-                    <p className="italic leading-relaxed">"{citation.text}"</p>
+                    <p className="leading-relaxed">{citation.text}</p>
                   </div>
                 </div>
               )}
@@ -149,7 +157,7 @@ export default function CitationsList({ citations }) {
       {/* Show more/less toggle */}
       {hasMore && (
         <button
-          onClick={() => setShowAll(!showAll)}
+          onClick={toggleShowAll}
           className="w-full mt-3 py-2 text-xs text-[var(--text-secondary)] hover:text-violet-400 transition-colors flex items-center justify-center gap-1 font-medium"
         >
           {showAll ? (
@@ -168,3 +176,5 @@ export default function CitationsList({ citations }) {
     </div>
   );
 }
+
+export default memo(CitationsList);

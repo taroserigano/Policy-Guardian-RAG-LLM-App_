@@ -2,16 +2,16 @@
  * Chat message list component displaying conversation history.
  * Modern dark theme with glassmorphism and animations.
  */
-import { useState } from "react";
+import { useState, useCallback, memo } from "react";
 import { User, Bot, Sparkles, Copy, Check } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import CitationsList from "./CitationsList";
 
-export default function MessageList({ messages, isLoading }) {
+function MessageList({ messages, isLoading }) {
   const [copiedIndex, setCopiedIndex] = useState(null);
 
-  const handleCopy = async (text, index) => {
+  const handleCopy = useCallback(async (text, index) => {
     try {
       await navigator.clipboard.writeText(text);
       setCopiedIndex(index);
@@ -19,7 +19,7 @@ export default function MessageList({ messages, isLoading }) {
     } catch (err) {
       console.error("Failed to copy:", err);
     }
-  };
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -171,3 +171,5 @@ export default function MessageList({ messages, isLoading }) {
     </div>
   );
 }
+
+export default memo(MessageList);

@@ -1,387 +1,287 @@
-DATA PRIVACY AND PROTECTION POLICY
+DATA PRIVACY AND PROTECTION POLICY (SAMPLE)
 
 Document Information
 Title: Data Privacy and Protection Policy
-Version: 2.1
-Effective Date: January 1, 2026
-Last Review: December 15, 2025
-Next Review: December 2026
-Owner: Chief Information Security Officer
-Classification: Company Confidential
+Organization: ExampleCo, Inc. (fictional)
+Version: 3.0
+Effective Date: January 29, 2026
+Last Review: January 29, 2026
+Next Review: January 2027
+Owner: Privacy & Security Office
+Classification: Internal
+
+Important Note
+This is a sample internal policy provided for demonstration/training purposes. It is not legal advice and may not reflect your local legal requirements.
 
 TABLE OF CONTENTS
 1. Purpose and Scope
 2. Definitions
-3. Data Protection Principles
+3. Privacy Principles
 4. Roles and Responsibilities
-5. Lawful Basis for Processing
-6. Data Subject Rights
-7. Data Collection and Use
-8. Data Storage and Retention
-9. Data Security
-10. Data Sharing and Transfers
-11. Breach Management
-12. Training and Awareness
-13. Monitoring and Compliance
-14. Policy Review and Updates
+5. Legal Bases and Notices
+6. Individual (Data Subject/Consumer) Rights
+7. Collection, Use, and Sharing
+8. Retention and Deletion
+9. Security Controls
+10. International Transfers
+11. Vendor and Third-Party Management
+12. Breach and Incident Management
+13. Training, Monitoring, and Compliance
+14. Exceptions and Policy Maintenance
 
 1. PURPOSE AND SCOPE
 
 1.1 Purpose
-This policy establishes the framework for protecting personal data collected, processed, stored, and transmitted by the organization in compliance with applicable data protection laws including GDPR, CCPA, and other relevant regulations.
+This policy defines how ExampleCo, Inc. protects personal information collected, used, stored, and shared in the course of business.
 
 1.2 Scope
 This policy applies to:
-- All employees, contractors, consultants, and temporary staff
-- All personal data processed by or on behalf of the organization
-- All systems, applications, and processes that handle personal data
-- All geographical locations where the organization operates
+- Employees, contractors, interns, and temporary staff
+- Personal information processed by or on behalf of ExampleCo
+- All systems, applications, services, and business processes that handle personal information
 
-1.3 Legal Framework
-This policy ensures compliance with:
-- General Data Protection Regulation (GDPR) - EU Regulation 2016/679
-- California Consumer Privacy Act (CCPA) and CPRA
-- Health Insurance Portability and Accountability Act (HIPAA) - where applicable
-- Other applicable national and international data protection laws
+1.3 Applicable Requirements
+ExampleCo aims to comply with applicable data protection and privacy requirements where it operates, including (as relevant):
+- EU/UK GDPR
+- CCPA/CPRA (California)
+- Other state, national, or sector-specific privacy requirements
+
+Where requirements differ by jurisdiction, ExampleCo will follow the applicable local requirements and documented procedures.
 
 2. DEFINITIONS
 
-2.1 Personal Data
-Any information relating to an identified or identifiable natural person including:
-- Direct identifiers: name, ID numbers, email address, phone number
-- Online identifiers: IP addresses, cookies, device IDs
-- Location data: GPS coordinates, postal addresses
-- Biometric data: fingerprints, facial recognition data
-- Financial information: bank account details, credit card numbers
-- Health information: medical records, insurance information
-- Employment data: salary, performance reviews, disciplinary records
+2.1 Personal Information / Personal Data
+Information that identifies, relates to, describes, is capable of being associated with, or could reasonably be linked (directly or indirectly) with an individual.
 
-2.2 Special Categories of Personal Data (Sensitive Data)
-Data requiring enhanced protection including:
-- Racial or ethnic origin
-- Political opinions
-- Religious or philosophical beliefs
-- Trade union membership
-- Genetic data
-- Biometric data for identification purposes
-- Health data
-- Sex life or sexual orientation data
+Examples include: name, email, phone, postal address, account identifiers, device identifiers, IP address, precise location, employment data, and certain cookies/analytics identifiers.
 
-2.3 Data Processing
-Any operation performed on personal data including collection, recording, organization, structuring, storage, adaptation, retrieval, consultation, use, disclosure, transmission, restriction, erasure, or destruction.
+2.2 Sensitive Personal Information
+Personal information that requires heightened protections due to its nature and potential impact if misused.
 
-2.4 Data Controller
-The entity that determines the purposes and means of processing personal data. In most cases, this organization acts as the Data Controller.
+Examples may include: government identifiers, authentication secrets, precise geolocation, biometric identifiers, health information, and data revealing racial/ethnic origin, religious beliefs, union membership, sexual orientation, or similar categories where applicable.
 
-2.5 Data Processor
-Any entity that processes personal data on behalf of the Data Controller, such as cloud service providers, payroll processors, or marketing agencies.
+2.3 Processing
+Any operation on personal information, such as collecting, using, storing, sharing, analyzing, or deleting it.
 
-2.6 Data Subject
-The individual to whom personal data relates.
+2.4 Controller / Business
+The party that determines why and how personal information is processed.
 
-3. DATA PROTECTION PRINCIPLES
+2.5 Processor / Service Provider
+The party that processes personal information on behalf of the controller/business under a contract and documented instructions.
 
-The organization adheres to the following principles when processing personal data:
+3. PRIVACY PRINCIPLES
 
-3.1 Lawfulness, Fairness, and Transparency
-- Process data lawfully, fairly, and in a transparent manner
-- Provide clear information about data processing activities
-- Be open and honest about data use
+ExampleCo follows these privacy principles:
+
+3.1 Lawfulness and Transparency
+- Use personal information only for legitimate, documented purposes
+- Provide clear privacy notices and internal documentation describing use and sharing
 
 3.2 Purpose Limitation
-- Collect data for specified, explicit, and legitimate purposes
-- Do not process data for purposes incompatible with original collection purpose
-- Document the purpose for each data processing activity
+- Collect and use personal information for specific, explicit purposes
+- Do not use personal information for materially different purposes without an appropriate legal basis and updated notices
 
 3.3 Data Minimization
-- Collect only data that is adequate, relevant, and necessary
-- Avoid collecting excessive or unnecessary information
-- Regularly review data collection practices
+- Collect only what is needed for the stated purpose
+- Prefer privacy-preserving defaults and limit access to what is required for the role
 
 3.4 Accuracy
-- Keep personal data accurate and up to date
-- Take reasonable steps to correct or delete inaccurate data
-- Implement processes for data subjects to update their information
+- Keep personal information reasonably accurate and up to date
+- Provide processes for correction where appropriate
 
 3.5 Storage Limitation
-- Retain personal data only as long as necessary for the stated purpose
-- Implement data retention schedules
-- Securely delete or anonymize data when no longer needed
+- Retain personal information only as long as required for business needs and legal obligations
+- Apply documented retention schedules and deletion processes
 
-3.6 Integrity and Confidentiality (Security)
-- Implement appropriate technical and organizational measures
-- Protect against unauthorized access, loss, or damage
-- Ensure ongoing confidentiality, integrity, and availability
+3.6 Security and Confidentiality
+- Implement appropriate administrative, technical, and physical controls
+- Protect confidentiality, integrity, and availability of personal information
 
 3.7 Accountability
-- Demonstrate compliance with data protection principles
-- Maintain documentation of processing activities
-- Implement appropriate policies and procedures
+- Maintain policies, procedures, and evidence of compliance
+- Review and improve the privacy program regularly
 
 4. ROLES AND RESPONSIBILITIES
 
-4.1 Data Protection Officer (DPO)
+4.1 Privacy Lead / Data Protection Officer (as applicable)
 Responsibilities:
-- Monitor compliance with data protection laws and this policy
-- Provide advice on data protection impact assessments
-- Act as contact point for data subjects and supervisory authorities
-- Report directly to senior management
-Contact: dpo@company.com
+- Own the privacy program, privacy notices, and key procedures
+- Advise on privacy impact assessments for higher-risk processing
+- Serve as a point of contact for privacy requests and regulators (as required)
 
-4.2 Senior Management
-- Ensure adequate resources for data protection compliance
-- Approve data protection policies and procedures
-- Oversee data protection program effectiveness
-- Foster a culture of data protection
+Contact (sample): privacy@example.com
 
-4.3 Department Heads
-- Ensure compliance within their departments
-- Identify and report data protection risks
-- Implement privacy by design in new projects
-- Ensure staff receive appropriate training
+4.2 Senior Leadership
+- Ensure resourcing and governance for privacy and security
+- Review material privacy risks and approve risk acceptances where required
 
-4.4 IT Department
-- Implement technical security measures
-- Manage access controls and authentication
-- Monitor systems for security incidents
-- Ensure secure data backup and recovery
+4.3 Department Owners
+- Ensure privacy-by-design in their processes and tools
+- Identify privacy risks and engage the Privacy & Security Office early
 
-4.5 All Employees
-- Comply with this policy and related procedures
-- Protect personal data in their care
-- Report suspected breaches immediately
-- Complete mandatory data protection training
+4.4 IT / Security
+- Implement and operate security controls (access, logging, encryption, backup)
+- Support incident response and breach handling
 
-5. LAWFUL BASIS FOR PROCESSING
+4.5 All Personnel
+- Follow this policy and related procedures
+- Report suspected privacy or security incidents immediately
+- Complete required training
 
-Personal data must be processed based on at least one of the following lawful bases:
+5. LEGAL BASES AND NOTICES
 
-5.1 Consent
-- Freely given, specific, informed, and unambiguous indication of agreement
-- Must be as easy to withdraw as to give
-- Documented and verifiable
-- Not used for employment-related processing due to power imbalance
+5.1 Legal Basis (where required)
+When required by applicable law, ExampleCo documents the legal basis for each processing activity (e.g., consent, contract, legal obligation, legitimate interests).
 
-5.2 Contract
-- Processing is necessary for contract performance or to take steps before entering a contract
-- Common for customer and supplier relationships
+5.2 Consent
+Where consent is used:
+- Use clear opt-in choices and plain language
+- Provide an easy way to withdraw consent
+- Record what was consented to, when, and how
 
-5.3 Legal Obligation
-- Processing is necessary to comply with legal requirements
-- Examples: tax obligations, employment law, health and safety
+5.3 Privacy Notices
+ExampleCo provides privacy notices appropriate to the context (website/app notice, employee notice, vendor/customer notices) describing:
+- What data is collected and why
+- How it is used and shared
+- Retention periods
+- Individual rights and how to exercise them
+- Contact information
 
-5.4 Vital Interests
-- Processing is necessary to protect someone's life
-- Rarely applicable outside healthcare settings
+5.4 Legitimate Interests (where applicable)
+When relying on legitimate interests, ExampleCo documents an assessment balancing business needs against individual rights.
 
-5.5 Public Task
-- Processing is necessary for performing a task in the public interest or official authority
-- Typically applies to public sector organizations
+6. INDIVIDUAL (DATA SUBJECT/CONSUMER) RIGHTS
 
-5.6 Legitimate Interests
-- Processing is necessary for legitimate interests pursued by the organization or third party
-- Must balance against data subject's rights and interests
-- Requires documented Legitimate Interests Assessment (LIA)
+ExampleCo supports requests to the extent required by applicable law. Rights vary by jurisdiction.
 
-6. DATA SUBJECT RIGHTS
+6.1 Access / Know
+Individuals may request access to personal information held about them, subject to legal exceptions.
 
-The organization respects and facilitates the following rights:
+6.2 Correction
+Individuals may request correction of inaccurate personal information.
 
-6.1 Right to Be Informed
-- Provide privacy notices at point of data collection
-- Explain processing purposes, legal basis, retention periods, and rights
-- Make information easily accessible
+6.3 Deletion
+Individuals may request deletion of personal information, subject to legal exceptions (e.g., compliance obligations, security, legal claims).
 
-6.2 Right of Access
-- Provide copies of personal data upon request
-- Respond within 30 days (may extend by 60 days if complex)
-- First copy is free; reasonable fees for additional copies
+6.4 Portability (where applicable)
+For certain data and legal regimes, individuals may request a portable copy in a commonly used, machine-readable format.
 
-6.3 Right to Rectification
-- Correct inaccurate personal data within 30 days
-- Complete incomplete data where relevant
+6.5 Opt-Out of Sale/Sharing and Targeted Advertising (where applicable)
+Where required (e.g., certain U.S. state laws), individuals may opt out of certain disclosures considered a “sale” or “sharing” and of targeted advertising.
 
-6.4 Right to Erasure ("Right to be Forgotten")
-- Delete personal data when:
-  * No longer necessary for original purpose
-  * Consent is withdrawn and no other legal basis exists
-  * Processing is unlawful
-  * Legal obligation requires deletion
-- Exceptions apply (e.g., legal claims, public interest)
+6.6 Automated Decision-Making (where applicable)
+If ExampleCo uses automated decision-making that has legal or similarly significant effects, individuals may have additional rights under applicable law.
 
-6.5 Right to Restrict Processing
-- Suspend processing in certain circumstances:
-  * Accuracy is contested
-  * Processing is unlawful but deletion is not desired
-  * Data is no longer needed but required for legal claims
-  * Legitimate interests assessment is pending
+6.7 Request Process
+- Submit requests to: privacy@example.com
+- ExampleCo may verify identity before fulfilling requests
+- ExampleCo responds within applicable legal timeframes
+- ExampleCo tracks requests for compliance and trend analysis
 
-6.6 Right to Data Portability
-- Provide data in structured, commonly used, machine-readable format
-- Transmit directly to another controller where technically feasible
-- Applies to data processed based on consent or contract
-
-6.7 Right to Object
-- Object to processing based on legitimate interests or public task
-- Object to direct marketing at any time
-- Must stop processing unless compelling legitimate grounds exist
-
-6.8 Rights Related to Automated Decision Making
-- Not be subject to decisions based solely on automated processing that produces legal or similarly significant effects
-- Request human intervention in automated decisions
-- Explain automated decision-making logic
-
-6.9 Rights Request Process
-- Submit requests via email: privacy@company.com or online portal
-- Verify identity before responding to requests
-- Respond within statutory timeframes
-- Document all requests and responses
-
-7. DATA COLLECTION AND USE
+7. COLLECTION, USE, AND SHARING
 
 7.1 Privacy by Design
-- Consider data protection from the outset of new projects
-- Implement technical and organizational measures
-- Minimize data collection by default
-- Conduct Data Protection Impact Assessments (DPIAs) for high-risk processing
+- Evaluate privacy impacts early in projects (design/review)
+- Use data minimization and access controls by default
+- Perform a documented privacy impact assessment for higher-risk processing
 
-7.2 Privacy Notices
-Provide clear information including:
-- Identity of the Data Controller
-- Purpose of processing
-- Legal basis for processing
-- Categories of personal data collected
-- Recipients or categories of recipients
-- International transfers (if applicable)
-- Retention periods
-- Data subject rights
-- Right to lodge a complaint with supervisory authority
+7.2 Typical Categories of Collection
+ExampleCo may process personal information relating to:
+- Customers/users (account and support data)
+- Website visitors (analytics/security logs)
+- Employees/contractors (HR and payroll administration)
+- Vendors/partners (business contact details)
 
-7.3 Consent Management
-When relying on consent:
-- Use clear, plain language
-- Separate consent from other terms and conditions
-- Use opt-in mechanisms (pre-ticked boxes are prohibited)
-- Keep records of consent (who, when, what was told, how consent was given)
-- Make withdrawal as easy as giving consent
+7.3 Sharing
+ExampleCo may share personal information with:
+- Service providers/processors (e.g., hosting, support tools, analytics, payroll)
+- Professional advisors (e.g., legal, audit) under confidentiality
+- Authorities where required by law
 
-7.4 Children's Data
-- Enhanced protection for children under 16 (or lower age per local law)
-- Obtain parental consent for online services
-- Use age-appropriate language in privacy notices
-- Minimize data collection from children
+Sharing is subject to contract, access controls, and the minimum necessary principle.
 
-8. DATA STORAGE AND RETENTION
+7.4 Children
+ExampleCo services are not intended for children. If ExampleCo learns it collected personal information from a child contrary to applicable law, it will take appropriate steps to delete it.
 
-8.1 Data Retention Schedule
-Personal data is retained as follows:
+8. RETENTION AND DELETION
 
-Employee Records:
-- Active employment: Duration of employment + 7 years
-- Recruitment records (unsuccessful): 6 months
-- Payroll records: 7 years after end of financial year
-- Performance records: 5 years after employment end
+8.1 Retention Schedule (Examples)
+ExampleCo maintains a documented retention schedule. Common examples include:
 
-Customer Records:
-- Active customers: Duration of relationship + 7 years
-- Inactive customers: 3 years after last interaction
-- Marketing data: Until consent withdrawn or 5 years of inactivity
+Employee Records
+- Employment records: employment term + up to 7 years (jurisdiction-dependent)
+- Recruiting records (unsuccessful candidates): up to 1 year (or per local requirements)
+- Payroll/tax records: per legal retention requirements
 
-Financial Records:
-- Transaction records: 7 years
-- Tax records: 7 years after tax year end
-- Audit records: 7 years
+Customer/Support Records
+- Account records: as long as the account is active
+- Support tickets: typically 2–5 years
+
+Security Logs
+- Authentication and security logs: typically 90 days to 1 year depending on system and risk
 
 8.2 Secure Deletion
-- Use secure deletion methods (e.g., DoD 5220.22-M standard)
-- Destroy physical media containing sensitive data
-- Obtain certificates of destruction from third-party providers
-- Document destruction activities
+ExampleCo securely deletes or de-identifies personal information when it is no longer required.
 
-8.3 Data Storage Locations
-- Primary data storage: [Specify locations/cloud providers]
-- Backup locations: [Specify backup sites]
-- Encryption required for data at rest and in transit
-- Access restricted based on need-to-know principle
+Secure disposal follows industry best practices (e.g., NIST SP 800-88 for media sanitization), and may include cryptographic erasure, secure overwriting where appropriate, and certified destruction for physical media.
 
-9. DATA SECURITY
+8.3 Storage Locations
+ExampleCo documents system data locations and environments (production/dev), and restricts access based on role and business need.
+
+9. SECURITY CONTROLS
 
 9.1 Access Controls
-- Implement role-based access control (RBAC)
-- Use strong authentication (multi-factor where possible)
-- Review access rights quarterly
-- Revoke access immediately upon termination
+- Role-based access control (RBAC) and least privilege
+- Multi-factor authentication (MFA) for administrative access and remote access
+- Timely access revocation upon role change or termination
 
 9.2 Encryption
-- Encrypt personal data in transit (minimum TLS 1.2)
-- Encrypt personal data at rest (AES-256 or equivalent)
-- Encrypt mobile devices and removable media
-- Manage encryption keys securely
+- Encrypt data in transit using modern TLS
+- Encrypt sensitive data at rest where feasible
+- Manage keys using approved key management processes
 
-9.3 Network Security
-- Use firewalls and intrusion detection systems
-- Segment networks to isolate sensitive data
-- Regular security patching and updates
-- Monitor for suspicious activity
+9.3 Logging and Monitoring
+- Security-relevant events are logged (authentication, admin actions, critical data access)
+- Monitoring and alerting is implemented for suspicious activity
 
-9.4 Physical Security
-- Restrict physical access to data centers and file storage
-- Use visitor logs and escort procedures
-- Implement clean desk policy
-- Secure disposal of paper records (shredding)
+9.4 Physical and Administrative Controls
+- Controlled access to offices and equipment
+- Confidential materials handled and disposed of securely
+- Background checks and confidentiality obligations where appropriate
 
-9.5 Data Backup
-- Regular automated backups
-- Store backups securely with encryption
-- Test restoration procedures regularly
-- Maintain backup logs
+9.5 Backups
+- Backups are performed and tested according to system criticality
+- Backup access is restricted and monitored
 
-10. DATA SHARING AND TRANSFERS
+10. INTERNATIONAL TRANSFERS
 
-10.1 Third-Party Processors
-- Conduct due diligence before engagement
-- Require contractual data processing agreements
-- Specify processing instructions
-- Audit processor compliance regularly
-- Maintain register of processors
+Where personal information is transferred internationally, ExampleCo uses appropriate safeguards required by applicable law (e.g., SCCs, adequacy decisions) and documents the transfer mechanism.
 
-10.2 International Data Transfers
-When transferring personal data outside the EU/EEA:
-- Ensure adequate level of protection
-- Use appropriate safeguards:
-  * Standard Contractual Clauses (SCCs)
-  * Binding Corporate Rules (BCRs)
-  * Adequacy decisions
-- Conduct Transfer Impact Assessments
-- Document transfer mechanisms
+11. VENDOR AND THIRD-PARTY MANAGEMENT
 
-10.3 Data Sharing Log
-Maintain records of data sharing including:
-- Recipients
-- Categories of data shared
-- Purpose of sharing
-- Legal basis
-- Date and duration
+ExampleCo evaluates vendors that process personal information for security and privacy posture appropriate to the risk, and requires written terms covering:
+- Processing instructions
+- Confidentiality
+- Security controls
+- Subprocessors
+- Breach notification
+- Return/deletion at end of services
 
-11. BREACH MANAGEMENT
+12. BREACH AND INCIDENT MANAGEMENT
 
 11.1 Breach Definition
 A personal data breach is a security incident leading to accidental or unlawful destruction, loss, alteration, unauthorized disclosure, or access to personal data.
 
-11.2 Breach Response Procedure
-Upon discovering a breach:
-1. Contain: Take immediate action to contain the breach
-2. Assess: Evaluate the severity and potential impact
-3. Notify: Report to DPO within 2 hours
-4. Document: Record details in breach register
-5. Investigate: Determine root cause
-6. Remediate: Implement corrective measures
-7. Review: Conduct lessons learned session
+12.2 Response Procedure
+Upon discovering a suspected privacy/security incident:
+1. Contain and preserve evidence
+2. Assess impact (systems, data types, individuals affected)
+3. Escalate to Security/Privacy on-call
+4. Document actions and decisions
+5. Remediate and prevent recurrence
 
-11.3 Notification Requirements
-Notify supervisory authority within 72 hours if breach is likely to result in risk to individuals' rights and freedoms.
-
-Notify affected data subjects without undue delay if breach is likely to result in high risk.
+12.3 Notification
+ExampleCo notifies regulators and/or affected individuals when required by applicable law and contractual obligations. Timelines depend on jurisdiction and facts of the incident.
 
 11.4 Breach Documentation
 Document all breaches including:
@@ -390,7 +290,7 @@ Document all breaches including:
 - Remedial action taken
 - Whether notification was required
 
-12. TRAINING AND AWARENESS
+13. TRAINING, MONITORING, AND COMPLIANCE
 
 12.1 Mandatory Training
 - All employees: Annual data protection training
@@ -411,68 +311,25 @@ Document all breaches including:
 - Incident simulations and tabletop exercises
 - Privacy champions program
 
-13. MONITORING AND COMPLIANCE
+13.1 Training
+- Privacy and security training is required for all personnel
+- Specialized training is provided for higher-risk roles (e.g., IT admins, customer support, HR)
 
-13.1 Audits and Assessments
-- Annual privacy program audit
-- Periodic DPIA reviews
-- Third-party processor audits
-- Penetration testing
-- Vulnerability assessments
-
-13.2 Key Performance Indicators
-- Number of data subject requests
-- Request response times
-- Training completion rates
-- Number of data breaches
-- Audit findings and remediation status
+13.2 Monitoring
+ExampleCo monitors systems for security and compliance purposes consistent with applicable law and internal policy.
 
 13.3 Documentation
-Maintain records of:
-- Processing activities (Article 30 records)
-- DPIAs
-- Consent records
-- Data sharing agreements
-- Breach incidents
-- Training records
-- Audit reports
+ExampleCo maintains appropriate documentation (e.g., privacy notices, vendor agreements, risk assessments, incident records) to demonstrate compliance.
 
-14. POLICY REVIEW AND UPDATES
+14. EXCEPTIONS AND POLICY MAINTENANCE
 
-This policy is reviewed annually or when:
-- Significant changes to processing activities occur
-- New laws or regulations are enacted
-- Material data breach occurs
-- Significant technological changes happen
-- Organizational restructuring occurs
+Any exception to this policy requires documented approval by the Privacy & Security Office and may require compensating controls.
 
-CONTACT INFORMATION
+CONTACT
+Privacy Requests (sample): privacy@example.com
+Security Incidents (sample): security@example.com
 
-Data Protection Officer
-Email: dpo@company.com
-Phone: +1-555-0100
-
-Privacy Team
-Email: privacy@company.com
-
-To Exercise Your Rights:
-Submit requests via privacy portal: https://privacy.company.com
-Or email: privacy.requests@company.com
-
-Supervisory Authority
-[Name of relevant data protection authority]
-Website: [Authority website]
-
-APPROVAL AND VERSION CONTROL
-
-Approved by: Chief Information Security Officer
-Date: December 15, 2025
-Version: 2.1
-Document ID: SEC-POL-003-2026
-Next Review Date: December 2026
-
+Document ID: PRIV-POL-001
+Approved by: Privacy & Security Office
 Change History:
-- v2.1 (Jan 2026): Updated for CPRA compliance
-- v2.0 (Jan 2024): Major revision for GDPR
-- v1.5 (Jan 2022): Added breach procedures
-- v1.0 (Jan 2020): Initial version
+- v3.0 (Jan 2026): Rewrite for clarity, realism, and cross-jurisdiction use

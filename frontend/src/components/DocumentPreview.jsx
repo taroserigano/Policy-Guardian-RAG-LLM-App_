@@ -3,7 +3,7 @@
  * Displays full document content in a modal overlay with search and navigation.
  * Uses React Portal to render at document body level.
  */
-import { useEffect, useState, useMemo, useRef } from "react";
+import { useEffect, useState, useMemo, useRef, useCallback, memo } from "react";
 import { createPortal } from "react-dom";
 import {
   X,
@@ -25,7 +25,7 @@ import {
 } from "lucide-react";
 import { useDocumentContent } from "../hooks/useApi";
 
-export default function DocumentPreview({ docId, filename, isOpen, onClose }) {
+function DocumentPreview({ docId, filename, isOpen, onClose }) {
   const [copied, setCopied] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchMatches, setSearchMatches] = useState([]);
@@ -135,15 +135,15 @@ export default function DocumentPreview({ docId, filename, isOpen, onClose }) {
     };
   }, [isOpen, onClose, isFullscreen]);
 
-  const handleCopy = async () => {
+  const handleCopy = useCallback(async () => {
     if (docContent?.content) {
       await navigator.clipboard.writeText(docContent.content);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
-  };
+  }, [docContent?.content]);
 
-  const handleDownload = () => {
+  const handleDownload = useCallback(() => {
     if (docContent?.content) {
       const blob = new Blob([docContent.content], { type: "text/plain" });
       const url = URL.createObjectURL(blob);
@@ -153,21 +153,29 @@ export default function DocumentPreview({ docId, filename, isOpen, onClose }) {
       a.click();
       URL.revokeObjectURL(url);
     }
-  };
+  }, [docContent?.content, filename]);
 
-  const goToNextMatch = () => {
+  const goToNextMatch = useCallback(() => {
     if (searchMatches.length > 0) {
       setCurrentMatchIndex((prev) => (prev + 1) % searchMatches.length);
     }
-  };
+  }, [searchMatches.length]);
 
-  const goToPrevMatch = () => {
+  const goToPrevMatch = useCallback(() => {
     if (searchMatches.length > 0) {
       setCurrentMatchIndex(
         (prev) => (prev - 1 + searchMatches.length) % searchMatches.length,
       );
     }
-  };
+  }, [searchMatches.length]);
+
+  const toggleLineNumbers = useCallback(() => {
+    setShowLineNumbers(!showLineNumbers);
+  }, [showLineNumbers]);
+
+  const toggleFullscreen = useCallback(() => {
+    setIsFullscreen(!isFullscreen);
+  }, [isFullscreen]);
 
   // Calculate line count
   const lineCount = docContent?.content?.split("\n").length || 0;
@@ -190,7 +198,7 @@ export default function DocumentPreview({ docId, filename, isOpen, onClose }) {
         className={`relative z-[10000] bg-[var(--bg-secondary)] rounded-xl sm:rounded-2xl border border-[var(--border-subtle)] shadow-[0_0_60px_rgba(139,92,246,0.15)] flex flex-col animate-scaleIn transition-all duration-300 ${
           isFullscreen
             ? "w-full h-full max-w-none max-h-none m-0 rounded-none"
-            : "w-full max-w-5xl max-h-[95vh] sm:max-h-[90vh]"
+            : "w-full max-w-5xl max-h-[75vh] sm:max-h-[70vh]"
         }`}
       >
         {/* Header */}
@@ -449,3 +457,5 @@ export default function DocumentPreview({ docId, filename, isOpen, onClose }) {
     document.body,
   );
 }
+
+export default memo(DocumentPreview);

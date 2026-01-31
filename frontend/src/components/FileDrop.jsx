@@ -2,7 +2,7 @@
  * File drop zone component for document upload.
  * Supports single and multiple file uploads.
  */
-import { useState, useCallback } from "react";
+import { useState, useCallback, memo } from "react";
 import {
   Upload,
   File,
@@ -12,10 +12,10 @@ import {
   Files,
 } from "lucide-react";
 
-export default function FileDrop({
+function FileDrop({
   onFileSelect,
   onFilesSelect,
-  accept = ".pdf,.txt",
+  accept = ".pdf,.txt,.docx,.doc",
   maxSizeMB = 15,
   multiple = false,
 }) {
@@ -56,7 +56,7 @@ export default function FileDrop({
       setSelectedFile(file);
       onFileSelect?.(file);
     },
-    [onFileSelect],
+    [onFileSelect, maxSizeMB, accept],
   );
 
   const handleFiles = useCallback(
@@ -83,7 +83,7 @@ export default function FileDrop({
         onFilesSelect?.(validFiles);
       }
     },
-    [onFilesSelect],
+    [onFilesSelect, maxSizeMB, accept],
   );
 
   const handleDrag = (e) => {
@@ -238,11 +238,11 @@ export default function FileDrop({
                 </p>
                 <p className="text-xs text-[var(--text-secondary)]">
                   <span className="hidden sm:inline">
-                    Supported: PDF, TXT (max {maxSizeMB}MB)
+                    Supported: PDF, Word, TXT (max {maxSizeMB}MB)
                     {multiple ? " • Multiple files allowed" : ""}
                   </span>
                   <span className="sm:hidden">
-                    PDF, TXT (max {maxSizeMB}MB)
+                    PDF, Word, TXT (max {maxSizeMB}MB)
                   </span>
                 </p>
               </>
@@ -267,3 +267,5 @@ export default function FileDrop({
     </div>
   );
 }
+
+export default memo(FileDrop);

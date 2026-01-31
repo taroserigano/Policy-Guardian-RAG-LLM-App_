@@ -5,11 +5,12 @@
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { Loader2 } from "lucide-react";
+import { memo } from "react";
 
 // Set to true to bypass authentication during development
 const DEV_BYPASS_AUTH = true;
 
-export default function ProtectedRoute({ children }) {
+function ProtectedRoute({ children }) {
   const { isAuthenticated, loading } = useAuth();
   const location = useLocation();
 
@@ -37,3 +38,5 @@ export default function ProtectedRoute({ children }) {
 
   return children;
 }
+
+export default memo(ProtectedRoute);

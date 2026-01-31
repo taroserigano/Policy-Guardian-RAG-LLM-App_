@@ -2,10 +2,10 @@
  * ImageGallery component for displaying uploaded images.
  * Supports selection for multimodal chat and deletion.
  */
-import { useState } from "react";
+import { useState, useCallback, memo } from "react";
 import { deleteImage } from "../api/client";
 
-export default function ImageGallery({
+function ImageGallery({
   images = [],
   selectedImages = [],
   onSelectionChange,
@@ -17,31 +17,37 @@ export default function ImageGallery({
   const [deletingId, setDeletingId] = useState(null);
   const [previewImage, setPreviewImage] = useState(null);
 
-  const handleSelect = (imageId) => {
-    if (!selectable) return;
+  const handleSelect = useCallback(
+    (imageId) => {
+      if (!selectable) return;
 
-    const newSelection = selectedImages.includes(imageId)
-      ? selectedImages.filter((id) => id !== imageId)
-      : [...selectedImages, imageId];
+      const newSelection = selectedImages.includes(imageId)
+        ? selectedImages.filter((id) => id !== imageId)
+        : [...selectedImages, imageId];
 
-    onSelectionChange?.(newSelection);
-  };
+      onSelectionChange?.(newSelection);
+    },
+    [selectedImages, selectable, onSelectionChange],
+  );
 
-  const handleDelete = async (imageId, e) => {
-    e.stopPropagation();
+  const handleDelete = useCallback(
+    async (imageId, e) => {
+      e.stopPropagation();
 
-    if (!confirm("Delete this image?")) return;
+      if (!confirm("Delete this image?")) return;
 
-    try {
-      setDeletingId(imageId);
-      await deleteImage(imageId);
-      onDelete?.(imageId);
-    } catch (error) {
-      console.error("Delete failed:", error);
-    } finally {
-      setDeletingId(null);
-    }
-  };
+      try {
+        setDeletingId(imageId);
+        await deleteImage(imageId);
+        onDelete?.(imageId);
+      } catch (error) {
+        console.error("Delete failed:", error);
+      } finally {
+        setDeletingId(null);
+      }
+    },
+    [onDelete],
+  );
 
   if (loading) {
     return (
@@ -299,3 +305,5 @@ export default function ImageGallery({
     </>
   );
 }
+
+export default memo(ImageGallery);

@@ -2,11 +2,11 @@
  * Connection status indicator component.
  * Shows when the API is unreachable and provides retry functionality.
  */
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, memo } from "react";
 import { WifiOff, RefreshCw, CheckCircle, AlertCircle } from "lucide-react";
 import { API_BASE_URL } from "../api/client";
 
-export default function ConnectionStatus() {
+function ConnectionStatus() {
   const [isOnline, setIsOnline] = useState(true);
   const [isApiReachable, setIsApiReachable] = useState(true);
   const [isChecking, setIsChecking] = useState(false);
@@ -129,3 +129,5 @@ export default function ConnectionStatus() {
     </div>
   );
 }
+
+export default memo(ConnectionStatus);

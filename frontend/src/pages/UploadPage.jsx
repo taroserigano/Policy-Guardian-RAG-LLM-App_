@@ -1,7 +1,7 @@
 /**
  * Upload page for document and image management (multimodal).
  */
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Upload,
@@ -50,6 +50,9 @@ export default function UploadPage() {
   const [selectedDocs, setSelectedDocs] = useState(new Set());
   const [previewDoc, setPreviewDoc] = useState(null);
 
+  // Category state
+  const [selectedCategory, setSelectedCategory] = useState("");
+
   // Batch upload progress state
   const [batchProgress, setBatchProgress] = useState([]);
   const [isBatchUploading, setIsBatchUploading] = useState(false);
@@ -87,15 +90,51 @@ export default function UploadPage() {
     }
   };
 
-  const handleFileSelect = (file) => {
+  const handleFileSelect = useCallback((file) => {
     setSelectedFile(file);
     setUploadStatus(null);
-  };
 
-  const handleFilesSelect = (files) => {
+    // Auto-suggest category based on filename
+    const filename = file.name.toLowerCase();
+    if (filename.includes("policy") || filename.includes("policies")) {
+      setSelectedCategory("policy");
+    } else if (
+      filename.includes("contract") ||
+      filename.includes("agreement") ||
+      filename.includes("nda")
+    ) {
+      setSelectedCategory("contract");
+    } else if (
+      filename.includes("legal") ||
+      filename.includes("compliance") ||
+      filename.includes("regulation")
+    ) {
+      setSelectedCategory("legal");
+    } else if (
+      filename.includes("procedure") ||
+      filename.includes("sop") ||
+      filename.includes("workflow")
+    ) {
+      setSelectedCategory("procedure");
+    } else if (
+      filename.includes("guide") ||
+      filename.includes("manual") ||
+      filename.includes("handbook")
+    ) {
+      setSelectedCategory("guide");
+    } else if (filename.includes("form") || filename.includes("application")) {
+      setSelectedCategory("form");
+    } else if (filename.includes("report") || filename.includes("analysis")) {
+      setSelectedCategory("report");
+    } else {
+      setSelectedCategory("general");
+    }
+  }, []);
+
+  const handleFilesSelect = useCallback((files) => {
     setSelectedFiles(files);
     setUploadStatus(null);
-  };
+  }, []);
 
   const handleUpload = async () => {
     if (!selectedFile) return;
@@ -106,7 +145,10 @@ export default function UploadPage() {
         message: "Uploading and indexing...",
       });
 
-      const result = await uploadMutation.mutateAsync(selectedFile);
+      const result = await uploadMutation.mutateAsync({
+        file: selectedFile,
+        category: selectedCategory || null,
+      });
 
       // Refetch documents list to show newly uploaded document
       refetchDocuments();
@@ -119,6 +161,7 @@ export default function UploadPage() {
       // Reset after 2 seconds
       setTimeout(() => {
         setSelectedFile(null);
+        setSelectedCategory("");
         setUploadStatus(null);
       }, 2000);
     } catch (error) {
@@ -219,30 +262,35 @@ export default function UploadPage() {
     }
   };
 
-  // Filter documents by category
-  const filteredDocuments = documents?.filter((doc) => {
-    if (!categoryFilter) return true;
-    if (categoryFilter === "uncategorized") return !doc.category;
-    return doc.category === categoryFilter;
-  });
+  // Filter documents by category - memoized
+  const filteredDocuments = useMemo(() => {
+    if (!documents) return [];
+    if (!categoryFilter) return documents;
+    if (categoryFilter === "uncategorized")
+      return documents.filter((doc) => !doc.category);
+    return documents.filter((doc) => doc.category === categoryFilter);
+  }, [documents, categoryFilter]);
 
-  const toggleDocSelection = (docId) => {
-    const newSelected = new Set(selectedDocs);
-    if (newSelected.has(docId)) {
-      newSelected.delete(docId);
-    } else {
-      newSelected.add(docId);
-    }
-    setSelectedDocs(newSelected);
-  };
+  const toggleDocSelection = useCallback(
+    (docId) => {
+      const newSelected = new Set(selectedDocs);
+      if (newSelected.has(docId)) {
+        newSelected.delete(docId);
+      } else {
+        newSelected.add(docId);
+      }
+      setSelectedDocs(newSelected);
+    },
+    [selectedDocs],
+  );
 
-  const handleSelectAll = () => {
+  const handleSelectAll = useCallback(() => {
     if (selectedDocs.size === documents?.length) {
       setSelectedDocs(new Set());
     } else {
       setSelectedDocs(new Set(documents?.map((d) => d.id) || []));
     }
-  };
+  }, [selectedDocs.size, documents]);
 
   const handleDeleteSelected = () => {
     if (selectedDocs.size === 0) return;
@@ -314,9 +362,6 @@ export default function UploadPage() {
         >
           <ImageIcon className="h-4 w-4 mr-1.5 sm:mr-2" />
           Images
-          <span className="ml-1.5 sm:ml-2 px-1.5 py-0.5 text-xs bg-fuchsia-500/20 rounded">
-            New
-          </span>
         </button>
       </div>
 
@@ -395,7 +440,31 @@ export default function UploadPage() {
               <>
                 <FileDrop onFileSelect={handleFileSelect} />
                 {selectedFile && !uploadStatus && (
-                  <div className="mt-6">
+                  <div className="mt-6 space-y-4">
+                    {/* Category Selector */}
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
+                        Category
+                        <span className="text-[var(--text-muted)] font-normal ml-2 text-xs">
+                          (Auto-detected, you can change)
+                        </span>
+                      </label>
+                      <select
+                        value={selectedCategory}
+                        onChange={(e) => setSelectedCategory(e.target.value)}
+                        className="w-full px-4 py-2.5 bg-[var(--bg-secondary)] border border-[var(--border-subtle)] rounded-lg text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all"
+                      >
+                        <option value="general">General</option>
+                        <option value="policy">Policy</option>
+                        <option value="contract">Contract</option>
+                        <option value="legal">Legal</option>
+                        <option value="procedure">Procedure</option>
+                        <option value="guide">Guide</option>
+                        <option value="form">Form</option>
+                        <option value="report">Report</option>
+                      </select>
+                    </div>
+
                     <button
                       onClick={handleUpload}
                       disabled={uploadMutation.isPending}
@@ -547,11 +616,13 @@ export default function UploadPage() {
                 </button>
                 {[
                   "policy",
+                  "contract",
                   "legal",
-                  "hr",
-                  "compliance",
-                  "technical",
-                  "other",
+                  "procedure",
+                  "guide",
+                  "form",
+                  "report",
+                  "general",
                 ].map((cat) => (
                   <button
                     key={cat}

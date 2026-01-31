@@ -274,8 +274,8 @@ A medical certificate is required for absences exceeding 3 consecutive days.
 Sick leave does not carry over to the next year.
 
 3. PARENTAL LEAVE
-Maternity leave: 16 weeks (8 weeks at 100% pay, 8 weeks unpaid)
-Paternity leave: 2 weeks at 100% pay
+Primary caregiver leave: up to 16 weeks (pay structure varies by policy and law)
+Secondary caregiver leave: up to 2 weeks paid
             """
         },
         {

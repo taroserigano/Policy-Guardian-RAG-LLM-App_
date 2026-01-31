@@ -1,24 +1,27 @@
-NON-DISCLOSURE AGREEMENT (NDA)
+NON-DISCLOSURE AGREEMENT (NDA) (SAMPLE)
 
-This Non-Disclosure Agreement ("Agreement") is entered into as of _____________ ("Effective Date")
+Important Note
+This is a sample agreement provided for demonstration/training purposes. It is not legal advice.
+
+This Non-Disclosure Agreement ("Agreement") is entered into as of January 29, 2026 ("Effective Date")
 
 BETWEEN:
 
-[Company Name]
-Address: _______________________________
+ExampleCo, Inc. (fictional)
+Address: 100 Example Street, Example City, EX 00000
 ("Disclosing Party")
 
 AND:
 
-[Recipient Name]
-Address: _______________________________
+Acme Consulting LLC (fictional)
+Address: 200 Market Street, Example City, EX 00000
 ("Receiving Party")
 
 RECITALS
 
 WHEREAS, the Disclosing Party possesses certain confidential and proprietary information related to its business operations, technology, products, services, and strategies;
 
-WHEREAS, the Receiving Party desires to receive such Confidential Information for the purpose of [Purpose: evaluating a potential business relationship/employment/consulting engagement];
+WHEREAS, the Receiving Party desires to receive such Confidential Information for the purpose of evaluating a potential consulting engagement;
 
 WHEREAS, the parties wish to protect the confidentiality of such information;
 
@@ -36,7 +39,7 @@ NOW, THEREFORE, in consideration of the mutual covenants and agreements containe
 
 (d) Personal Information: employee records, compensation data, and personally identifiable information;
 
-(e) Any other information designated as "Confidential," "Proprietary," or with similar marking.
+(e) Any other non-public information that is designated as "Confidential" or that a reasonable person would understand to be confidential given the nature of the information and the circumstances of disclosure.
 
 1.2 Confidential Information does not include information that:
 
@@ -61,7 +64,7 @@ The Receiving Party agrees to:
 
 (c) Not disclose Confidential Information to any third party without prior written consent of the Disclosing Party;
 
-(d) Limit access to Confidential Information to employees, contractors, or advisors who have a legitimate need to know and who are bound by confidentiality obligations at least as restrictive as this Agreement.
+(d) Limit access to Confidential Information to personnel and advisors who have a legitimate need to know and who are bound by confidentiality obligations at least as restrictive as this Agreement.
 
 2.2 Use Restrictions
 The Receiving Party shall use Confidential Information solely for the Purpose stated above and shall not use it for any other purpose without prior written consent.
@@ -84,7 +87,7 @@ Upon written request by the Disclosing Party, or upon termination of discussions
 
 (b) Delete or destroy all electronic copies of Confidential Information;
 
-(c) Provide written certification of compliance with the above within 10 business days.
+(c) Provide written certification of compliance with the above within 10 business days, upon request.
 
 3.3 Exceptions
 The Receiving Party may retain one copy of Confidential Information in its legal files solely for the purpose of determining its obligations under this Agreement, provided such copy remains subject to this Agreement's confidentiality obligations.
@@ -123,10 +126,10 @@ The Receiving Party agrees to indemnify and hold harmless the Disclosing Party f
 9. GENERAL PROVISIONS
 
 9.1 Governing Law
-This Agreement shall be governed by and construed in accordance with the laws of [State/Country], without regard to its conflict of law provisions.
+This Agreement shall be governed by and construed in accordance with the laws of the State of California, without regard to its conflict of law provisions.
 
 9.2 Jurisdiction
-The parties consent to the exclusive jurisdiction of the courts located in [County/City, State] for any disputes arising under this Agreement.
+The parties consent to the exclusive jurisdiction of the courts located in San Francisco County, California for any disputes arising under this Agreement.
 
 9.3 Entire Agreement
 This Agreement constitutes the entire agreement between the parties regarding the subject matter herein and supersedes all prior agreements, understandings, and communications.
@@ -154,14 +157,14 @@ All notices under this Agreement shall be in writing and delivered by:
 (d) Email with confirmation of receipt
 
 Notices to Disclosing Party:
-Address: _______________________________
-Email: _________________________________
-Attention: _____________________________
+Address: 100 Example Street, Example City, EX 00000
+Email: legal@example.com
+Attention: Legal Department
 
 Notices to Receiving Party:
-Address: _______________________________
-Email: _________________________________
-Attention: _____________________________
+Address: 200 Market Street, Example City, EX 00000
+Email: legal@acme-consulting.example
+Attention: Legal Department
 
 9.10 Independent Contractors
 The parties are independent contractors. This Agreement does not create any partnership, joint venture, employment, or agency relationship.
@@ -178,18 +181,18 @@ IN WITNESS WHEREOF, the parties have executed this Agreement as of the Effective
 
 DISCLOSING PARTY:
 
-By: _________________________________
-Name: _______________________________
-Title: ______________________________
-Date: _______________________________
+By: Jordan Example
+Name: Jordan Example
+Title: VP, Business Operations
+Date: January 29, 2026
 
 
 RECEIVING PARTY:
 
-By: _________________________________
-Name: _______________________________
-Title: ______________________________
-Date: _______________________________
+By: Riley Sample
+Name: Riley Sample
+Title: Managing Partner
+Date: January 29, 2026
 
 
 SCHEDULE A - PURPOSE
@@ -204,5 +207,5 @@ The Confidential Information will be used for the following specific purpose(s):
 - Vendor/supplier evaluation]
 
 Document ID: LEGAL-NDA-STANDARD-2026
-Version: 3.1
+Version: 3.2
 Classification: Legal Document - Confidential

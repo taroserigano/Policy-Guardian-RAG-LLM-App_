@@ -79,6 +79,9 @@ class ImageDocument(Base):
     # Thumbnail as base64 (for quick preview)
     thumbnail_base64 = Column(Text, nullable=True)
     
+    # Full image as base64 (for vision model analysis at chat time)
+    image_base64 = Column(Text, nullable=True)
+    
     # Associated document ID (if image is from a PDF)
     source_document_id = Column(String, nullable=True, index=True)
     

@@ -18,11 +18,11 @@ describe("FileDrop Component", () => {
     expect(fileInput).toBeInTheDocument();
   });
 
-  it("accepts PDF and TXT files by default", () => {
+  it("accepts PDF, Word, and TXT files by default", () => {
     render(<FileDrop />);
 
     const fileInput = document.querySelector('input[type="file"]');
-    expect(fileInput).toHaveAttribute("accept", ".pdf,.txt");
+    expect(fileInput).toHaveAttribute("accept", ".pdf,.txt,.docx,.doc");
   });
 
   it("displays selected file name after selection", async () => {

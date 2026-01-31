@@ -1,7 +1,7 @@
 /**
  * Model picker component for selecting LLM provider.
  */
-import { useState } from "react";
+import { useCallback, useMemo, memo } from "react";
 import { Cpu, Cloud, Zap } from "lucide-react";
 
 const PROVIDERS = [
@@ -9,7 +9,7 @@ const PROVIDERS = [
     id: "ollama",
     name: "Ollama",
     icon: Cpu,
-    description: "Local LLM",
+    description: "FINE TUNED - Ollama llama3.1:8b ",
     color: "blue",
     gradient: "from-blue-500 to-cyan-500",
   },
@@ -31,20 +31,23 @@ const PROVIDERS = [
   },
 ];
 
-export default function ModelPicker({
+function ModelPicker({
   selectedProvider,
   selectedModel,
   onProviderChange,
   onModelChange,
 }) {
-  const handleModelChange = (e) => {
-    const value = e.target.value;
-    if (onModelChange) {
-      onModelChange(value);
-    }
-  };
+  const handleModelChange = useCallback(
+    (e) => {
+      const value = e.target.value;
+      if (onModelChange) {
+        onModelChange(value);
+      }
+    },
+    [onModelChange],
+  );
 
-  const getPlaceholder = () => {
+  const placeholder = useMemo(() => {
     switch (selectedProvider) {
       case "ollama":
         return "Default: policy-compliance-llm (fine-tuned)";
@@ -55,20 +58,19 @@ export default function ModelPicker({
       default:
         return "Leave empty for default";
     }
-  };
+  }, [selectedProvider]);
 
-  const getModelHint = () => {
+  const modelHint = useMemo(() => {
     if (selectedProvider === "ollama") {
       return (
         <div className="mt-2 text-xs text-[var(--text-secondary)]">
-          💡 <strong>policy-compliance-llm</strong> is fine-tuned on company policies for best accuracy.
-          <br />
-          Other models: llama3.1:8b, gemma2:9b, etc.
+          💡 Fine-tuned on Ollama <strong>llama3.1:8b</strong> for best accuracy
+          and performance
         </div>
       );
     }
     return null;
-  };
+  }, [selectedProvider]);
 
   return (
     <div>
@@ -128,7 +130,9 @@ export default function ModelPicker({
       </div>
 
       {/* Model hint for Ollama */}
-      {getModelHint()}
+      {modelHint}
     </div>
   );
 }
+
+export default memo(ModelPicker);

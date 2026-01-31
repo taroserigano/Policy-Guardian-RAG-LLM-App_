@@ -3,7 +3,7 @@ Compliance checking API routes.
 Provides endpoints for multimodal compliance assessment combining 
 document analysis with image analysis.
 """
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
 from fastapi.responses import StreamingResponse, JSONResponse
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, Field
@@ -19,6 +19,8 @@ from app.rag.compliance_checker import (
     ComplianceReport,
     ComplianceStatus
 )
+
+from app.rag.image_processing import validate_image_file
 
 router = APIRouter(prefix="/api/compliance", tags=["compliance"])
 logger = get_logger(__name__)
@@ -85,6 +87,17 @@ class ComplianceHistoryResponse(BaseModel):
     overall_status: str
     query: str
     finding_count: int
+
+
+class BaggageDamageEligibilityResponse(BaseModel):
+    """Response schema for baggage damage refund eligibility."""
+    decision: str = Field(..., description="eligible|not_eligible|needs_review")
+    confidence: float = Field(..., ge=0.0, le=1.0)
+    damage_assessment: Dict[str, Any]
+    policy_application: Dict[str, Any]
+    rationale: str
+    next_steps: List[str]
+    needs_more_info: List[str]
 
 
 # ============================================================================
@@ -155,6 +168,90 @@ async def check_compliance(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Compliance check failed: {str(e)}"
+        )
+
+
+# Maximum file size for baggage damage photos (10 MB)
+MAX_BAGGAGE_IMAGE_SIZE = 10 * 1024 * 1024
+
+@router.post("/baggage/damage-refund/check", response_model=BaggageDamageEligibilityResponse)
+async def check_baggage_damage_refund_eligibility(
+    file: UploadFile = File(..., description="Photo of damaged suitcase (max 10MB)"),
+    reported_within_hours: Optional[int] = Form(None, description="Hours since baggage pickup/delivery"),
+    vision_provider: str = Form("openai", description="Vision model provider: openai|anthropic|ollama"),
+    vision_model: Optional[str] = Form(None, description="Specific vision model to use"),
+    policy_filename: Optional[str] = Form(None, description="Custom policy file name (default: airline_checked_baggage_damage_refund_policy_v1.txt)"),
+):
+    """\
+    Determine whether a damaged checked hard-shell suitcase appears eligible for
+    repair/replacement/reimbursement under the baggage damage policy.
+
+    This endpoint is intended for the compliance page image-upload flow.
+    
+    **Process:**
+    1. Validates uploaded image
+    2. Loads baggage damage policy from sample_docs
+    3. Uses vision model to analyze damage
+    4. Returns structured eligibility decision
+    """
+    logger.info(f"Baggage damage eligibility check: {file.filename}, provider={vision_provider}")
+    
+    try:
+        content = await file.read()
+        
+        # Check file size
+        if len(content) > MAX_BAGGAGE_IMAGE_SIZE:
+            raise HTTPException(
+                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                detail=f"Image too large. Maximum size: {MAX_BAGGAGE_IMAGE_SIZE // (1024*1024)}MB"
+            )
+
+        # Validate image before sending to a vision model
+        is_valid, error_msg = validate_image_file(file.filename, content)
+        if not is_valid:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=error_msg,
+            )
+        
+        # Validate reported hours if provided
+        if reported_within_hours is not None and reported_within_hours < 0:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="reported_within_hours must be a non-negative integer"
+            )
+
+        result = compliance_checker.check_baggage_damage_refund_eligibility(
+            image_bytes=content,
+            filename=file.filename,
+            reported_within_hours=reported_within_hours,
+            vision_provider=vision_provider,
+            vision_model=vision_model,
+            policy_filename=policy_filename,
+        )
+
+        # Ensure response contains expected keys even if model output was odd
+        if not isinstance(result, dict) or "decision" not in result:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Eligibility check returned an unexpected response.",
+            )
+        
+        logger.info(f"Baggage eligibility decision: {result.get('decision')} (confidence: {result.get('confidence', 0.0)})")
+        return result
+
+    except HTTPException:
+        raise
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
+    except Exception as e:
+        logger.error(f"Baggage damage eligibility check failed: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Baggage damage eligibility check failed: {str(e)}",
         )
 
 

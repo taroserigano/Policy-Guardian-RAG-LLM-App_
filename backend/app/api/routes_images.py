@@ -136,9 +136,11 @@ async def upload_image(
         content_hash = compute_image_hash(content)
         
         # Check for duplicate
-        existing = db.query(ImageDocument).filter(
-            ImageDocument.content_hash == content_hash
-        ).first()
+        existing = None
+        if db is not None:
+            existing = db.query(ImageDocument).filter(
+                ImageDocument.content_hash == content_hash
+            ).first()
         
         if existing:
             logger.info(f"Duplicate image detected: {existing.id}")
@@ -184,12 +186,21 @@ async def upload_image(
         thumbnail.save(thumb_buffer, format='PNG')
         thumbnail_b64 = base64.b64encode(thumb_buffer.getvalue()).decode('utf-8')
         
+        # Store full image as base64 for vision model analysis at chat time
+        full_image_b64 = base64.b64encode(content).decode('utf-8')
+        
         # Note: Skipping Pinecone storage due to dimension mismatch
         # CLIP embeddings are 512 dimensions, but Pinecone index is 3072 dimensions (text-embedding-3-large)
         # Embeddings are stored in PostgreSQL instead and searched locally
         logger.info(f"Storing image embedding in PostgreSQL (dimension mismatch with Pinecone)")
         
         # Save metadata and embedding to PostgreSQL
+        if db is None:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Database not available, cannot save image"
+            )
+            
         db_image = ImageDocument(
             id=image_id,
             filename=file.filename,
@@ -200,6 +211,7 @@ async def upload_image(
             content_hash=content_hash,
             description=description,
             thumbnail_base64=thumbnail_b64,
+            image_base64=full_image_b64,  # Store full image for vision analysis
             clip_embedding=clip_embedding  # Store embedding locally
         )
         
@@ -248,6 +260,10 @@ async def list_images(
     Returns:
         List of image metadata
     """
+    if db is None:
+        logger.warning("Database not available, returning empty image list")
+        return []
+        
     images = db.query(ImageDocument).order_by(
         ImageDocument.created_at.desc()
     ).offset(skip).limit(limit).all()
@@ -295,6 +311,12 @@ async def delete_image(
         Success message
     """
     # Check if exists
+    if db is None:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Database not available"
+        )
+        
     image = db.query(ImageDocument).filter(ImageDocument.id == image_id).first()
     
     if not image:
@@ -355,6 +377,10 @@ async def search_images(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Either query or image_base64 must be provided"
             )
+        
+        if db is None:
+            logger.warning("Database not available, returning empty search results")
+            return {"results": [], "count": 0}
         
         # Get all images with embeddings from PostgreSQL
         all_images = db.query(ImageDocument).filter(

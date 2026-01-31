@@ -2,9 +2,9 @@
 Document management API routes.
 Handles file upload and document listing.
 """
-from fastapi import APIRouter, UploadFile, File, Depends, HTTPException, status
+from fastapi import APIRouter, UploadFile, File, Depends, HTTPException, status, Form
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 import os
 import tempfile
 from pathlib import Path
@@ -47,13 +47,61 @@ def sanitize_filename(filename: str) -> str:
     return filename
 
 
+def auto_detect_category(filename: str, content_preview: str = "") -> str:
+    """
+    Auto-detect document category from filename and content.
+    
+    Args:
+        filename: Document filename
+        content_preview: First few lines of document content
+    
+    Returns:
+        Detected category: policy, contract, procedure, guide, or general
+    """
+    filename_lower = filename.lower()
+    content_lower = content_preview.lower()
+    combined = filename_lower + " " + content_lower
+    
+    # Policy indicators
+    if any(word in combined for word in ['policy', 'policies', 'governance', 'compliance', 'regulation']):
+        return "policy"
+    
+    # Contract indicators
+    if any(word in combined for word in ['contract', 'agreement', 'nda', 'non-disclosure', 'terms of service', 'tos']):
+        return "contract"
+    
+    # Legal/Compliance indicators
+    if any(word in combined for word in ['legal', 'compliance', 'regulation', 'regulatory', 'legislation', 'statute', 'law']):
+        return "legal"
+    
+    # Procedure indicators  
+    if any(word in combined for word in ['procedure', 'process', 'workflow', 'guideline', 'sop', 'standard operating']):
+        return "procedure"
+    
+    # Guide/Manual indicators
+    if any(word in combined for word in ['guide', 'manual', 'handbook', 'documentation', 'tutorial', 'instructions']):
+        return "guide"
+    
+    # Form indicators
+    if any(word in combined for word in ['form', 'application', 'request', 'template']):
+        return "form"
+    
+    # Report indicators
+    if any(word in combined for word in ['report', 'analysis', 'summary', 'findings']):
+        return "report"
+    
+    # Default
+    return "general"
+
+
 @router.post("/upload", response_model=UploadResponse, status_code=status.HTTP_201_CREATED)
 async def upload_document(
     file: UploadFile = File(...),
+    category: Optional[str] = None,
     db: Session = Depends(get_db)
 ):
     """
-    Upload and index a document (PDF or TXT).
+    Upload and index a document (PDF, TXT, or DOCX).
     
     Process:
     1. Validate file type and size
@@ -62,6 +110,11 @@ async def upload_document(
     4. Generate embeddings
     5. Store vectors in Pinecone
     6. Save metadata in PostgreSQL
+    
+    Args:
+        file: The file to upload
+        category: Optional category (policy, contract, procedure, guide, form, report, general)
+                 If not provided, will be auto-detected from filename/content
     
     Returns:
         Document ID and filename
@@ -93,8 +146,13 @@ async def upload_document(
                 detail=f"File too large. Maximum size: {settings.max_file_size_mb}MB"
             )
         
-        # Determine content type
-        content_type = "application/pdf" if file_ext == ".pdf" else "text/plain"
+        # Determine content type based on extension
+        if file_ext == ".pdf":
+            content_type = "application/pdf"
+        elif file_ext in [".docx", ".doc"]:
+            content_type = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        else:
+            content_type = "text/plain"
         
         # Generate document ID
         doc_id = str(uuid.uuid4())
@@ -114,13 +172,22 @@ async def upload_document(
                 content_type=content_type
             )
             
+            # Auto-detect category if not provided
+            if not category:
+                detected_category = auto_detect_category(safe_filename, result["preview_text"])
+                logger.info(f"Auto-detected category: {detected_category} for {safe_filename}")
+            else:
+                detected_category = category
+                logger.info(f"Using provided category: {category} for {safe_filename}")
+            
             # Save metadata to PostgreSQL (if available)
             if db is not None:
                 db_document = Document(
                     id=doc_id,
                     filename=safe_filename,
                     content_type=content_type,
-                    preview_text=result["preview_text"]
+                    preview_text=result["preview_text"],
+                    category=detected_category
                 )
                 db.add(db_document)
                 db.commit()
@@ -190,6 +257,12 @@ def get_document(doc_id: str, db: Session = Depends(get_db)):
         Document metadata
     """
     try:
+        if db is None:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Database not available"
+            )
+            
         document = db.query(Document).filter(Document.id == doc_id).first()
         if not document:
             raise HTTPException(
@@ -222,6 +295,12 @@ def get_document_content(doc_id: str, db: Session = Depends(get_db)):
     from app.rag.retrieval import get_document_chunks
     
     try:
+        if db is None:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Database not available"
+            )
+            
         # Check if document exists in database
         document = db.query(Document).filter(Document.id == doc_id).first()
         if not document:
@@ -267,6 +346,12 @@ def delete_document(doc_id: str, db: Session = Depends(get_db)):
         Success message
     """
     try:
+        if db is None:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Database not available"
+            )
+            
         # Check if document exists
         document = db.query(Document).filter(Document.id == doc_id).first()
         if not document:
@@ -329,6 +414,12 @@ def update_document(
         Updated document metadata
     """
     try:
+        if db is None:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Database not available"
+            )
+            
         document = db.query(Document).filter(Document.id == doc_id).first()
         if not document:
             raise HTTPException(
@@ -381,6 +472,10 @@ def list_categories(db: Session = Depends(get_db)):
     """
     try:
         from sqlalchemy import func
+        
+        if db is None:
+            logger.warning("Database not available, returning empty category list")
+            return []
         
         # Get count of documents per category
         category_counts = db.query(
@@ -435,6 +530,12 @@ def bulk_delete_documents(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="No document IDs provided"
+        )
+    
+    if db is None:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Database not available"
         )
     
     deleted = []

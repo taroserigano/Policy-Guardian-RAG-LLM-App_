@@ -2,25 +2,29 @@
  * Document category editor component.
  * Allows selecting category and adding tags to documents.
  */
-import { useState } from "react";
+import { useState, useCallback, memo } from "react";
 import { Tag, X, Check, Folder, Plus } from "lucide-react";
 
 const CATEGORIES = [
   { id: "policy", name: "Policy", color: "violet" },
+  { id: "contract", name: "Contract", color: "purple" },
   { id: "legal", name: "Legal", color: "blue" },
-  { id: "hr", name: "HR", color: "emerald" },
-  { id: "compliance", name: "Compliance", color: "amber" },
-  { id: "technical", name: "Technical", color: "cyan" },
-  { id: "other", name: "Other", color: "gray" },
+  { id: "procedure", name: "Procedure", color: "green" },
+  { id: "guide", name: "Guide", color: "cyan" },
+  { id: "form", name: "Form", color: "yellow" },
+  { id: "report", name: "Report", color: "pink" },
+  { id: "general", name: "General", color: "gray" },
 ];
 
 const CATEGORY_COLORS = {
   policy: "bg-violet-500/20 text-violet-300 border-violet-500/40",
+  contract: "bg-purple-500/20 text-purple-300 border-purple-500/40",
   legal: "bg-blue-500/20 text-blue-300 border-blue-500/40",
-  hr: "bg-emerald-500/20 text-emerald-300 border-emerald-500/40",
-  compliance: "bg-amber-500/20 text-amber-300 border-amber-500/40",
-  technical: "bg-cyan-500/20 text-cyan-300 border-cyan-500/40",
-  other: "bg-gray-500/20 text-gray-300 border-gray-500/40",
+  procedure: "bg-green-500/20 text-green-300 border-green-500/40",
+  guide: "bg-cyan-500/20 text-cyan-300 border-cyan-500/40",
+  form: "bg-yellow-500/20 text-yellow-300 border-yellow-500/40",
+  report: "bg-pink-500/20 text-pink-300 border-pink-500/40",
+  general: "bg-gray-500/20 text-gray-300 border-gray-500/40",
 };
 
 export function CategoryBadge({ category, size = "sm" }) {
@@ -67,7 +71,7 @@ export function TagBadge({ tag, onRemove, size = "sm" }) {
   );
 }
 
-export default function DocumentCategoryEditor({
+function DocumentCategoryEditor({
   category,
   tags = [],
   onCategoryChange,
@@ -77,27 +81,33 @@ export default function DocumentCategoryEditor({
   const [newTag, setNewTag] = useState("");
   const [isAddingTag, setIsAddingTag] = useState(false);
 
-  const handleAddTag = () => {
+  const handleAddTag = useCallback(() => {
     if (newTag.trim() && !tags.includes(newTag.trim())) {
       onTagsChange?.([...tags, newTag.trim()]);
       setNewTag("");
       setIsAddingTag(false);
     }
-  };
+  }, [newTag, tags, onTagsChange]);
 
-  const handleRemoveTag = (tagToRemove) => {
-    onTagsChange?.(tags.filter((t) => t !== tagToRemove));
-  };
+  const handleRemoveTag = useCallback(
+    (tagToRemove) => {
+      onTagsChange?.(tags.filter((t) => t !== tagToRemove));
+    },
+    [tags, onTagsChange],
+  );
 
-  const handleKeyDown = (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      handleAddTag();
-    } else if (e.key === "Escape") {
-      setIsAddingTag(false);
-      setNewTag("");
-    }
-  };
+  const handleKeyDown = useCallback(
+    (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        handleAddTag();
+      } else if (e.key === "Escape") {
+        setIsAddingTag(false);
+        setNewTag("");
+      }
+    },
+    [handleAddTag],
+  );
 
   if (compact) {
     return (
@@ -240,3 +250,5 @@ export default function DocumentCategoryEditor({
     </div>
   );
 }
+
+export default memo(DocumentCategoryEditor);

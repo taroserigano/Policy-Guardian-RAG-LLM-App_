@@ -2,28 +2,34 @@
  * Chat input box component for sending messages.
  * Modern dark theme with gradient effects.
  */
-import { useState } from "react";
+import { useState, useCallback, memo } from "react";
 import { Send, Sparkles } from "lucide-react";
 
-export default function ChatBox({ onSendMessage, disabled = false }) {
+function ChatBox({ onSendMessage, disabled = false }) {
   const [message, setMessage] = useState("");
   const [isFocused, setIsFocused] = useState(false);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
-    if (message.trim() && !disabled) {
-      onSendMessage(message.trim());
-      setMessage("");
-    }
-  };
-
-  const handleKeyDown = (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
+  const handleSubmit = useCallback(
+    (e) => {
       e.preventDefault();
-      handleSubmit(e);
-    }
-  };
+
+      if (message.trim() && !disabled) {
+        onSendMessage(message.trim());
+        setMessage("");
+      }
+    },
+    [message, disabled, onSendMessage],
+  );
+
+  const handleKeyDown = useCallback(
+    (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        handleSubmit(e);
+      }
+    },
+    [handleSubmit],
+  );
 
   return (
     <form onSubmit={handleSubmit} className="relative">
@@ -77,3 +83,4 @@ export default function ChatBox({ onSendMessage, disabled = false }) {
     </form>
   );
 }
+export default memo(ChatBox);

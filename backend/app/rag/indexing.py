@@ -1,6 +1,6 @@
 """
 Document indexing pipeline: extract text, chunk, embed, and store in Pinecone.
-Handles PDF and TXT files.
+Handles PDF, TXT, and Word (.docx) files.
 """
 from typing import List, Dict, Any, BinaryIO
 import io
@@ -15,11 +15,56 @@ from app.core.config import get_settings
 from app.core.logging import get_logger
 from app.rag.embeddings import get_default_embeddings
 
+# Optional: python-docx for Word document support
+try:
+    from docx import Document as DocxDocument
+    DOCX_AVAILABLE = True
+except ImportError:
+    DOCX_AVAILABLE = False
+
 settings = get_settings()
 logger = get_logger(__name__)
 
 # Initialize Pinecone client
 pc = Pinecone(api_key=settings.pinecone_api_key)
+
+# Pinecone metadata limits
+MAX_METADATA_SIZE = 40000  # 40KB limit for metadata text
+
+
+def sanitize_text_for_pinecone(text: str) -> str:
+    """
+    Sanitize text for Pinecone storage by:
+    - Removing null bytes and other problematic characters
+    - Ensuring valid UTF-8 encoding
+    - Truncating to fit metadata size limits
+    
+    Args:
+        text: Raw text to sanitize
+    
+    Returns:
+        Sanitized text safe for Pinecone metadata
+    """
+    if not text:
+        return ""
+    
+    # Remove null bytes and other control characters (except newlines and tabs)
+    sanitized = ""
+    for char in text:
+        if char in ('\n', '\r', '\t') or (ord(char) >= 32 and ord(char) != 127):
+            sanitized += char
+    
+    # Ensure valid UTF-8 (replace invalid sequences)
+    sanitized = sanitized.encode('utf-8', errors='replace').decode('utf-8')
+    
+    # Truncate if too long for metadata (leave some room for other fields)
+    if len(sanitized.encode('utf-8')) > MAX_METADATA_SIZE:
+        # Truncate to fit
+        while len(sanitized.encode('utf-8')) > MAX_METADATA_SIZE:
+            sanitized = sanitized[:-100]
+        sanitized += "... [truncated]"
+    
+    return sanitized.strip()
 
 
 def ensure_index_exists() -> None:
@@ -72,7 +117,9 @@ def extract_text_from_pdf(file_path: str) -> tuple[str, List[Dict[str, Any]]]:
             
             for i, page in enumerate(pdf_reader.pages):
                 page_num = i + 1
-                page_text = page.extract_text()
+                page_text = page.extract_text() or ""
+                # Sanitize extracted text
+                page_text = sanitize_text_for_pinecone(page_text)
                 full_text += page_text + "\n\n"
                 pages_metadata.append({
                     "page_number": page_num,
@@ -102,6 +149,52 @@ def extract_text_from_txt(file_path: str) -> str:
     
     except Exception as e:
         logger.error(f"Error extracting text from TXT: {e}")
+        raise
+
+
+def extract_text_from_docx(file_path: str) -> str:
+    """
+    Extract text from Word document (.docx).
+    
+    Args:
+        file_path: Path to Word document
+    
+    Returns:
+        Text content extracted from all paragraphs and tables
+    """
+    if not DOCX_AVAILABLE:
+        raise ImportError(
+            "python-docx is required for Word document support. "
+            "Install it with: pip install python-docx"
+        )
+    
+    try:
+        doc = DocxDocument(file_path)
+        
+        # Extract text from paragraphs
+        paragraphs = []
+        for para in doc.paragraphs:
+            text = para.text.strip()
+            if text:
+                paragraphs.append(text)
+        
+        # Extract text from tables
+        for table in doc.tables:
+            for row in table.rows:
+                row_text = []
+                for cell in row.cells:
+                    cell_text = cell.text.strip()
+                    if cell_text:
+                        row_text.append(cell_text)
+                if row_text:
+                    paragraphs.append(" | ".join(row_text))
+        
+        full_text = "\n\n".join(paragraphs)
+        logger.info(f"Extracted {len(paragraphs)} paragraphs/rows from Word document")
+        return full_text
+    
+    except Exception as e:
+        logger.error(f"Error extracting text from Word document: {e}")
         raise
 
 
@@ -138,23 +231,38 @@ def index_document(
         doc_id: Unique document ID (UUID)
         filename: Original filename
         file_path: Path to file on disk
-        content_type: MIME type (application/pdf or text/plain)
+        content_type: MIME type (application/pdf, text/plain, or application/vnd.openxmlformats-officedocument.wordprocessingml.document)
     
     Returns:
         Dictionary with preview_text and chunk_count
     """
     logger.info(f"Starting indexing for document: {filename}")
     
-    # Step 1: Extract text
+    # Step 1: Extract text based on content type
+    page_mapping = None
+    
     if content_type == "application/pdf":
         full_text, pages_metadata = extract_text_from_pdf(file_path)
         page_mapping = {i: meta["page_number"] for i, meta in enumerate(pages_metadata)}
+    elif content_type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+        full_text = extract_text_from_docx(file_path)
     else:
+        # Default to plain text
         full_text = extract_text_from_txt(file_path)
-        page_mapping = None
+    
+    # Sanitize full text
+    full_text = sanitize_text_for_pinecone(full_text)
+    
+    if not full_text.strip():
+        logger.warning(f"No text extracted from document: {filename}")
+        raise ValueError(f"No readable text content found in {filename}")
     
     # Step 2: Chunk text
     chunks = chunk_text(full_text)
+    
+    if not chunks:
+        logger.warning(f"No chunks created from document: {filename}")
+        raise ValueError(f"Could not create text chunks from {filename}")
     
     # Step 3: Generate embeddings
     logger.info(f"Generating embeddings for {len(chunks)} chunks...")
@@ -165,13 +273,16 @@ def index_document(
     for i, (chunk, embedding) in enumerate(zip(chunks, embeddings)):
         vector_id = f"{doc_id}:{i}"
         
-        # Build metadata
+        # Sanitize chunk text for metadata storage
+        sanitized_chunk = sanitize_text_for_pinecone(chunk)
+        
+        # Build metadata (ensure all values are safe for Pinecone)
         metadata = {
-            "doc_id": doc_id,
-            "filename": filename,
-            "source_type": content_type,
-            "chunk_index": i,
-            "text": chunk  # Store text in metadata for retrieval
+            "doc_id": str(doc_id),
+            "filename": sanitize_text_for_pinecone(filename)[:500],  # Limit filename length
+            "source_type": str(content_type),
+            "chunk_index": int(i),
+            "text": sanitized_chunk  # Store sanitized text in metadata for retrieval
         }
         
         # Add page number for PDFs
@@ -182,7 +293,7 @@ def index_document(
                 max(1, int((i / len(chunks)) * len(page_mapping)) + 1),
                 len(page_mapping)
             )
-            metadata["page_number"] = estimated_page
+            metadata["page_number"] = int(estimated_page)
         
         vectors.append({
             "id": vector_id,

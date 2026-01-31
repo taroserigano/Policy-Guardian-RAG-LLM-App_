@@ -2,7 +2,7 @@
  * ImageUpload component for multimodal RAG.
  * Supports drag & drop and file selection for images.
  */
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, memo } from "react";
 import { uploadImage } from "../api/client";
 
 const ACCEPTED_FORMATS = [
@@ -14,7 +14,7 @@ const ACCEPTED_FORMATS = [
 ];
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
-export default function ImageUpload({ onUploadSuccess, onUploadError }) {
+function ImageUpload({ onUploadSuccess, onUploadError }) {
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -318,3 +318,5 @@ export default function ImageUpload({ onUploadSuccess, onUploadError }) {
     </div>
   );
 }
+
+export default memo(ImageUpload);
