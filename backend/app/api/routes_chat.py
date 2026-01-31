@@ -144,49 +144,6 @@ async def chat_stream(
     
     # Check if multimodal mode (images selected)
     is_multimodal = request.image_ids and len(request.image_ids) > 0
-    image_details = []
-    image_data_for_vision = []  # Store actual image data for vision analysis
-    
-    if is_multimodal:
-        logger.info(f"Multimodal chat with {len(request.image_ids)} images")
-        # Fetch image details from database for context
-        try:
-            if db is not None:
-                images = db.query(ImageDocument).filter(ImageDocument.id.in_(request.image_ids)).all()
-                logger.info(f"Found {len(images)} images in database")
-                for img in images:
-                    desc = img.description or img.extracted_text or "No description available"
-                    image_details.append({
-                        "id": img.id,
-                        "filename": img.filename,
-                        "description": desc,
-                        "thumbnail_base64": img.thumbnail_base64,
-                        "content_type": img.content_type
-                    })
-                    # Store actual image data for vision model analysis
-                    # Prefer full image, but fall back to thumbnail for basic vision analysis
-                if img.image_base64:
-                    image_data_for_vision.append({
-                        "id": img.id,
-                        "filename": img.filename,
-                        "image_base64": img.image_base64,
-                        "content_type": img.content_type
-                    })
-                    logger.info(f"Image {img.filename}: has full image data for vision analysis")
-                elif img.thumbnail_base64:
-                    # Use thumbnail as fallback for vision analysis
-                    image_data_for_vision.append({
-                        "id": img.id,
-                        "filename": img.filename,
-                        "image_base64": img.thumbnail_base64,  # Use thumbnail
-                        "content_type": "image/png"  # Thumbnails are PNG
-                    })
-                    logger.info(f"Image {img.filename}: using thumbnail for vision analysis (lower quality)")
-                else:
-                    logger.info(f"Image {img.filename}: no image data, using description only")
-                logger.info(f"Image {img.filename}: description={desc[:100] if desc else 'None'}...")
-        except Exception as e:
-            logger.error(f"Error fetching image details: {e}")
     
     # Extract RAG options
     rag_options = None
@@ -206,17 +163,65 @@ async def chat_stream(
         "question": request.question,
         "image_ids": request.image_ids if is_multimodal else None,
         "doc_ids": request.doc_ids,
-        "top_k": request.top_k or 5
+        "top_k": request.top_k or 5,
+        "is_multimodal": is_multimodal
     }
     
     def generate():
         full_answer = ""
         citations = []
         model_info = {"provider": request_data["provider"], "name": request_data["model"] or "default"}
+        image_details = []
+        image_data_for_vision = []
         
         try:
+            # LAZY LOAD: Load image data only when streaming starts
+            if request_data["is_multimodal"] and request_data["image_ids"]:
+                logger.info(f"Loading {len(request_data['image_ids'])} images for multimodal chat")
+                try:
+                    from app.db.session import SessionLocal, DB_AVAILABLE
+                    if DB_AVAILABLE and SessionLocal:
+                        img_db = SessionLocal()
+                        try:
+                            images = img_db.query(ImageDocument).filter(
+                                ImageDocument.id.in_(request_data["image_ids"])
+                            ).all()
+                            logger.info(f"Found {len(images)} images in database")
+                            
+                            for img in images:
+                                desc = img.description or img.extracted_text or "No description available"
+                                image_details.append({
+                                    "id": img.id,
+                                    "filename": img.filename,
+                                    "description": desc,
+                                    "thumbnail_base64": img.thumbnail_base64,
+                                    "content_type": img.content_type
+                                })
+                                
+                                # Store actual image data for vision model analysis
+                                if img.image_base64:
+                                    image_data_for_vision.append({
+                                        "id": img.id,
+                                        "filename": img.filename,
+                                        "image_base64": img.image_base64,
+                                        "content_type": img.content_type
+                                    })
+                                    logger.debug(f"Image {img.filename}: using full image data")
+                                elif img.thumbnail_base64:
+                                    image_data_for_vision.append({
+                                        "id": img.id,
+                                        "filename": img.filename,
+                                        "image_base64": img.thumbnail_base64,
+                                        "content_type": "image/png"
+                                    })
+                                    logger.debug(f"Image {img.filename}: using thumbnail")
+                        finally:
+                            img_db.close()
+                except Exception as e:
+                    logger.error(f"Error loading image data: {e}")
+            
             # If images are selected, use image-focused chat with vision model
-            if is_multimodal and image_details:
+            if request_data["is_multimodal"] and image_details:
                 logger.info(f"Running image-focused chat with {len(image_details)} images")
                 
                 # Check if we have actual image data for vision analysis
@@ -422,7 +427,7 @@ If an image has no description, explain that it was uploaded before vision analy
                         return
             
             # Send images info if multimodal
-            if is_multimodal and image_details:
+            if request_data["is_multimodal"] and image_details:
                 yield f"data: {json.dumps({'type': 'images', 'data': image_details})}\n\n"
             
             # Send completion signal
@@ -457,6 +462,17 @@ If an image has no description, explain that it was uploaded before vision analy
         except Exception as e:
             logger.error(f"Error in streaming: {e}")
             yield f"data: {json.dumps({'type': 'error', 'data': str(e)})}\n\n"
+        finally:
+            # MEMORY CLEANUP: Clear large data structures
+            if 'full_answer' in locals():
+                full_answer = ""
+            if 'citations' in locals():
+                citations.clear()
+            if 'image_details' in locals():
+                image_details.clear()
+            if 'image_data_for_vision' in locals():
+                image_data_for_vision.clear()
+            logger.debug("Streaming generator cleanup completed")
     
     return StreamingResponse(
         generate(),
