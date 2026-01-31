@@ -355,28 +355,44 @@ Provide a brief, helpful answer (3-4 sentences max)."""
                     
                     # Build system prompt for image analysis
                     if doc_context:
-                        system_prompt = """You are an AI assistant that helps users understand images in the context of policy documents.
-You have been provided with descriptions of images and relevant policy documents.
-Answer the user's question based on both the image descriptions and the policy documents.
-If the question is about eligibility or compliance, compare the image details against the policy requirements.
-If an image has no description, explain that it was uploaded before vision analysis was enabled and needs to be re-uploaded for proper analysis."""
+                        system_prompt = """You are an AI assistant that analyzes images against policy requirements.
+
+CRITICAL INSTRUCTIONS:
+- You have DETAILED descriptions of the images that include clothing, appearance, and visual details
+- You MUST use these image descriptions to make compliance assessments
+- Compare the SPECIFIC details from the image descriptions against the policy requirements
+- DO NOT say "the clothing is not described" - the descriptions contain detailed information about attire
+- Be specific about what you see in the descriptions (colors, styles, items) and how they compare to policy requirements
+- If something doesn't comply, explain EXACTLY what policy requirement is violated based on the image details
+
+Answer the user's question by carefully comparing the image descriptions with the policy documents."""
                     else:
                         system_prompt = """You are an AI assistant that helps users understand images. 
-You have been provided with descriptions of images that the user wants to ask about.
-Answer the user's question based on the image descriptions provided.
-Be specific and reference the image details when answering.
+You have been provided with DETAILED descriptions of images.
+Use the specific details from these descriptions to answer the user's questions.
+DO NOT say information is missing - the descriptions contain detailed visual information.
+Be specific and reference the actual details you see in the image descriptions.
 If an image has no description, explain that it was uploaded before vision analysis was enabled and needs to be re-uploaded with 'Auto AI Description' enabled for proper analysis."""
 
                     # Build image context
-                    image_context_parts = ["=== IMAGE DESCRIPTIONS ==="]
+                    image_context_parts = ["=== IMAGE DESCRIPTIONS (DETAILED VISUAL INFORMATION) ==="]
                     for img in image_details:
-                        image_context_parts.append(f"\nImage: {img['filename']}")
-                        image_context_parts.append(f"Description: {img['description']}")
+                        image_context_parts.append(f"\n**Image: {img['filename']}**")
+                        image_context_parts.append(f"**Detailed Description:** {img['description']}")
+                        image_context_parts.append("(This description contains specific visual details about clothing, appearance, and environment)")
                     image_context = "\n".join(image_context_parts)
                     
                     # Build full context with documents if available
                     if doc_context:
-                        full_context = f"{image_context}\n\n=== RELEVANT POLICY DOCUMENTS ===\n{doc_context}\n\n=== USER QUESTION ===\n{request_data['question']}"
+                        full_context = f"""{image_context}
+
+=== RELEVANT POLICY DOCUMENTS ===
+{doc_context}
+
+=== USER QUESTION ===
+{request_data['question']}
+
+INSTRUCTIONS: Compare the SPECIFIC clothing and appearance details from the image description above against the policy requirements. Be explicit about what matches or doesn't match."""
                     else:
                         full_context = f"{image_context}\n\n=== USER QUESTION ===\n{request_data['question']}"
                     
@@ -386,17 +402,25 @@ If an image has no description, explain that it was uploaded before vision analy
                         {"role": "user", "content": full_context}
                     ]
                     
+                    logger.info(f"Multimodal description-based: system_prompt length={len(system_prompt)}, context length={len(full_context)}")
+                    logger.debug(f"Full context preview: {full_context[:500]}...")
+                    
                     # Get streaming LLM and generate response
                     llm = get_streaming_llm(request_data["provider"], request_data["model"])
                     model_info = {"provider": request_data["provider"], "name": request_data["model"] or llm.model if hasattr(llm, 'model') else "default"}
                     
+                    logger.info(f"Starting LLM stream with {model_info}")
+                    token_count = 0
                     for token in llm.stream(messages):
                         if hasattr(token, 'content'):
                             token_text = token.content
                         else:
                             token_text = str(token)
                         full_answer += token_text
+                        token_count += 1
                         yield f"data: {json.dumps({'type': 'token', 'data': token_text})}\n\n"
+                    
+                    logger.info(f"Multimodal stream complete: {token_count} tokens, {len(full_answer)} chars")
                     
                     # Send citations (from document sources if any)
                     yield f"data: {json.dumps({'type': 'citations', 'data': citations})}\n\n"

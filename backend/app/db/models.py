@@ -35,6 +35,9 @@ class Document(Base):
     # Tags for flexible categorization (stored as JSON array)
     tags = Column(JSON, nullable=True)
     
+    # Store original file content for PDF viewing (base64 encoded for binary files)
+    file_data = Column(Text, nullable=True)  # Base64 encoded file content for PDFs
+    
     # Timestamp
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     

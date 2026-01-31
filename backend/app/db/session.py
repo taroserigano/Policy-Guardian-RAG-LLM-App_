@@ -8,6 +8,7 @@ from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.pool import QueuePool
 from typing import Generator, Optional
 import logging
+import contextlib
 
 from app.core.config import get_settings
 
@@ -20,11 +21,8 @@ try:
     # Extract connection args based on database type
     connect_args = {}
     if "postgresql" in settings.database_url or "postgres" in settings.database_url:
-        # PostgreSQL-specific settings for production reliability
-        connect_args = {
-            "options": "-c statement_timeout=30000",  # 30 second query timeout
-            "connect_timeout": 10,  # 10 second connection timeout
-        }
+        # PostgreSQL-specific settings for Neon compatibility
+        connect_args = {}  # Empty for Neon pooler compatibility
     elif "sqlite" in settings.database_url:
         # SQLite-specific settings
         connect_args = {
@@ -35,13 +33,13 @@ try:
     engine = create_engine(
         settings.database_url,
         poolclass=QueuePool,
-        pool_pre_ping=True,       # Check connection validity before use
-        pool_size=10,             # Increased from 5 to 10 for production
-        max_overflow=20,          # Increased from 10 to 20 for burst traffic
-        pool_timeout=30,          # Wait up to 30s for a connection
-        pool_recycle=1800,        # Recycle connections every 30 minutes
-        echo=settings.debug,      # Log SQL queries in debug mode
-        connect_args=connect_args # Database-specific connection arguments
+        pool_pre_ping=True,
+        pool_size=5,
+        max_overflow=10,
+        pool_timeout=30,
+        pool_recycle=1800,
+        echo=settings.debug,
+        connect_args=connect_args
     )
     # Session factory
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -96,6 +94,7 @@ def get_db() -> Generator[Optional[Session], None, None]:
                 logger.error(f"Error closing database session: {e}")
 
 
+@contextlib.contextmanager
 def get_db_context():
     """
     Context manager for manual database session management outside of FastAPI.

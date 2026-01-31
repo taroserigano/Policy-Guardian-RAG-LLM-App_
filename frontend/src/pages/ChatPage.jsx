@@ -1067,10 +1067,10 @@ export default function ChatPage() {
             </div>
             <div className="text-left">
               <h3 className="font-semibold text-[var(--text-primary)] text-sm">
-                Upload Files
+                File Management
               </h3>
               <p className="text-xs text-[var(--text-muted)]">
-                Add documents or images to chat about
+                Upload and manage documents or images
               </p>
             </div>
           </div>

@@ -182,12 +182,20 @@ async def upload_document(
             
             # Save metadata to PostgreSQL (if available)
             if db is not None:
+                # Store file data for PDFs (base64 encoded for viewing)
+                import base64
+                file_data_base64 = None
+                if content_type == "application/pdf":
+                    file_data_base64 = base64.b64encode(content).decode('utf-8')
+                    logger.info(f"Stored PDF file data for {safe_filename} ({len(file_data_base64)} chars)")
+                
                 db_document = Document(
                     id=doc_id,
                     filename=safe_filename,
                     content_type=content_type,
                     preview_text=result["preview_text"],
-                    category=detected_category
+                    category=detected_category,
+                    file_data=file_data_base64
                 )
                 db.add(db_document)
                 db.commit()
@@ -278,6 +286,72 @@ def get_document(doc_id: str, db: Session = Depends(get_db)):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error retrieving document"
+        )
+
+
+@router.get("/{doc_id}/file")
+def get_document_file(doc_id: str, db: Session = Depends(get_db)):
+    """
+    Get the original PDF file for viewing/download.
+    
+    Args:
+        doc_id: Document UUID
+    
+    Returns:
+        PDF file content
+    """
+    from fastapi.responses import Response
+    import base64
+    
+    try:
+        if db is None:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Database not available"
+            )
+        
+        # Get document from database
+        document = db.query(Document).filter(Document.id == doc_id).first()
+        if not document:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Document not found"
+            )
+        
+        # Check if file data exists
+        if not document.file_data:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="File data not available for this document"
+            )
+        
+        # Decode base64 file data
+        try:
+            file_bytes = base64.b64decode(document.file_data)
+        except Exception as e:
+            logger.error(f"Error decoding file data: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Error decoding file data"
+            )
+        
+        # Return PDF with proper headers
+        return Response(
+            content=file_bytes,
+            media_type=document.content_type or "application/pdf",
+            headers={
+                "Content-Disposition": f'inline; filename="{document.filename}"',
+                "Cache-Control": "public, max-age=3600"
+            }
+        )
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error serving document file: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error serving document file"
         )
 
 
