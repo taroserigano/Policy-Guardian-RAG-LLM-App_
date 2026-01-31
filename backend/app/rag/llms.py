@@ -61,7 +61,8 @@ class OllamaChat:
                 json={
                     "model": self.model,
                     "messages": ollama_messages,
-                    "stream": False
+                    "stream": False,
+                    "options": {"num_predict": 800}  # Cost optimization: limit response length
                 },
                 timeout=120
             )
@@ -90,7 +91,8 @@ class OllamaChat:
                 json={
                     "model": self.model,
                     "messages": ollama_messages,
-                    "stream": True
+                    "stream": True,
+                    "options": {"num_predict": 800}  # Cost optimization: limit response length
                 },
                 timeout=120,
                 stream=True
@@ -134,7 +136,8 @@ def get_llm(provider: str, model: Optional[str] = None) -> Any:
         return ChatOpenAI(
             api_key=settings.openai_api_key,
             model=model or settings.openai_chat_model,
-            temperature=0  # Deterministic for legal/compliance use case
+            temperature=0,  # Deterministic for legal/compliance use case
+            max_tokens=800  # Cost optimization: limit response length
         )
     
     elif provider == "anthropic":
@@ -144,7 +147,8 @@ def get_llm(provider: str, model: Optional[str] = None) -> Any:
         return ChatAnthropic(
             api_key=settings.anthropic_api_key,
             model=model or settings.anthropic_chat_model,
-            temperature=0
+            temperature=0,
+            max_tokens=800  # Cost optimization: limit response length
         )
     
     else:
@@ -173,7 +177,8 @@ def get_streaming_llm(provider: str, model: Optional[str] = None) -> Any:
             api_key=settings.openai_api_key,
             model=model or settings.openai_chat_model,
             temperature=0,
-            streaming=True
+            streaming=True,
+            max_tokens=800  # Cost optimization: limit response length
         )
     
     elif provider == "anthropic":
@@ -183,7 +188,8 @@ def get_streaming_llm(provider: str, model: Optional[str] = None) -> Any:
             api_key=settings.anthropic_api_key,
             model=model or settings.anthropic_chat_model,
             temperature=0,
-            streaming=True
+            streaming=True,
+            max_tokens=800  # Cost optimization: limit response length
         )
     
     else:

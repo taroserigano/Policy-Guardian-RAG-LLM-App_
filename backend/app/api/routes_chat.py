@@ -63,7 +63,7 @@ async def chat(
                 provider=request.provider,
                 model=request.model,
                 doc_ids=request.doc_ids,
-                top_k=request.top_k or 5
+                top_k=request.top_k or 3  # Default to 3 for cost optimization
             )
         except ValueError as e:
             # Handle configuration errors (missing API keys, etc.)
@@ -163,7 +163,7 @@ async def chat_stream(
         "question": request.question,
         "image_ids": request.image_ids if is_multimodal else None,
         "doc_ids": request.doc_ids,
-        "top_k": request.top_k or 5,
+        "top_k": request.top_k or 3,  # Default to 3 for cost optimization
         "is_multimodal": is_multimodal
     }
     

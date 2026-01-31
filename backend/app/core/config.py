@@ -62,7 +62,7 @@ class Settings(BaseSettings):
     # RAG Settings
     chunk_size: int = 1000
     chunk_overlap: int = 150
-    top_k: int = 5
+    top_k: int = 3  # Reduced from 5 for cost optimization
     
     # CORS
     cors_origins: list[str] = ["http://localhost:5173", "http://localhost:5174", "http://localhost:5175", "http://localhost:8000"]

@@ -135,7 +135,7 @@ class ChatRequest(BaseModel):
     question: str = Field(..., min_length=1, description="User's question")
     doc_ids: Optional[List[str]] = Field(None, description="Optional list of document IDs to restrict search")
     image_ids: Optional[List[str]] = Field(None, description="Optional list of image IDs to include")
-    top_k: Optional[int] = Field(5, ge=1, le=20, description="Number of chunks to retrieve (1-20)")
+    top_k: Optional[int] = Field(3, ge=1, le=20, description="Number of chunks to retrieve (1-20, default: 3)")
     rag_options: Optional[RAGOptions] = Field(default_factory=RAGOptions, description="Advanced RAG options")
     multimodal_options: Optional[MultimodalOptions] = Field(default_factory=MultimodalOptions, description="Multimodal options")
     
