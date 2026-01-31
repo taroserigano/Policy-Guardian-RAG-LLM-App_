@@ -36,17 +36,9 @@ function UserMenu() {
     setIsOpen(!isOpen);
   }, [isOpen]);
 
-  // Not authenticated - show login button
+  // Not authenticated - don't show anything
   if (!isAuthenticated) {
-    return (
-      <Link
-        to="/login"
-        className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white text-sm font-medium rounded-xl hover:from-violet-600 hover:to-fuchsia-600 transition-all duration-200 shadow-lg shadow-violet-500/25"
-      >
-        <User className="h-4 w-4" />
-        <span>Sign in</span>
-      </Link>
-    );
+    return null;
   }
 
   // Get initials for avatar

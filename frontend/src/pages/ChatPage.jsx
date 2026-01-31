@@ -6,6 +6,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import toast from "react-hot-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import DocumentPreview from "../components/DocumentPreview";
+import PdfViewer from "../components/PdfViewer";
 import {
   AlertCircle,
   History,
@@ -433,13 +434,21 @@ export default function ChatPage() {
       finalCitationsRef.current = [];
       setIsStreaming(true);
 
+      // Filter out null/undefined values from arrays
+      const validDocIds = selectedDocIds.filter(
+        (id) => id != null && id !== "",
+      );
+      const validImageIds = selectedImageIds.filter(
+        (id) => id != null && id !== "",
+      );
+
       const chatRequest = {
         user_id: userId,
         provider: selectedProvider,
         model: selectedModel || undefined,
         question: content,
-        doc_ids: selectedDocIds.length > 0 ? selectedDocIds : undefined,
-        image_ids: selectedImageIds.length > 0 ? selectedImageIds : undefined,
+        doc_ids: validDocIds.length > 0 ? validDocIds : undefined,
+        image_ids: validImageIds.length > 0 ? validImageIds : undefined,
         top_k: 5,
         rag_options: ragOptions,
       };
@@ -1067,10 +1076,10 @@ export default function ChatPage() {
             </div>
             <div className="text-left">
               <h3 className="font-semibold text-[var(--text-primary)] text-sm">
-                File Management
+                Upload Files
               </h3>
               <p className="text-xs text-[var(--text-muted)]">
-                Upload and manage documents or images
+                Add documents or images to chat about
               </p>
             </div>
           </div>
@@ -1675,13 +1684,22 @@ export default function ChatPage() {
         </div>
       )}
 
-      {/* Document Preview Modal */}
-      <DocumentPreview
-        docId={previewDocument?.id}
-        filename={previewDocument?.filename || previewDocument?.name}
-        isOpen={!!previewDocument}
-        onClose={() => setPreviewDocument(null)}
-      />
+      {/* Document Preview Modal - Shows PDF viewer for PDFs, text preview for others */}
+      {previewDocument && previewDocument.content_type === "application/pdf" ? (
+        <PdfViewer
+          docId={previewDocument.id}
+          filename={previewDocument.filename || previewDocument.name}
+          isOpen={!!previewDocument}
+          onClose={() => setPreviewDocument(null)}
+        />
+      ) : (
+        <DocumentPreview
+          docId={previewDocument?.id}
+          filename={previewDocument?.filename || previewDocument?.name}
+          isOpen={!!previewDocument}
+          onClose={() => setPreviewDocument(null)}
+        />
+      )}
     </div>
   );
 }
