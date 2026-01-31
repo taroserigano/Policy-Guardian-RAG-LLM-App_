@@ -251,6 +251,7 @@ def run_rag_pipeline_streaming(
 ) -> Generator[Dict[str, Any], None, None]:
     """
     Run the RAG pipeline with streaming response and advanced RAG options.
+    Includes proper memory cleanup to prevent leaks.
     
     Args:
         question: User's question
@@ -269,106 +270,115 @@ def run_rag_pipeline_streaming(
         - {"type": "citations", "data": [...]}
         - {"type": "model", "data": {"provider": "...", "name": "..."}}
     """
-    if rag_options is None:
-        rag_options = {}
+    # Initialize variables for cleanup
+    citations = []
+    context = ""
+    queries = []
+    chunks_for_rerank = []
+    messages = []
+    context_parts = []
     
-    use_expansion = rag_options.get('query_expansion', False)
-    use_hybrid = rag_options.get('hybrid_search', False)
-    use_reranking = rag_options.get('reranking', False)
-    use_auto_rewrite = rag_options.get('auto_rewrite', False)
-    use_cross_encoder = rag_options.get('cross_encoder', False)
-    
-    logger.info(f"Running streaming RAG pipeline with provider={provider}, top_k={top_k}, "
-                f"expansion={use_expansion}, hybrid={use_hybrid}, reranking={use_reranking}, "
-                f"auto_rewrite={use_auto_rewrite}, cross_encoder={use_cross_encoder}")
-    
-    # Step 1: Query processing (expansion or rewrite if enabled)
     try:
-        processed_question = question
+        if rag_options is None:
+            rag_options = {}
         
-        # Auto-rewrite improves query for better retrieval
-        if use_auto_rewrite:
-            from app.rag.query_processor import rewrite_query
-            processed_question = rewrite_query(question, provider=provider, model=model)
-            logger.info(f"Query rewritten: {processed_question[:100]}...")
+        use_expansion = rag_options.get('query_expansion', False)
+        use_hybrid = rag_options.get('hybrid_search', False)
+        use_reranking = rag_options.get('reranking', False)
+        use_auto_rewrite = rag_options.get('auto_rewrite', False)
+        use_cross_encoder = rag_options.get('cross_encoder', False)
         
-        if use_expansion:
-            queries = expand_query(processed_question, provider=provider, model=model)
-            logger.info(f"Query expanded to {len(queries)} variations")
-        else:
-            queries = [processed_question]
-    except Exception as e:
-        logger.warning(f"Query processing failed, using original: {e}")
-        queries = [question]
-    
-    # Step 2: Retrieve relevant chunks
-    try:
-        if len(queries) > 1:
-            # Multi-query retrieval
-            citations, context = retrieve_with_multi_query(
-                queries=queries,
-                top_k=top_k * 2 if use_reranking else top_k,  # Get more for reranking
-                doc_ids=doc_ids,
-                use_hybrid=use_hybrid
-            )
-        else:
-            # Single query retrieval
-            citations, context = retrieve_relevant_chunks(
-                query=question,
-                top_k=top_k * 2 if use_reranking else top_k,
-                doc_ids=doc_ids,
-                use_hybrid=use_hybrid
-            )
+        logger.info(f"Running streaming RAG pipeline with provider={provider}, top_k={top_k}, "
+                    f"expansion={use_expansion}, hybrid={use_hybrid}, reranking={use_reranking}, "
+                    f"auto_rewrite={use_auto_rewrite}, cross_encoder={use_cross_encoder}")
         
-        # Step 3: Reranking if enabled
-        if (use_reranking or use_cross_encoder) and citations:
-            logger.info(f"Applying reranking to results (cross_encoder={use_cross_encoder})")
-            chunks_for_rerank = [
-                {'text': c.text, 'score': c.score, 'citation': c}
-                for c in citations
-            ]
+        # Step 1: Query processing (expansion or rewrite if enabled)
+        try:
+            processed_question = question
             
-            if use_cross_encoder:
-                # Use more accurate cross-encoder (LLM-based deep scoring)
-                from app.rag.reranker import rerank_chunks_llm
-                reranked = rerank_chunks_llm(question, chunks_for_rerank, provider=provider, model=model, top_k=top_k)
+            # Auto-rewrite improves query for better retrieval
+            if use_auto_rewrite:
+                from app.rag.query_processor import rewrite_query
+                processed_question = rewrite_query(question, provider=provider, model=model)
+                logger.info(f"Query rewritten: {processed_question[:100]}...")
+            
+            if use_expansion:
+                queries = expand_query(processed_question, provider=provider, model=model)
+                logger.info(f"Query expanded to {len(queries)} variations")
             else:
-                # Use simpler reranking
-                reranked = rerank_chunks_simple(question, chunks_for_rerank, top_k=top_k)
-            
-            citations = [r['citation'] for r in reranked]
-            
-            # Rebuild context from reranked citations
-            context_parts = []
-            for citation in citations:
-                source_info = f"Source: {citation.filename}"
-                if citation.page_number:
-                    source_info += f", page {citation.page_number}"
-                context_parts.append(f"[{source_info}]\n{citation.text}\n")
-            context = "\n---\n".join(context_parts)
+                queries = [processed_question]
+        except Exception as e:
+            logger.warning(f"Query processing failed, using original: {e}")
+            queries = [question]
         
-        # Yield citations early so frontend can display them
-        yield {
-            "type": "citations",
-            "data": [citation.to_dict() for citation in citations]
-        }
+        # Step 2: Retrieve relevant chunks
+        try:
+            if len(queries) > 1:
+                # Multi-query retrieval
+                citations, context = retrieve_with_multi_query(
+                    queries=queries,
+                    top_k=top_k * 2 if use_reranking else top_k,  # Get more for reranking
+                    doc_ids=doc_ids,
+                    use_hybrid=use_hybrid
+                )
+            else:
+                # Single query retrieval
+                citations, context = retrieve_relevant_chunks(
+                    query=question,
+                    top_k=top_k * 2 if use_reranking else top_k,
+                    doc_ids=doc_ids,
+                    use_hybrid=use_hybrid
+                )
+            
+            # Step 3: Reranking if enabled
+            if (use_reranking or use_cross_encoder) and citations:
+                logger.info(f"Applying reranking to results (cross_encoder={use_cross_encoder})")
+                chunks_for_rerank = [
+                    {'text': c.text, 'score': c.score, 'citation': c}
+                    for c in citations
+                ]
+                
+                if use_cross_encoder:
+                    # Use more accurate cross-encoder (LLM-based deep scoring)
+                    from app.rag.reranker import rerank_chunks_llm
+                    reranked = rerank_chunks_llm(question, chunks_for_rerank, provider=provider, model=model, top_k=top_k)
+                else:
+                    # Use simpler reranking
+                    reranked = rerank_chunks_simple(question, chunks_for_rerank, top_k=top_k)
+                
+                citations = [r['citation'] for r in reranked]
+                
+                # Rebuild context from reranked citations
+                context_parts = []
+                for citation in citations:
+                    source_info = f"Source: {citation.filename}"
+                    if citation.page_number:
+                        source_info += f", page {citation.page_number}"
+                    context_parts.append(f"[{source_info}]\n{citation.text}\n")
+                context = "\n---\n".join(context_parts)
+            
+            # Yield citations early so frontend can display them
+            yield {
+                "type": "citations",
+                "data": [citation.to_dict() for citation in citations]
+            }
+            
+        except Exception as e:
+            logger.error(f"Error in retrieval: {e}")
+            yield {"type": "error", "data": f"Retrieval error: {str(e)}"}
+            return
         
-    except Exception as e:
-        logger.error(f"Error in retrieval: {e}")
-        yield {"type": "error", "data": f"Retrieval error: {str(e)}"}
-        return
-    
-    # Step 2: Check if we have context
-    if not context:
-        yield {
-            "type": "token", 
-            "data": "I couldn't find any relevant information in the documents to answer your question."
-        }
-        yield {"type": "model", "data": {"provider": provider, "name": model or "default"}}
-        return
-    
-    # Step 3: Build prompts
-    system_prompt = """You are an AI assistant specializing in organizational policy and compliance document analysis.
+        # Step 2: Check if we have context
+        if not context:
+            yield {
+                "type": "token", 
+                "data": "I couldn't find any relevant information in the documents to answer your question."
+            }
+            yield {"type": "model", "data": {"provider": provider, "name": model or "default"}}
+            return
+        
+        # Step 3: Build prompts
+        system_prompt = """You are an AI assistant specializing in organizational policy and compliance document analysis.
 
 Your role is to:
 1. Answer questions ONLY based on the provided context from official policy documents
@@ -389,7 +399,7 @@ When answering:
 
 Answer the user's question using only the information provided below."""
 
-    user_prompt = f"""Context from documents:
+        user_prompt = f"""Context from documents:
 
 {context}
 
@@ -399,27 +409,46 @@ Question: {question}
 
 Please provide a clear, accurate answer based only on the context above. If the context doesn't contain enough information to answer the question, say so."""
 
-    messages = [
-        {"role": "system", "content": system_prompt},
-        {"role": "user", "content": user_prompt}
-    ]
-    
-    # Step 4: Stream LLM response
-    try:
-        llm = get_streaming_llm(provider=provider, model=model)
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt}
+        ]
         
-        if provider == "ollama":
-            # Use custom stream method for Ollama
-            for token in llm.stream(messages):
-                yield {"type": "token", "data": token}
-        else:
-            # Use LangChain stream for OpenAI/Anthropic
-            for chunk in llm.stream(messages):
-                if hasattr(chunk, 'content') and chunk.content:
-                    yield {"type": "token", "data": chunk.content}
+        # Step 4: Stream LLM response
+        try:
+            llm = get_streaming_llm(provider=provider, model=model)
+            
+            if provider == "ollama":
+                # Use custom stream method for Ollama
+                for token in llm.stream(messages):
+                    yield {"type": "token", "data": token}
+            else:
+                # Use LangChain stream for OpenAI/Anthropic
+                for chunk in llm.stream(messages):
+                    if hasattr(chunk, 'content') and chunk.content:
+                        yield {"type": "token", "data": chunk.content}
+            
+            yield {"type": "model", "data": {"provider": provider, "name": model or "default"}}
+            
+        except Exception as e:
+            logger.error(f"Error in streaming generation: {e}")
+            yield {"type": "error", "data": f"Generation error: {str(e)}"}
+            
+    finally:
+        # Clean up memory to prevent leaks
+        # Clear large data structures that accumulate during processing
+        if citations:
+            citations.clear()
+        if queries:
+            queries.clear()
+        if chunks_for_rerank:
+            chunks_for_rerank.clear()
+        if messages:
+            messages.clear()
+        if context_parts:
+            context_parts.clear()
         
-        yield {"type": "model", "data": {"provider": provider, "name": model or "default"}}
+        # Clear string references
+        context = ""
         
-    except Exception as e:
-        logger.error(f"Error in streaming generation: {e}")
-        yield {"type": "error", "data": f"Generation error: {str(e)}"}
+        logger.debug("Streaming pipeline cleanup completed")
