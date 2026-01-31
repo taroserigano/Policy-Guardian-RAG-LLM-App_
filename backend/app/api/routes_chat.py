@@ -179,10 +179,9 @@ async def chat_stream(
             if request_data["is_multimodal"] and request_data["image_ids"]:
                 logger.info(f"Loading {len(request_data['image_ids'])} images for multimodal chat")
                 try:
-                    from app.db.session import SessionLocal, DB_AVAILABLE
-                    if DB_AVAILABLE and SessionLocal:
-                        img_db = SessionLocal()
-                        try:
+                    from app.db.session import get_db_context
+                    with get_db_context() as img_db:
+                        if img_db:
                             images = img_db.query(ImageDocument).filter(
                                 ImageDocument.id.in_(request_data["image_ids"])
                             ).all()
@@ -215,8 +214,6 @@ async def chat_stream(
                                         "content_type": "image/png"
                                     })
                                     logger.debug(f"Image {img.filename}: using thumbnail")
-                        finally:
-                            img_db.close()
                 except Exception as e:
                     logger.error(f"Error loading image data: {e}")
             
@@ -436,10 +433,9 @@ If an image has no description, explain that it was uploaded before vision analy
             # Save to audit log with a NEW database session
             # (original session is closed after the route function returns)
             try:
-                from app.db.session import SessionLocal, DB_AVAILABLE
-                if DB_AVAILABLE and SessionLocal:
-                    audit_db = SessionLocal()
-                    try:
+                from app.db.session import get_db_context
+                with get_db_context() as audit_db:
+                    if audit_db:
                         cited_doc_ids = list(set([c["doc_id"] for c in citations])) if citations else []
                         cited_image_ids = request_data["image_ids"]
                         audit = ChatAudit(
@@ -454,8 +450,6 @@ If an image has no description, explain that it was uploaded before vision analy
                         audit_db.add(audit)
                         audit_db.commit()
                         logger.debug("Chat audit saved successfully")
-                    finally:
-                        audit_db.close()
             except Exception as e:
                 logger.error(f"Error saving chat audit: {e}")
                 

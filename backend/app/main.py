@@ -211,11 +211,64 @@ async def root():
 
 @app.get("/health")
 async def health_check():
-    """Health check endpoint for monitoring."""
-    return {
+    """
+    Health check endpoint for monitoring and load balancers.
+    Returns detailed status of all system components.
+    """
+    from app.db.session import get_pool_status, DB_AVAILABLE
+    from app.core.cache import get_cache
+    
+    health_status = {
         "status": "healthy",
-        "service": settings.app_name
+        "service": settings.app_name,
+        "components": {}
     }
+    
+    # Check database connection pool
+    if DB_AVAILABLE:
+        pool_status = get_pool_status()
+        if pool_status.get("available"):
+            # Warn if pool utilization is high
+            utilization = pool_status.get("utilization_percent", 0)
+            db_health = "healthy" if utilization < 80 else "degraded"
+            health_status["components"]["database"] = {
+                "status": db_health,
+                "pool": pool_status
+            }
+            if utilization >= 80:
+                health_status["status"] = "degraded"
+                health_status["warning"] = "Database connection pool highly utilized"
+        else:
+            health_status["components"]["database"] = {"status": "unavailable"}
+            health_status["status"] = "degraded"
+    else:
+        health_status["components"]["database"] = {"status": "unavailable"}
+    
+    # Check cache connection
+    try:
+        cache = get_cache()
+        cache_connected = cache.is_connected if hasattr(cache, 'is_connected') else True
+        health_status["components"]["cache"] = {
+            "status": "healthy" if cache_connected else "degraded",
+            "type": cache.__class__.__name__
+        }
+    except Exception as e:
+        health_status["components"]["cache"] = {
+            "status": "error",
+            "error": str(e)
+        }
+    
+    return health_status
+
+
+@app.get("/health/pool")
+async def pool_status():
+    """
+    Detailed connection pool status for debugging.
+    Returns raw pool metrics.
+    """
+    from app.db.session import get_pool_status
+    return get_pool_status()
 
 
 # ============================================================================
