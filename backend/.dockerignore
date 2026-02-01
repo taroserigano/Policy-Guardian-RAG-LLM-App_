@@ -1,0 +1,71 @@
+# Git files
+.git
+.gitignore
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Local env files (use .env.docker for Docker)
+.env
+.env.local
+.env.development
+
+# Test files
+tests/
+test_*.py
+*_test.py
+
+# Documentation
+*.md
+docs/
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Data files (will be mounted as volumes)
+uploads/
+data/*.pdf
+data/*.txt
+# Large model/data directories (exclude from Docker context)
+llama.cpp/
+models/
+finetune_llm/
+sample_docs/
+training_data/
+*.bin
+*.gguf
+*.safetensors
