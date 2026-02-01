@@ -180,14 +180,14 @@ export default function ChatPage() {
           // Auto describe - upload immediately
           setIsUploading(true);
           const result = await uploadImage(file, "", true);
-          setSelectedImageIds((prev) => [...prev, result.id]);
-          toast.success(`Image uploaded: ${file.name}`);
+          // Don't auto-select newly uploaded images
+          toast.success(`✓ Image uploaded & indexed: ${file.name}`);
         } else {
           // For documents (PDFs, etc.), upload immediately
           setIsUploading(true);
           const result = await uploadDocument(file);
-          setSelectedDocIds((prev) => [...prev, result.id]);
-          toast.success(`Document uploaded: ${file.name}`);
+          // Don't auto-select newly uploaded documents
+          toast.success(`✓ Document embedded & indexed: ${file.name}`);
         }
       } catch (err) {
         console.error("Upload failed:", err);
@@ -212,8 +212,8 @@ export default function ChatPage() {
         useAI ? "" : manualDescription,
         useAI,
       );
-      setSelectedImageIds((prev) => [...prev, result.id]);
-      toast.success(`Image uploaded: ${pendingImageFile.name}`);
+      // Don't auto-select newly uploaded images
+      toast.success(`✓ Image uploaded & indexed: ${pendingImageFile.name}`);
 
       // Clear pending state
       setPendingImageFile(null);

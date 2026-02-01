@@ -60,9 +60,9 @@ class Settings(BaseSettings):
     allowed_extensions: list[str] = [".pdf", ".txt", ".docx", ".doc"]
     
     # RAG Settings
-    chunk_size: int = 1000
-    chunk_overlap: int = 150
-    top_k: int = 3  # Reduced from 5 for cost optimization
+    chunk_size: int = 1500  # Larger chunks for better section coverage
+    chunk_overlap: int = 300  # More overlap to capture section boundaries
+    top_k: int = 5  # More results for better matching
     
     # CORS
     cors_origins: list[str] = ["http://localhost:5173", "http://localhost:5174", "http://localhost:5175", "http://localhost:8000"]

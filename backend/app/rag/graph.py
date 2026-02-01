@@ -13,6 +13,7 @@ from app.rag.query_processor import expand_query, extract_keywords
 from app.rag.reranker import rerank_chunks_simple
 
 logger = get_logger(__name__)
+logger.info("🔧 GRAPH.PY LOADED WITH LANGCHAIN MESSAGE FIX - VERSION 2")
 
 
 class RAGOptions(TypedDict, total=False):
@@ -409,24 +410,54 @@ Question: {question}
 
 Please provide a clear, accurate answer based only on the context above. If the context doesn't contain enough information to answer the question, say so."""
 
-        messages = [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt}
-        ]
+        # Build messages - format depends on provider
+        if provider == "ollama":
+            # Ollama accepts dict format
+            messages = [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ]
+        else:
+            # OpenAI/Anthropic need LangChain message objects
+            from langchain_core.messages import SystemMessage, HumanMessage
+            messages = [
+                SystemMessage(content=system_prompt),
+                HumanMessage(content=user_prompt)
+            ]
         
         # Step 4: Stream LLM response
         try:
-            llm = get_streaming_llm(provider=provider, model=model)
+            logger.info(f"Starting LLM streaming with provider={provider}, model={model}")
+            logger.debug(f"Messages: {messages}")
             
+            llm = get_streaming_llm(provider=provider, model=model)
+            logger.info(f"LLM instance created: {type(llm)}")
+            
+            token_count = 0
             if provider == "ollama":
                 # Use custom stream method for Ollama
                 for token in llm.stream(messages):
+                    token_count += 1
                     yield {"type": "token", "data": token}
+                logger.info(f"Ollama streamed {token_count} tokens")
             else:
                 # Use LangChain stream for OpenAI/Anthropic
-                for chunk in llm.stream(messages):
-                    if hasattr(chunk, 'content') and chunk.content:
-                        yield {"type": "token", "data": chunk.content}
+                logger.info(f"Starting LangChain stream for {provider}")
+                logger.info(f"About to call llm.stream() with {len(messages)} messages")
+                try:
+                    for chunk in llm.stream(messages):
+                        token_count += 1
+                        logger.debug(f"Chunk #{token_count}: {chunk}")
+                        if hasattr(chunk, 'content') and chunk.content:
+                            yield {"type": "token", "data": chunk.content}
+                        elif hasattr(chunk, 'content'):
+                            logger.warning(f"Chunk has empty content: {chunk}")
+                        else:
+                            logger.warning(f"Chunk has no content attribute: {chunk}")
+                    logger.info(f"LangChain streamed {token_count} tokens total")
+                except Exception as stream_err:
+                    logger.error(f"Error during streaming: {stream_err}", exc_info=True)
+                    raise
             
             yield {"type": "model", "data": {"provider": provider, "name": model or "default"}}
             

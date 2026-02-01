@@ -7,7 +7,7 @@ import os
 from pathlib import Path
 
 # Configuration
-BASE_URL = "http://localhost:8000"
+BASE_URL = "http://localhost:8001"
 DOCS_DIR = Path(__file__).parent / "sample_docs"
 
 def upload_document(filepath):

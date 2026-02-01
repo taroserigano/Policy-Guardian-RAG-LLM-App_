@@ -67,9 +67,24 @@ export default function UploadPage() {
 
   const uploadMutation = useUploadDocument();
   const uploadBatchMutation = useUploadDocumentsBatch();
-  const { data: documents, refetch: refetchDocuments } = useDocuments();
+  const {
+    data: documents,
+    refetch: refetchDocuments,
+    isLoading: documentsLoading,
+    error: documentsError,
+  } = useDocuments();
   const deleteDocMutation = useDeleteDocument();
   const bulkDeleteMutation = useBulkDeleteDocuments();
+
+  // Debug logging
+  useEffect(() => {
+    console.log("[UploadPage] Documents data:", {
+      documents,
+      count: documents?.length,
+      isLoading: documentsLoading,
+      error: documentsError,
+    });
+  }, [documents, documentsLoading, documentsError]);
 
   // Load images when tab changes
   useEffect(() => {
@@ -155,7 +170,7 @@ export default function UploadPage() {
 
       setUploadStatus({
         type: "success",
-        message: `Successfully uploaded: ${result.filename}`,
+        message: `✓ Uploaded, embedded & indexed: ${result.filename}`,
       });
 
       // Reset after 2 seconds
@@ -206,12 +221,12 @@ export default function UploadPage() {
       if (failCount > 0) {
         setUploadStatus({
           type: "success",
-          message: `Uploaded ${successCount} file(s), ${failCount} failed`,
+          message: `✓ ${successCount} file(s) embedded & indexed, ${failCount} failed`,
         });
       } else {
         setUploadStatus({
           type: "success",
-          message: `Successfully uploaded ${successCount} file(s)`,
+          message: `✓ ${successCount} file(s) uploaded, embedded & indexed`,
         });
       }
 
@@ -236,7 +251,7 @@ export default function UploadPage() {
     await loadImages();
     setUploadStatus({
       type: "success",
-      message: `Image uploaded: ${result.filename}`,
+      message: `✓ Image uploaded & indexed: ${result.filename}`,
     });
     setTimeout(() => setUploadStatus(null), 3000);
   };

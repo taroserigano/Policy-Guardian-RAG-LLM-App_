@@ -321,12 +321,12 @@ docker-compose --env-file .env.docker up -d --build
 
 ### What's Included
 
-| Service | Description | Port |
-|---------|-------------|------|
-| **frontend** | React app served by Nginx | 80 |
-| **backend** | FastAPI application | 8001 |
-| **postgres** | PostgreSQL 15 database | 5432 |
-| **redis** | Redis cache (optional) | 6379 |
+| Service      | Description               | Port |
+| ------------ | ------------------------- | ---- |
+| **frontend** | React app served by Nginx | 80   |
+| **backend**  | FastAPI application       | 8001 |
+| **postgres** | PostgreSQL 15 database    | 5432 |
+| **redis**    | Redis cache (optional)    | 6379 |
 
 ### Docker Commands
 
@@ -349,12 +349,12 @@ docker-compose --profile with-redis up -d
 
 ### Local Development vs Docker
 
-| Feature | Local Development | Docker Deployment |
-|---------|------------------|-------------------|
-| **Database** | Neon PostgreSQL (cloud) | Docker PostgreSQL |
-| **Frontend** | Vite dev server (HMR) | Nginx (static) |
-| **Backend** | Uvicorn with --reload | Uvicorn production |
-| **Start Command** | `node start-dev.js` | `docker-compose up` |
+| Feature           | Local Development       | Docker Deployment   |
+| ----------------- | ----------------------- | ------------------- |
+| **Database**      | Neon PostgreSQL (cloud) | Docker PostgreSQL   |
+| **Frontend**      | Vite dev server (HMR)   | Nginx (static)      |
+| **Backend**       | Uvicorn with --reload   | Uvicorn production  |
+| **Start Command** | `node start-dev.js`     | `docker-compose up` |
 
 Both environments work independently - your local setup remains unchanged!
 

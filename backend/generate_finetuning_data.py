@@ -1,0 +1,276 @@
+"""
+Generate high-quality training data for GPT-4o-mini fine-tuning.
+Focus: Compliance, legal policies, regulatory interpretation, and accurate citations.
+"""
+import json
+from pathlib import Path
+
+# Training examples covering diverse compliance/legal scenarios
+training_examples = []
+
+# System message for all examples - defines the assistant's role
+SYSTEM_MESSAGE = """You are an expert compliance and policy analyst assistant. You provide accurate, detailed answers based on policy documents, regulations, and compliance requirements. Always cite specific sections, subsections, and exact requirements. Be precise with numbers, percentages, thresholds, and approval requirements."""
+
+# Category 1: Specific threshold and approval questions (high precision needed)
+training_examples.extend([
+    {
+        "messages": [
+            {"role": "system", "content": SYSTEM_MESSAGE},
+            {"role": "user", "content": "What percentage price change requires senior leadership approval?"},
+            {"role": "assistant", "content": "According to section 4.1 Pricing Strategy, price changes exceeding 15% require senior leadership approval. Category Managers have autonomous authority for price adjustments up to 15%, but anything beyond that threshold must be escalated for senior leadership review and approval."}
+        ]
+    },
+    {
+        "messages": [
+            {"role": "system", "content": SYSTEM_MESSAGE},
+            {"role": "user", "content": "What is the maximum gift value I can accept from vendors?"},
+            {"role": "assistant", "content": "According to vendor management policies, the maximum gift value you can accept from vendors is $25. Any gifts exceeding this amount must be declined or reported to compliance. This applies to all forms of gifts including physical items, gift cards, meals, and entertainment."}
+        ]
+    },
+    {
+        "messages": [
+            {"role": "system", "content": SYSTEM_MESSAGE},
+            {"role": "user", "content": "What is the negotiation authority limit for vendor contracts?"},
+            {"role": "assistant", "content": "Category Managers have autonomous negotiation authority up to $250,000 for vendor contracts. Any contracts or commitments exceeding $250K annually require senior leadership approval and legal review for contracts exceeding $1M annual commitment."}
+        ]
+    },
+])
+
+# Category 2: Multi-part compliance requirements
+training_examples.extend([
+    {
+        "messages": [
+            {"role": "system", "content": SYSTEM_MESSAGE},
+            {"role": "user", "content": "What are the product selection criteria for adding new items to the catalog?"},
+            {"role": "assistant", "content": "Product selection must meet these criteria:\n\n1. **Margin Requirements**: Minimum 25% retail margin (15% for marketplace items)\n2. **Quality Standards**: Minimum 3.0 star customer rating\n3. **Return Rate**: Maximum 15% return rate\n4. **Content Quality**: Minimum 5 high-quality images, 4-10 bullet points, 200+ character descriptions\n5. **Compliance**: All applicable safety certifications (FDA, FCC, CPSC as needed)\n\nProducts failing to meet these standards must not be added to the catalog or should be suppressed until corrected."}
+        ]
+    },
+    {
+        "messages": [
+            {"role": "system", "content": SYSTEM_MESSAGE},
+            {"role": "user", "content": "What are the weekly reporting requirements and deadlines?"},
+            {"role": "assistant", "content": "Weekly business reports must be submitted by **Monday 10 AM PST** and include:\n\n1. Sales performance metrics (week-over-week and year-over-year comparisons)\n2. Traffic metrics and conversion rates\n3. Top performer/decliner analysis\n4. Inventory health status\n5. Any stockout incidents exceeding 72 hours\n\nConsecutive failures to meet reporting deadlines or performance targets may trigger a performance improvement plan."}
+        ]
+    },
+])
+
+# Category 3: Performance metrics and KPI questions
+training_examples.extend([
+    {
+        "messages": [
+            {"role": "system", "content": SYSTEM_MESSAGE},
+            {"role": "user", "content": "What are the mandatory KPI targets I need to achieve?"},
+            {"role": "assistant", "content": "Mandatory KPI targets include:\n\n1. **Revenue Growth**: 15% year-over-year minimum\n2. **Unit Sales Growth**: 12% year-over-year minimum\n3. **Conversion Rate**: Above category benchmark\n4. **Customer Review Rating**: 4.0+ average\n5. **Return Rate**: Below 8%\n6. **In-Stock Rate**: Above 95% for top 100 revenue-generating ASINs\n7. **Perfect Order Rate**: 95%+\n\nFalling below these targets for consecutive quarters triggers a performance improvement plan."}
+        ]
+    },
+    {
+        "messages": [
+            {"role": "system", "content": SYSTEM_MESSAGE},
+            {"role": "user", "content": "What is the required inventory turnover rate?"},
+            {"role": "assistant", "content": "Inventory turnover requirements vary by product type:\n\n1. **Fast-moving items**: 8-12x annual turnover\n2. **Seasonal items**: 4-6x annual turnover\n3. **Aged inventory** exceeding 90 days must be addressed through promotions or vendor returns\n\nCategory Managers must also maintain stockout duration below 72 hours for top 100 ASINs, with root cause analysis required for any breach."}
+        ]
+    },
+])
+
+# Category 4: Escalation and decision authority
+training_examples.extend([
+    {
+        "messages": [
+            {"role": "system", "content": SYSTEM_MESSAGE},
+            {"role": "user", "content": "When do I need senior leadership approval for business decisions?"},
+            {"role": "assistant", "content": "Senior leadership approval is required for:\n\n1. **Pricing**: Changes exceeding 15%\n2. **P&L Impact**: Strategic decisions affecting annual category P&L by more than $100K\n3. **Vendor Contracts**: Annual commitments exceeding $250K (negotiation authority limit)\n4. **Margin Exceptions**: Category gross margin falling below 25% threshold\n5. **New Brand Launches**: Comprehensive launch plans must be submitted 8 weeks prior\n\nCategory Managers have autonomous authority for tactical operational decisions within established guardrails."}
+        ]
+    },
+    {
+        "messages": [
+            {"role": "system", "content": SYSTEM_MESSAGE},
+            {"role": "user", "content": "What decisions can I make independently without approval?"},
+            {"role": "assistant", "content": "You have autonomous decision authority for:\n\n1. **Pricing**: Changes up to 15%\n2. **Vendor Negotiations**: Contracts up to $250K annual value\n3. **Product Selection**: Items meeting standard criteria (25% margin, 3.0+ stars, <15% returns)\n4. **Promotional Planning**: Standard deals with 6-week advance submission\n5. **Content Management**: Product listing approvals, catalog updates, categorization\n6. **Tactical Operations**: Day-to-day vendor communications, performance reviews, inventory planning\n\nAll decisions must stay within established guardrails and compliance requirements."}
+        ]
+    },
+])
+
+# Category 5: Compliance and regulatory requirements
+training_examples.extend([
+    {
+        "messages": [
+            {"role": "system", "content": SYSTEM_MESSAGE},
+            {"role": "user", "content": "What compliance checks are required before adding products?"},
+            {"role": "assistant", "content": "Mandatory compliance verification includes:\n\n1. **Regulatory Certifications**: Verify applicable safety standards (FDA for food/drugs, FCC for electronics, CPSC for consumer products)\n2. **Intellectual Property**: Confirm vendor authorization to sell branded products\n3. **Product Liability Insurance**: Verify vendor has required coverage\n4. **Content Quality**: 5+ images, detailed descriptions (200+ characters), proper categorization\n5. **Supplier Code of Conduct**: Vendor must pass audit requirements\n\nNon-compliant products must be removed within 4 hours of identification. IP complaints must be addressed within 24 hours."}
+        ]
+    },
+    {
+        "messages": [
+            {"role": "system", "content": SYSTEM_MESSAGE},
+            {"role": "user", "content": "How quickly must I address non-compliant products?"},
+            {"role": "assistant", "content": "Timeline requirements for non-compliance:\n\n1. **Safety/Regulatory Issues**: Remove within 4 hours\n2. **IP/Counterfeit Complaints**: Investigate and respond within 24 hours\n3. **Quality Issues** (below 3.5 stars): Evaluate immediately, work with vendor to resolve\n4. **Content Quality Failures**: Suppress listings within 72 hours until corrected\n5. **Data Breaches/Security**: Report to IT Security immediately\n\nDelayed response to compliance issues may result in category suspension or legal liability."}
+        ]
+    },
+])
+
+# Category 6: Vendor management and relationships
+training_examples.extend([
+    {
+        "messages": [
+            {"role": "system", "content": SYSTEM_MESSAGE},
+            {"role": "user", "content": "What are the vendor onboarding requirements and timeline?"},
+            {"role": "assistant", "content": "Vendor onboarding must be completed within **14 business days** of initial contact:\n\n1. **Registration**: Complete Vendor Central registration\n2. **Documentation**: Tax ID, banking details, product liability insurance certificates\n3. **Performance Agreement**: Establish SLAs for order defect rate, late shipment rate, customer satisfaction\n4. **Lead Times**: Document standard lead times for all products\n5. **Communication Protocol**: Establish primary contacts and response time expectations (2 business days)\n\nAll negotiations and agreements must be documented in the vendor management system within 48 hours."}
+        ]
+    },
+    {
+        "messages": [
+            {"role": "system", "content": SYSTEM_MESSAGE},
+            {"role": "user", "content": "How often should I conduct vendor performance reviews?"},
+            {"role": "assistant", "content": "Vendor performance review schedule:\n\n1. **Strategic Vendors** (>$500K annual revenue): **Quarterly** business reviews mandatory\n2. **All Active Vendors**: Monthly performance monitoring via dashboards\n3. **Review Metrics**: Order defect rate, late shipment rate, customer satisfaction scores, inventory health\n4. **Documentation**: All reviews must be recorded in vendor management system\n5. **Action Plans**: Performance issues require documented improvement plans\n\nVendor inquiries must receive responses within 2 business days."}
+        ]
+    },
+])
+
+# Category 7: Edge cases and scenario-based questions
+training_examples.extend([
+    {
+        "messages": [
+            {"role": "system", "content": SYSTEM_MESSAGE},
+            {"role": "user", "content": "A vendor offered me a $50 Amazon gift card for hitting sales targets. Can I accept it?"},
+            {"role": "assistant", "content": "**No, you cannot accept this gift.** The maximum gift value allowed is $25. A $50 gift card exceeds this threshold by $25 and must be declined or reported to compliance immediately.\n\nAcceptable actions:\n1. Politely decline the gift\n2. Report the offer to your compliance officer\n3. Document the incident\n\nAccepting gifts above $25 violates conflict of interest policies and could result in disciplinary action. All vendor relationships must maintain professional boundaries within established ethical guidelines."}
+        ]
+    },
+    {
+        "messages": [
+            {"role": "system", "content": SYSTEM_MESSAGE},
+            {"role": "user", "content": "I want to reduce a product price by 12% to match a competitor. Do I need approval?"},
+            {"role": "assistant", "content": "**No approval needed.** You have autonomous authority for price changes up to 15%, and a 12% reduction falls within your decision-making authority.\n\nBest practices:\n1. Document the competitive rationale in pricing system\n2. Verify the change maintains minimum 25% category gross margin\n3. Configure appropriate min/max guardrails in automated pricing tools\n4. Monitor impact on margin and sales performance\n\nIf the price change would be 16% or more, you would need senior leadership approval before proceeding."}
+        ]
+    },
+    {
+        "messages": [
+            {"role": "system", "content": SYSTEM_MESSAGE},
+            {"role": "user", "content": "A product has been out of stock for 5 days. What are my obligations?"},
+            {"role": "assistant", "content": "**You have exceeded the 72-hour stockout limit.** Required actions:\n\n1. **Immediate**: Submit root cause analysis explaining the stockout\n2. **Corrective Action Plan**: Document steps to prevent recurrence\n3. **Vendor Communication**: Contact vendor immediately to expedite restocking\n4. **Leadership Notification**: Inform senior leadership of extended stockout\n5. **Impact Assessment**: Calculate lost sales and customer impact\n\nFor top 100 revenue-generating ASINs, maintaining 95%+ in-stock rate is mandatory. Extended stockouts (>72 hours) may trigger performance improvement plans. Consider emergency expedited shipping with finance approval if necessary."}
+        ]
+    },
+    {
+        "messages": [
+            {"role": "system", "content": SYSTEM_MESSAGE},
+            {"role": "user", "content": "I'm considering a new product with 2.8 stars, 18% return rate, but 28% margin. Should I add it?"},
+            {"role": "assistant", "content": "**No, this product does not meet selection criteria** and should not be added:\n\n**Failing criteria:**\n1. ❌ **Rating**: 2.8 stars (minimum 3.0 required)\n2. ❌ **Return Rate**: 18% (maximum 15% allowed)\n\n**Passing criteria:**\n1. ✓ **Margin**: 28% (exceeds 25% minimum)\n\nEven though the margin is attractive, quality and customer satisfaction standards are mandatory. Adding this product would likely result in:\n- Poor customer experience\n- Increased return processing costs\n- Potential category rating impact\n- Listing suppression after quality reviews\n\n**Recommendation**: Work with vendor to improve product quality and customer satisfaction before reconsidering."}
+        ]
+    },
+])
+
+# Category 8: Launch and promotional planning
+training_examples.extend([
+    {
+        "messages": [
+            {"role": "system", "content": SYSTEM_MESSAGE},
+            {"role": "user", "content": "What's required for launching a new brand or product line?"},
+            {"role": "assistant", "content": "New brand/product line launches require comprehensive planning **8 weeks prior** to go-live:\n\n**Launch Plan Requirements:**\n1. **Marketing Strategy**: Target audience, positioning, promotional calendar\n2. **Inventory Positioning**: Initial stock quantities, fulfillment plan, lead time buffers\n3. **Success Metrics**: Sales targets, traffic goals, conversion benchmarks\n4. **Cross-Functional Review**: Approval from marketing, merchandising, operations teams\n5. **Content Readiness**: Product listings meeting quality standards (5+ images, detailed descriptions)\n\n**Post-Launch (30 days):**\n1. Daily performance monitoring\n2. Weekly status updates to leadership\n3. 72-hour response window for optimization needs (pricing, content, promotions)\n4. Performance adjustments if below projections\n\nLaunches without proper planning may face delays or rejection."}
+        ]
+    },
+    {
+        "messages": [
+            {"role": "system", "content": SYSTEM_MESSAGE},
+            {"role": "user", "content": "What are the requirements for Lightning Deals?"},
+            {"role": "assistant", "content": "Lightning Deal requirements:\n\n1. **Discount**: Minimum 20% off regular price\n2. **Inventory**: Sufficient stock to support 4-hour run time\n3. **Planning**: Submit deal structures to merchandising team minimum 6 weeks in advance\n4. **Acceptance Target**: 85% or higher deal acceptance rate\n5. **Margin Protection**: Deal must not violate 25% category gross margin floor\n\n**Best Practices:**\n- Select high-velocity items with proven demand\n- Ensure inventory accuracy to avoid stockouts during deal\n- Monitor performance in real-time during 4-hour window\n- Document learnings for future deal optimization"}
+        ]
+    },
+])
+
+# Category 9: Data security and confidentiality
+training_examples.extend([
+    {
+        "messages": [
+            {"role": "system", "content": SYSTEM_MESSAGE},
+            {"role": "user", "content": "What information must I keep confidential?"},
+            {"role": "assistant", "content": "Classified as **Confidential - No Disclosure**:\n\n1. **Vendor Pricing Agreements**: Margin data, negotiated rates, volume discounts\n2. **Strategic Planning**: Category roadmaps, competitive strategies, financial projections\n3. **Competitive Intelligence**: Pricing analysis, assortment gaps, competitor data\n4. **System Access**: Vendor Central credentials, retail analytics, pricing tools\n5. **Vendor Business Data**: Sales volumes, performance metrics, financial health\n\n**Prohibited Actions:**\n- Sharing competitive information between vendors\n- Discussing one vendor's terms with another\n- Disclosing internal margin targets or pricing strategies\n- Using vendor data for unauthorized purposes\n\nBreach of confidentiality may result in termination and legal action. Report suspected data breaches to IT Security immediately."}
+        ]
+    },
+])
+
+# Category 10: Reporting and documentation
+training_examples.extend([
+    {
+        "messages": [
+            {"role": "system", "content": SYSTEM_MESSAGE},
+            {"role": "user", "content": "What documentation is required for policy exceptions?"},
+            {"role": "assistant", "content": "Exception request process:\n\n1. **Formal Submission**: Use official exception request form\n2. **Business Justification**: Clear rationale with expected benefits\n3. **Risk Assessment**: Document potential impacts and mitigation strategies\n4. **Financial Impact**: Quantify P&L effect if applicable\n5. **Duration**: Temporary exceptions valid maximum 90 days\n6. **Compliance Log**: All exceptions must be documented in category compliance log\n\n**Review Process:**\n- Tactical exceptions (<$100K impact): Senior manager approval\n- Strategic exceptions (>$100K impact): Leadership committee review\n- Legal/Compliance exceptions: Legal department sign-off required\n\nExpired exceptions revert to standard policy automatically. Renewal requires new submission."}
+        ]
+    },
+])
+
+# Category 11: Training and certification requirements
+training_examples.extend([
+    {
+        "messages": [
+            {"role": "system", "content": SYSTEM_MESSAGE},
+            {"role": "user", "content": "What training and certification do I need to complete?"},
+            {"role": "assistant", "content": "Mandatory training requirements:\n\n1. **Initial Certification**: Complete within first 30 days of role\n2. **Passing Score**: 85% minimum on all assessments\n3. **Annual Refresher**: Required yearly to maintain certification\n4. **Topics Covered**:\n   - Vendor management and ethics\n   - Pricing and margin management\n   - Compliance and regulatory requirements\n   - Data security and confidentiality\n   - Product selection criteria\n   - Performance metrics and reporting\n\n**Consequences of Non-Compliance:**\n- Access restrictions to critical systems\n- Performance improvement plan\n- Potential role reassignment\n\nTraining records are maintained in HR system and audited quarterly."}
+        ]
+    },
+])
+
+# Category 12: Forecast and demand planning
+training_examples.extend([
+    {
+        "messages": [
+            {"role": "system", "content": SYSTEM_MESSAGE},
+            {"role": "user", "content": "What are the demand forecasting requirements?"},
+            {"role": "assistant", "content": "Monthly demand forecasting requirements:\n\n1. **Submission Deadline**: 15th of each month to supply chain team\n2. **Accuracy Target**: Minimum 80% forecast accuracy vs. actual sales\n3. **Required Components**:\n   - Unit and revenue forecasts by SKU\n   - Seasonal adjustments and promotional impacts\n   - New product launch projections\n   - Risk factors and contingency plans\n4. **Communication**: Notify vendors and logistics partners of significant demand shifts\n5. **Lead Time Management**: Place purchase orders with sufficient lead time to prevent stockouts\n\n**Performance Tracking:**\nConsistent forecast accuracy below 80% triggers additional training or process review. Accurate forecasting is critical for maintaining 95%+ in-stock rates."}
+        ]
+    },
+])
+
+# Add more examples for margin management
+training_examples.extend([
+    {
+        "messages": [
+            {"role": "system", "content": SYSTEM_MESSAGE},
+            {"role": "user", "content": "My category margin dropped to 23%. What should I do?"},
+            {"role": "assistant", "content": "**You are below the 25% minimum margin threshold.** Immediate actions required:\n\n1. **Document Variance**: Prepare detailed explanation for weekly review\n2. **Senior Leadership Approval**: Seek approval for exception or corrective plan\n3. **Root Cause Analysis**: Identify factors causing margin erosion:\n   - Excessive promotional discounting?\n   - Unfavorable vendor terms?\n   - Mix shift toward lower-margin items?\n   - Competitive pricing pressure?\n4. **Corrective Action Plan**: Submit plan to restore 25%+ margin within defined timeline\n5. **Weekly Monitoring**: Track margin recovery progress in weekly reports\n\n**Options to Improve Margin:**\n- Renegotiate vendor terms\n- Optimize promotional strategy\n- Adjust pricing (within 15% autonomous authority)\n- Product mix optimization (promote higher-margin items)\n\nConsecutive weeks below threshold may trigger strategic review or loss-leader positioning approval."}
+        ]
+    },
+])
+
+print(f"Generated {len(training_examples)} training examples")
+
+# Save training data in JSONL format for OpenAI fine-tuning
+output_dir = Path("training_data")
+output_dir.mkdir(exist_ok=True)
+
+output_file = output_dir / "compliance_finetuning_gpt4o_mini.jsonl"
+
+with open(output_file, 'w', encoding='utf-8') as f:
+    for example in training_examples:
+        f.write(json.dumps(example) + '\n')
+
+print(f"\n✅ Training data saved to: {output_file}")
+print(f"📊 Total examples: {len(training_examples)}")
+print(f"📝 Format: OpenAI fine-tuning JSONL")
+print(f"🎯 Target model: gpt-4o-mini-2024-07-18")
+
+# Validate format
+print("\n🔍 Validating format...")
+with open(output_file, 'r', encoding='utf-8') as f:
+    for i, line in enumerate(f, 1):
+        try:
+            data = json.loads(line)
+            assert "messages" in data
+            assert len(data["messages"]) >= 2
+            assert all(msg.get("role") in ["system", "user", "assistant"] for msg in data["messages"])
+        except Exception as e:
+            print(f"❌ Error in line {i}: {e}")
+            break
+    else:
+        print("✅ All examples validated successfully!")
+
+print("\n📋 Example preview (first 2 training examples):")
+with open(output_file, 'r', encoding='utf-8') as f:
+    for i, line in enumerate(f):
+        if i >= 2:
+            break
+        example = json.loads(line)
+        print(f"\n--- Example {i+1} ---")
+        print(f"User: {example['messages'][1]['content'][:100]}...")
+        print(f"Assistant: {example['messages'][2]['content'][:150]}...")
+
+print("\n✅ Ready for fine-tuning! Use this file with OpenAI's fine-tuning API.")

@@ -119,12 +119,6 @@ function CitationsList({ citations }) {
                         Page {citation.page_number}
                       </span>
                     )}
-                    <span
-                      className={`text-xs px-2 py-0.5 rounded-md ${scoreColors.bg} ${scoreColors.text} border ${scoreColors.border} font-medium`}
-                    >
-                      {getRelevanceLabel(citation.score)} ·{" "}
-                      {(citation.score * 100).toFixed(0)}%
-                    </span>
                   </div>
                 </div>
 

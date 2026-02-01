@@ -102,9 +102,10 @@ def retrieve_relevant_chunks(
     if doc_ids:
         filter_dict = {"doc_id": {"$in": doc_ids}}
     
-    # Step 3: Query Pinecone (get more results for hybrid search)
+    # Step 3: Query Pinecone (get more results for better matching)
     index = get_pinecone_index()
-    fetch_k = top_k * 2 if use_hybrid else top_k
+    # Fetch more candidates for better selection
+    fetch_k = top_k * 3 if use_hybrid else top_k * 2
     
     results = index.query(
         vector=query_embedding,
@@ -114,8 +115,8 @@ def retrieve_relevant_chunks(
         namespace=""
     )
     
-    # Step 4: Apply hybrid search scoring if enabled
-    if use_hybrid and results.matches:
+    # Step 4: Always apply improved scoring for better relevance
+    if results.matches:
         results.matches = _apply_hybrid_scoring(query, results.matches)
         # Re-sort by combined score and take top_k
         results.matches = results.matches[:top_k]
@@ -165,6 +166,7 @@ def retrieve_relevant_chunks(
 def _apply_hybrid_scoring(query: str, matches: List) -> List:
     """
     Apply hybrid scoring by combining semantic similarity with keyword matching.
+    Enhanced with better keyword weighting and context relevance.
     
     Args:
         query: User question
@@ -177,12 +179,21 @@ def _apply_hybrid_scoring(query: str, matches: List) -> List:
     stop_words = {
         'a', 'an', 'the', 'is', 'are', 'was', 'were', 'be', 'been', 'being',
         'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could',
-        'what', 'which', 'who', 'when', 'where', 'why', 'how',
-        'and', 'or', 'but', 'if', 'for', 'of', 'to', 'from', 'in', 'on', 'at', 'by'
+        'what', 'which', 'who', 'when', 'where', 'why', 'how', 'should',
+        'and', 'or', 'but', 'if', 'for', 'of', 'to', 'from', 'in', 'on', 'at', 'by', 'with'
     }
     
+    query_lower = query.lower()
     query_words = set(word.lower() for word in re.findall(r'\b\w+\b', query) 
                       if word.lower() not in stop_words and len(word) > 2)
+    
+    # Extract important query phrases (2-3 word combinations)
+    query_phrases = []
+    words_list = [w for w in re.findall(r'\b\w+\b', query) if w.lower() not in stop_words and len(w) > 2]
+    for i in range(len(words_list) - 1):
+        query_phrases.append(f"{words_list[i]} {words_list[i+1]}".lower())
+        if i < len(words_list) - 2:
+            query_phrases.append(f"{words_list[i]} {words_list[i+1]} {words_list[i+2]}".lower())
     
     if not query_words:
         return matches
@@ -194,19 +205,49 @@ def _apply_hybrid_scoring(query: str, matches: List) -> List:
         
         # Calculate keyword overlap score
         keyword_overlap = len(query_words & text_words)
-        keyword_score = keyword_overlap / len(query_words) if query_words else 0
+        keyword_score = min(1.0, keyword_overlap / max(1, len(query_words)))
         
-        # Boost for exact phrase matches
-        phrase_boost = 0.1 if query.lower() in text else 0
+        # Boost for exact phrase matches (stronger weight)
+        phrase_boost = 0.0
+        if query_lower in text:
+            phrase_boost = 0.15  # Exact full query match
+        else:
+            # Check for partial phrase matches
+            phrase_matches = sum(1 for phrase in query_phrases if phrase in text)
+            phrase_boost = min(0.10, phrase_matches * 0.03)
         
-        # Combine scores: 70% semantic, 25% keyword, 5% phrase boost
+        # Boost for keyword proximity (keywords appearing close together)
+        proximity_boost = 0.0
+        if keyword_overlap >= 2:
+            positions = []
+            for word in query_words:
+                if word in text:
+                    # Find position of word in text
+                    idx = text.find(word)
+                    if idx != -1:
+                        positions.append(idx)
+            
+            if len(positions) >= 2:
+                positions.sort()
+                # If keywords are within 100 characters, boost relevance
+                if positions[-1] - positions[0] < 100:
+                    proximity_boost = 0.05
+        
+        # Enhanced scoring: 60% semantic, 25% keyword, 10% phrase, 5% proximity
         semantic_score = match.score
-        combined_score = (semantic_score * 0.70) + (keyword_score * 0.25) + phrase_boost
+        combined_score = (
+            semantic_score * 0.60 + 
+            keyword_score * 0.25 + 
+            phrase_boost + 
+            proximity_boost
+        )
         
         # Store combined score (update the match object)
         match.score = combined_score
         match._semantic_score = semantic_score  # Keep original for debugging
         match._keyword_score = keyword_score
+        match._phrase_boost = phrase_boost
+        match._proximity_boost = proximity_boost
         scored_matches.append(match)
     
     # Sort by combined score descending

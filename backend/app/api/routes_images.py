@@ -172,8 +172,21 @@ async def upload_image(
         description = None
         if generate_description:
             try:
-                logger.info(f"Generating AI description with {vision_provider} vision model...")
-                description = generate_image_description_for_indexing(content, vision_provider)
+                # Auto-fallback to OpenAI if Ollama is not available
+                actual_provider = vision_provider
+                if vision_provider.lower() == "ollama":
+                    try:
+                        import httpx
+                        response = httpx.get("http://localhost:11434/api/tags", timeout=2.0)
+                        if response.status_code != 200:
+                            logger.warning("Ollama not available, falling back to OpenAI")
+                            actual_provider = "openai"
+                    except Exception:
+                        logger.warning("Ollama not available, falling back to OpenAI")
+                        actual_provider = "openai"
+                
+                logger.info(f"Generating AI description with {actual_provider} vision model...")
+                description = generate_image_description_for_indexing(content, actual_provider)
                 logger.info(f"AI description generated successfully: {description[:100]}...")
             except Exception as e:
                 logger.error(f"Vision description failed with error: {e}. Continuing without description.")

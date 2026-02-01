@@ -25,8 +25,8 @@ if %errorlevel% neq 0 (
 )
 
 echo.
-echo [START] Starting Backend Server (Port 8001)...
-start "Backend - Policy RAG API" cmd /k "cd /d "%~dp0backend" && python -m uvicorn app.main:app --host 0.0.0.0 --port 8001"
+echo [START] Starting Backend Server (Port 8005)...
+start "Backend - Policy RAG API" cmd /k "cd /d "%~dp0backend" && python -m uvicorn app.main:app --host 0.0.0.0 --port 8005"
 timeout /t 5 >nul
 
 echo [START] Starting Frontend Dev Server (Port 5173)...
@@ -37,9 +37,9 @@ echo.
 echo ======================================================================
 echo   Services Started Successfully!
 echo ======================================================================
-echo   Backend:  http://localhost:8001
+echo   Backend:  http://localhost:8005
 echo   Frontend: http://localhost:5173
-echo   API Docs: http://localhost:8001/docs
+echo   API Docs: http://localhost:8005/docs
 echo.
 echo   Press any key to open the app in your browser...
 echo ======================================================================

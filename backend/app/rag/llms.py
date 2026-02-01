@@ -175,10 +175,10 @@ def get_streaming_llm(provider: str, model: Optional[str] = None) -> Any:
             raise ValueError("OpenAI API key not configured")
         return ChatOpenAI(
             api_key=settings.openai_api_key,
-            model=model or settings.openai_chat_model,
+            model="gpt-4o-mini",  # Use GPT-4o-mini explicitly
             temperature=0,
             streaming=True,
-            max_tokens=800  # Cost optimization: limit response length
+            max_tokens=1024
         )
     
     elif provider == "anthropic":

@@ -16,7 +16,11 @@ services:
     ports:
       - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-policyrag} -d ${POSTGRES_DB:-policyrag}"]
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-policyrag} -d ${POSTGRES_DB:-policyrag}",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -31,20 +35,24 @@ services:
     container_name: policy-rag-backend
     restart: unless-stopped
     environment:
-      # Database - use Docker PostgreSQL
-      DATABASE_URL: postgresql://${POSTGRES_USER:-policyrag}:${POSTGRES_PASSWORD:-policyrag_secret_123}@postgres:5432/${POSTGRES_DB:-policyrag}
-      
+      # Database - use Neon (same as local) or Docker PostgreSQL
+      DATABASE_URL: ${DATABASE_URL:-postgresql://${POSTGRES_USER:-policyrag}:${POSTGRES_PASSWORD:-policyrag_secret_123}@postgres:5432/${POSTGRES_DB:-policyrag}}
+
       # API Keys (from .env.docker)
       OPENAI_API_KEY: ${OPENAI_API_KEY}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       PINECONE_API_KEY: ${PINECONE_API_KEY}
       PINECONE_ENVIRONMENT: ${PINECONE_ENVIRONMENT:-}
       PINECONE_INDEX_NAME: ${PINECONE_INDEX_NAME:-contract-policy-rag}
-      
+
+      # Embeddings
+      OPENAI_EMBED_MODEL: ${OPENAI_EMBED_MODEL:-text-embedding-3-large}
+      EMBED_DIM: ${EMBED_DIM:-3072}
+
       # App settings
       DEBUG: "false"
       CORS_ORIGINS: '["http://localhost", "http://localhost:80", "http://localhost:3000"]'
-      
+
       # Redis (optional)
       REDIS_URL: ${REDIS_URL:-}
     ports:

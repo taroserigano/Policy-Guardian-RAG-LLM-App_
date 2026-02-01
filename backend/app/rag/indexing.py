@@ -201,6 +201,7 @@ def extract_text_from_docx(file_path: str) -> str:
 def chunk_text(text: str) -> List[str]:
     """
     Split text into chunks using RecursiveCharacterTextSplitter.
+    Uses section-aware separators for better document structure preservation.
     
     Args:
         text: Full document text
@@ -208,10 +209,21 @@ def chunk_text(text: str) -> List[str]:
     Returns:
         List of text chunks
     """
+    # Section-aware separators - prioritize keeping sections together
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=settings.chunk_size,
         chunk_overlap=settings.chunk_overlap,
-        separators=["\n\n", "\n", ". ", " ", ""]
+        separators=[
+            "\n\n\n",  # Multiple newlines (section breaks)
+            "\n\n",    # Paragraph breaks
+            "\n",      # Line breaks
+            ". ",      # Sentence boundaries
+            "; ",      # Clause boundaries
+            ", ",      # Phrase boundaries
+            " ",       # Word boundaries
+            ""         # Character fallback
+        ],
+        keep_separator=True  # Keep separators for context
     )
     chunks = splitter.split_text(text)
     logger.info(f"Split text into {len(chunks)} chunks")
