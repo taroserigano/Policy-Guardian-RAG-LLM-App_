@@ -404,12 +404,15 @@ Both environments work independently - your local setup remains unchanged!
 - **Anthropic** - Claude 3 models with vision capabilities
 - **Dynamic Switching** - Change providers mid-conversation
 
-### 🖼️ Multimodal Analysis (NEW!)
+### 🖼️ Multimodal Analysis - CLIP Library 
 
 - **Image Upload & Analysis** - Vision models for policy compliance checks
 - **PDF Native Viewing** - In-browser PDF rendering with base64 storage
 - **Image Descriptions** - Auto-generated descriptions stored with metadata
 - **Combined Context** - Query images + documents simultaneously
+
+<img width="3795" height="1861" alt="image" src="https://github.com/user-attachments/assets/0a99e8f7-6ac7-40f3-bbef-4074b4aedca3" />
+
 
 ### 📊 Fine-Tuned Model Integration
 
