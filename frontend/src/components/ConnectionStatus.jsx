@@ -15,7 +15,9 @@ function ConnectionStatus() {
   const checkApiHealth = useCallback(async () => {
     try {
       setIsChecking(true);
-      const response = await fetch(`${API_BASE_URL}/health`, {
+      // Use /api prefix for Vite proxy
+      const healthUrl = API_BASE_URL ? `${API_BASE_URL}/health` : "/api/health";
+      const response = await fetch(healthUrl, {
         method: "GET",
         signal: AbortSignal.timeout(5000),
       });

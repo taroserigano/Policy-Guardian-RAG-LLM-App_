@@ -3,7 +3,9 @@ Configuration settings loaded from environment variables.
 All settings are typed and validated using Pydantic.
 """
 from pydantic_settings import BaseSettings
+from pydantic import field_validator
 from functools import lru_cache
+import json
 
 
 class Settings(BaseSettings):
@@ -35,6 +37,12 @@ class Settings(BaseSettings):
     openai_api_key: str = ""
     openai_chat_model: str = "gpt-4o-mini"
     openai_embed_model: str = "text-embedding-3-small"
+    finetuned_model_id: str = ""  # Fine-tuned GPT model ID (e.g., ft:gpt-4o-mini-2024-07-18:...)
+    
+    @property
+    def active_openai_model(self) -> str:
+        """Return fine-tuned model if available, otherwise base model."""
+        return self.finetuned_model_id if self.finetuned_model_id else self.openai_chat_model
     
     # Anthropic
     anthropic_api_key: str = ""
@@ -65,7 +73,18 @@ class Settings(BaseSettings):
     top_k: int = 5  # More results for better matching
     
     # CORS
-    cors_origins: list[str] = ["http://localhost:5173", "http://localhost:5174", "http://localhost:5175", "http://localhost:8000"]
+    cors_origins: list[str] | str = ["http://localhost:5173"]
+    
+    @field_validator('cors_origins', mode='before')
+    @classmethod
+    def parse_cors_origins(cls, v):
+        """Parse CORS_ORIGINS from JSON string if needed."""
+        if isinstance(v, str):
+            try:
+                return json.loads(v)
+            except json.JSONDecodeError:
+                return [v]
+        return v
     
     class Config:
         env_file = ".env"

@@ -120,6 +120,7 @@ backend/models/
 # Training data (if large)
 training_data/*.bin
 training_data/*.pt
+training_data/finetuned_model_id.txt
 
 # Playwright
 frontend/test-results/

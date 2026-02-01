@@ -135,7 +135,7 @@ def get_llm(provider: str, model: Optional[str] = None) -> Any:
             raise ValueError("OpenAI API key not configured")
         return ChatOpenAI(
             api_key=settings.openai_api_key,
-            model=model or settings.openai_chat_model,
+            model=model or settings.active_openai_model,  # Use fine-tuned model if available
             temperature=0,  # Deterministic for legal/compliance use case
             max_tokens=800  # Cost optimization: limit response length
         )
