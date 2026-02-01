@@ -1,5 +1,7 @@
 # Enterprise Policy RAG System
 
+<img width="3771" height="1852" alt="image" src="https://github.com/user-attachments/assets/4081cfed-83bd-46df-b8d3-99553f9b00b1" />
+
 > Full-stack production application demonstrating advanced AI/ML engineering, system design, and modern web development practices
 
 [![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=flat&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
