@@ -1,4 +1,4 @@
-# Enterprise Policy RAG System
+# Enterprise Policy RAG System (includes FINE TUNING with QLora)
 
 <img width="3771" height="1852" alt="image" src="https://github.com/user-attachments/assets/4081cfed-83bd-46df-b8d3-99553f9b00b1" />
 
@@ -178,6 +178,11 @@ EventSource → Parse stream → Update UI state → Display tokens
 - Dress code compliance checks (image + policy document)
 - Visual verification against written procedures
 - Automated policy violation detection
+
+**Business Attire**
+<img width="3766" height="2131" alt="image" src="https://github.com/user-attachments/assets/ea76c17c-7972-4b16-a773-878e87916d63" />
+
+<img width="3786" height="1852" alt="image" src="https://github.com/user-attachments/assets/2dbb6dae-4a24-46cf-aee4-16f8c82dd615" />
 
 ---
 
