@@ -61,6 +61,11 @@
 
 ---
 
+## Chat Response Example 
+<img width="3413" height="1828" alt="image" src="https://github.com/user-attachments/assets/c96def82-0b8a-41c6-9eb4-ca513dd16fce" />
+
+
+
 ## 💼 Technical Achievements & Problem Solving
 
 ### 1. Custom LLM Fine-Tuning (70% Accuracy Improvement)
