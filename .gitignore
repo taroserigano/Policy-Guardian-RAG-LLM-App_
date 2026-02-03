@@ -98,6 +98,10 @@ ollama_data/
 *.temp
 e2e_output.txt
 test_results.txt
+test_output.txt
+server.log
+uvicorn.log
+evaluation_results*.json
 
 # Sample documents (may contain sensitive data)
 backend/sample_docs/*.pdf

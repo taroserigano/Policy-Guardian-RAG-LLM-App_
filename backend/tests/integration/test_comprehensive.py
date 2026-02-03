@@ -13,7 +13,9 @@ from unittest.mock import Mock, patch, AsyncMock
 # Add backend to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from app.core.config import settings
+from app.core.config import get_settings
+
+settings = get_settings()
 
 
 class TestEmbeddings:

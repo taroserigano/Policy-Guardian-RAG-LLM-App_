@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Notebooks
+.ipynb_checkpoints/
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Hugging Face / training caches
+.cache/
+wandb/
+
+# Training artifacts (keep scripts/config only)
+outputs/
+final/
+
+# Large model files
+*.gguf
+*.bin
+*.safetensors
+
+# Local model folders
+policy-llama*/
+policy-compliance-llm*/
+
+# Data generated locally
+/data/raw/
+/data/processed/
+
+# Secrets
+.env
+
+# Workspace artifacts
+nul
