@@ -157,16 +157,13 @@ async def upload_image(
                 message="Duplicate image found, returning existing entry"
             )
         
-        # Generate CLIP embedding
+        # Generate CLIP embedding (gracefully skip if CLIP/PyTorch not available)
+        clip_embedding = None
         logger.info(f"Generating CLIP embedding for image: {file.filename}")
         try:
             clip_embedding = embed_image(content)
         except Exception as e:
-            logger.error(f"CLIP embedding failed: {e}")
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Failed to generate image embedding"
-            )
+            logger.warning(f"CLIP embedding unavailable (non-fatal): {e}. Image will be stored without vector embedding.")
         
         # Generate description with vision model (optional)
         description = None
