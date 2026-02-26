@@ -1,8 +1,9 @@
 /**
- * PDF Viewer component using iframe with Google Docs Viewer as fallback
- * Displays PDFs in their native format for better readability
+ * PDF Viewer component using iframe with blob URL
+ * Fetches PDFs via JS fetch() and renders via blob URL to avoid
+ * self-signed certificate issues in iframe loading.
  */
-import { useState, useEffect, memo } from "react";
+import { useState, useEffect, useRef, memo } from "react";
 import { createPortal } from "react-dom";
 import {
   X,
@@ -13,27 +14,70 @@ import {
   ZoomOut,
   RotateCw,
 } from "lucide-react";
+import { API_BASE_URL } from "../api/client";
 
 function PdfViewer({ docId, filename, isOpen, onClose }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [zoom, setZoom] = useState(100);
+  const [blobUrl, setBlobUrl] = useState(null);
+  const blobUrlRef = useRef(null);
 
-  const pdfUrl = `http://localhost:8001/api/docs/${docId}/file`;
+  const pdfUrl = API_BASE_URL
+    ? `${API_BASE_URL}/api/docs/${docId}/file`
+    : `/api/docs/${docId}/file`;
 
+  // Fetch PDF as blob to avoid iframe self-signed cert issues
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && docId) {
       setLoading(true);
       setError(null);
       document.body.style.overflow = "hidden";
+
+      // Revoke previous blob URL
+      if (blobUrlRef.current) {
+        URL.revokeObjectURL(blobUrlRef.current);
+        blobUrlRef.current = null;
+      }
+
+      fetch(pdfUrl)
+        .then((res) => {
+          if (!res.ok) throw new Error("Failed to load PDF");
+          return res.blob();
+        })
+        .then((blob) => {
+          const url = URL.createObjectURL(blob);
+          blobUrlRef.current = url;
+          setBlobUrl(url);
+          setLoading(false);
+        })
+        .catch((err) => {
+          setError(err.message || "Failed to load PDF. Please try downloading instead.");
+          setLoading(false);
+        });
     } else {
       document.body.style.overflow = "unset";
+      // Clean up blob URL when closed
+      if (blobUrlRef.current) {
+        URL.revokeObjectURL(blobUrlRef.current);
+        blobUrlRef.current = null;
+        setBlobUrl(null);
+      }
     }
 
     return () => {
       document.body.style.overflow = "unset";
     };
-  }, [isOpen]);
+  }, [isOpen, docId, pdfUrl]);
+
+  // Clean up blob URL on unmount
+  useEffect(() => {
+    return () => {
+      if (blobUrlRef.current) {
+        URL.revokeObjectURL(blobUrlRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const handleEscape = (e) => {
@@ -53,18 +97,9 @@ function PdfViewer({ docId, filename, isOpen, onClose }) {
 
   const handleDownload = () => {
     const link = document.createElement("a");
-    link.href = pdfUrl;
+    link.href = blobUrl || pdfUrl;
     link.download = filename;
     link.click();
-  };
-
-  const handleIframeLoad = () => {
-    setLoading(false);
-  };
-
-  const handleIframeError = () => {
-    setError("Failed to load PDF. Please try downloading instead.");
-    setLoading(false);
   };
 
   if (!isOpen) return null;
@@ -153,15 +188,13 @@ function PdfViewer({ docId, filename, isOpen, onClose }) {
                 </button>
               </div>
             </div>
-          ) : (
+          ) : blobUrl ? (
             <iframe
-              src={`${pdfUrl}#toolbar=1&navpanes=1&scrollbar=1`}
+              src={`${blobUrl}#toolbar=1&navpanes=1&scrollbar=1`}
               className="w-full h-full border-0"
               title={filename}
-              onLoad={handleIframeLoad}
-              onError={handleIframeError}
             />
-          )}
+          ) : null}
         </div>
 
         {/* Footer with tips */}
